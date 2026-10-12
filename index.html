@@ -114,7 +114,8 @@ function connectSelected(){
 clearInterval(heartbeatTimer);
 heartbeatTimer = setInterval(() => {
   if (socket && socket.readyState === 1) socket.send("PING");
-}, 10000);;$("selectedFeed").textContent="Subscribed to selected match";setFeed("Connected","Waiting for first price message")};
+}, 10000);$("selectedFeed").textContent="Subscribed to selected match";setFeed("Connected","Waiting for first price message");
+setFeed("Connected","Waiting for first price message");};$("selectedFeed").textContent="Subscribed to selected match";setFeed("Connected","Waiting for first price message")};
  socket.onmessage=ev=>{if(ev.data==="PONG"||!ev.data)return;let d;try{d=JSON.parse(ev.data)}catch{return}let list=Array.isArray(d)?d:[d], changed=false;
   for(let msg of list){if(msg.event_type==="price_change"&&Array.isArray(msg.price_changes)){for(let p of msg.price_changes){let id=String(p.asset_id||"");if(!id)continue;let ask=Number(p.best_ask),bid=Number(p.best_bid),last=Number(p.price);let val=Number.isFinite(ask)&&ask>0?ask:Number.isFinite(last)&&last>0?last:Number.isFinite(bid)&&bid>0?bid:null;if(val!==null){livePrices.set(id,{price:val,source:Number.isFinite(ask)&&ask>0?"Live best ask":"Live market price",time:Date.now()});changed=true}}}
    let id=String(msg.asset_id||"");if(id&&msg.event_type==="book"){let asks=Array.isArray(msg.asks)?msg.asks:[],bids=Array.isArray(msg.bids)?msg.bids:[];let ask=asks.length?Number(asks[0].price):null,bid=bids.length?Number(bids[0].price):null;let val=Number.isFinite(ask)&&ask>0?ask:Number.isFinite(bid)&&bid>0?bid:null;if(val!==null){livePrices.set(id,{price:val,source:Number.isFinite(ask)&&ask>0?"Live best ask":"Live best bid",time:Date.now()});changed=true}}
