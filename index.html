@@ -338,31 +338,7 @@ function findBookmakerEvent(market) {
       text.includes(away);
   });
 }
-
-function renderBookmakerOdds(market) {
-  const event = findBookmakerEvent(market);
-
-  if (!event || !event.bookmakers?.length) {
-    return `
-      <div class="meta">
-        <span>UK bookmaker odds unavailable for this match</span>
-      </div>`;
-  }
-
-  const rows = event.bookmakers.map(book => {
-    const marketOdds = (book.markets || [])
-      .find(item => item.key === "h2h");
-
-    if (!marketOdds) return "";
-
-    const outcomes = marketOdds.outcomes.map(outcome => `
-      <div class="odd">
-        <small>${esc(outcome.name)}</small>
-        <strong>${Number(outcome.price).toFixed(2)}</strong>
-        <small>Decimal odds</small>
-      </div>
-      
-window.bookmakerEvents = window.bookmakerEvents || [];
+  window.bookmakerEvents = window.bookmakerEvents || [];
 
 function normalizeTeamName(value) {
   return String(value || "")
@@ -390,13 +366,7 @@ function renderBookmakerOdds(market) {
   const event = findBookmakerEvent(market);
 
   if (!event || !event.bookmakers?.length) {
-    return `
-      <div class="meta">
-        <span>UK bookmaker odds unavailable for this match</span>
-      </div>`;
-           `).join("");
-
-    return `                                      
+    return "";
   }
 
   const rows = event.bookmakers.map(book => {
@@ -415,14 +385,21 @@ function renderBookmakerOdds(market) {
 
     return `
       <div class="sub">${esc(book.title)}</div>
-<div class="odds">${outcomes}</div>`;
-}).join("");
-return `
-  <div class="bookmaker-section">
-    <div class="question">UK Bookmaker Odds</div>
-    ${rows || "<div>No head-to-head odds available.</div>"}
-  </div>`;
+      <div class="odds">${outcomes}</div>
+    `;
+  }).join("");
+
+  if (!rows) return "";
+
+  return `
+    <div class="bookmaker-section">
+      <div class="question">UK Bookmaker Odds</div>
+      ${rows}
+    </div>
+  `;
 }
+
+
 function render() {
   const query = $("search").value.trim().toLowerCase();
   const sort = $("sort").value;
