@@ -84,470 +84,496 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 12px}
 <section id="list"><div class="empty">Loading sports markets…</div></section>
 </main>
 <footer>Market data from Polymarket's public API. Probabilities are market prices, not guaranteed outcomes.</footer>
+
+
 <script>
+
 "use strict";
+
 const API = "https://gamma-api.polymarket.com";
+
 const $ = id => document.getElementById(id);
+
 let markets = [];
+
 let filter = "All";
+
 let busy = false;
-function num(value) {
- const n = Number(value);
- return Number.isFinite(n) ? n : 0;
-}
-function parse(value) {
- if (Array.isArray(value)) return value;
- try {
-  return JSON.parse(value || "[]");
- } catch {
-  return [];
- }
-}
-function listValues(value) {
- if (Array.isArray(value)) {
-  return value.map(String).map(x => x.trim()).filter(Boolean);
- }
- return String(value || "")
-  .split(",")
-  .map(x => x.trim())
-  .filter(Boolean);
-}
-function tagText(value) {
- return parse(value).map(item => {
-  if (typeof item === "string") return item;
-  return [
-   item.label,
-   item.slug,
-   item.name
-  ].filter(Boolean).join(" ");
- }).join(" ");
-}
-function searchText(m) {
- return [
-  m.question,
-  m.title,
-  m.slug,
-  m.eventTitle,
-  m.eventSlug,
-  m.seriesTitle,
-  tagText(m.tags)
- ].filter(Boolean).join(" ").toLowerCase();
-}
-function isActive(m) {
- return m &&
-  m.closed !== true &&
-  m.active !== false &&
-  m.archived !== true;
-}
-function normalize(m, sport) {
-  const outcomes = parse(m.outcomes);
-  const prices = parse(m.outcomePrices);
 
-  const yesIndex = outcomes.findIndex(
-    x => String(x).toLowerCase() === "yes"
-  );
-  const noIndex = outcomes.findIndex(
-    x => String(x).toLowerCase() === "no"
-  );
+function parse(v) {
 
-  let yes = num(prices[yesIndex >= 0 ? yesIndex : 0]);
-  let no = num(prices[noIndex >= 0 ? noIndex : 1]);
+  if (Array.isArray(v)) return v;
 
-  if (yes > 1) yes /= 100;
-  if (no > 1) no /= 100;
+  try { return JSON.parse(v || "[]"); } catch { return []; }
 
-  return {
-    ...m,
-    _cat: sport,
-    _yes: yes,
-    _no: no,
-    _outcomeA: outcomes[0] || "YES",
-    _outcomeB: outcomes[1] || "NO",
-    _yesOdds: yes > 0 && yes <= 1 ? 1 / yes : null,
-    _noOdds: no > 0 && no <= 1 ? 1 / no : null,
-    _volume: num(m.volume24hr || m.volume_24hr || m.volume),
-    _updated: m.updatedAt || m.updated_at || m.createdAt || ""
-  };
 }
-function marketKey(m) {
- return String(m.id || m.conditionId || m.slug || m.question || "");
-}
-async function get(url) {
- const controller = new AbortController();
- const timer = setTimeout(() => controller.abort(), 20000);
- try {
-  const response = await fetch(url, {
-   headers: {Accept: "application/json"},
-   signal: controller.signal,
-   cache: "no-store"
-  });
-  if (!response.ok) {
-   throw new Error("API HTTP " + response.status);
-  }
-  const data = await response.json();
-  if (!Array.isArray(data)) {
-   throw new Error("Unexpected API response");
-  }
-  return data;
- } finally {
-  clearTimeout(timer);
- }
-}
-function money(value) {
- const v = num(value);
- if (v >= 1e6) return "$" + (v / 1e6).toFixed(2) + "M";
- if (v >= 1000) return "$" + (v / 1000).toFixed(1) + "K";
- return "$" + Math.round(v).toLocaleString();
-}
-function pct(value) {
- return Number.isFinite(value) && value >= 0 && value <= 1
-  ? (value * 100).toFixed(1) + "%"
-  : "—";
-}
-function decimalOdds(value) {
- return value > 0 && value <= 1
-  ? (1 / value).toFixed(2)
-  : "—";
-}
-function esc(value) {
- return String(value ?? "").replace(/[&<>"']/g, char => ({
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;"
- })[char]);
-}
-/*
- Sports metadata is used to discover sport-specific event series
- and tag IDs. The category comes from the metadata query that
- returned the event, not from the market description.
-*/
-function sportName(value) {
- return String(value || "")
-  .toLowerCase()
-  .replace(/[^a-z0-9]/g, "");
-}
-function getSportCategory(sport) {
- const name = sportName(
-  sport.sport || sport.name || sport.slug || sport.title
- );
- if (["cricket", "ipl", "t20", "odi"].includes(name)) {
-  return "Cricket";
- }
- if (["tennis", "atp", "wta"].includes(name)) {
-  return "Tennis";
- }
- if (["soccer", "football"].includes(name)) {
-  return "Soccer";
- }
- if (["mma", "ufc", "mixedmartialarts"].includes(name)) {
-  return "MMA";
- }
- return null;
-}
-function addEventMarkets(event, category, destination) {
- if (!event || !isActive(event)) return;
- const eventTags = event.tags || [];
- parse(event.markets).forEach(m => {
-  if (!isActive(m)) return;
-  const item = normalize({
-   ...m,
-   eventTitle: event.title || m.eventTitle,
-   eventSlug: event.slug || m.eventSlug,
-   seriesTitle: event.seriesTitle || m.seriesTitle,
-   tags: m.tags && parse(m.tags).length
-    ? m.tags
-    : eventTags
-  }, category);
-  const key = marketKey(item);
-  if (key) destination.set(key, item);
- });
-}
-async function fetchEventsFor(category, kind, id) {
- const query = kind === "series"
-  ? "series_id=" + encodeURIComponent(id)
-  : "tag_id=" + encodeURIComponent(id);
- const events = await get(
-  API + "/events?" + query +
-  "&active=true&closed=false&limit=100&offset=0"
- );
- return events.map(event => ({event, category}));
-}
-async function loadSportsFromMetadata() {
- const sports = await get(API + "/sports");
- const targets = sports
-  .map(sport => ({
-   sport,
-   category: getSportCategory(sport)
-  }))
-  .filter(item => item.category);
- if (!targets.length) {
-  throw new Error("No supported sports found in metadata");
- }
- const requests = new Map();
- targets.forEach(({sport, category}) => {
-  const seriesIds = listValues(sport.series);
-  const tagIds = listValues(sport.tags);
-  seriesIds.forEach(id => {
-   if (!/^\d+$/.test(id)) return;
-   const key = category + "|series|" + id;
-   requests.set(key, {category, kind: "series", id});
-  });
-  tagIds.forEach(id => {
-   if (!/^\d+$/.test(id)) return;
-   const key = category + "|tag|" + id;
-   requests.set(key, {category, kind: "tag", id});
-  });
- });
- if (!requests.size) {
-  throw new Error("No sport series or tag IDs available");
- }
- const jobs = [...requests.values()];
- const results = await Promise.allSettled(
-  jobs.map(job =>
-   fetchEventsFor(job.category, job.kind, job.id)
-  )
- );
- const collected = new Map();
- let successfulQueries = 0;
- results.forEach(result => {
-  if (result.status !== "fulfilled") return;
-  successfulQueries++;
-  result.value.forEach(({event, category}) => {
-   addEventMarkets(event, category, collected);
-  });
- });
- if (!successfulQueries || !collected.size) {
-  throw new Error("No events found using sports metadata");
- }
- return [...collected.values()];
-}
-function classifyEvent(event, market) {
-  const tags = [
-    tagText(event.tags),
-    tagText(market.tags)
-  ].join(" ").toLowerCase();
 
-  const title = [
-    event.title,
-    event.slug,
-    event.seriesTitle,
-    market.question,
-    market.title,
-    market.slug
+function num(v) {
+
+  const n = Number(v);
+
+  return Number.isFinite(n) ? n : 0;
+
+}
+
+function esc(v) {
+
+  return String(v ?? "").replace(/[&<>"']/g, c => ({
+
+    "&":"&amp;", "<":"&lt;", ">":"&gt;",
+
+    '"':"&quot;", "'":"&#39;"
+
+  })[c]);
+
+}
+
+function money(v) {
+
+  v = num(v);
+
+  if (v >= 1e6) return "$" + (v / 1e6).toFixed(2) + "M";
+
+  if (v >= 1000) return "$" + (v / 1000).toFixed(1) + "K";
+
+  return "$" + Math.round(v).toLocaleString();
+
+}
+
+function odds(price) {
+
+  price = num(price);
+
+  if (price > 1 && price <= 100) price /= 100;
+
+  return price > 0 && price <= 1
+
+    ? (1 / price).toFixed(2)
+
+    : "—";
+
+}
+
+function pct(price) {
+
+  price = num(price);
+
+  if (price > 1 && price <= 100) price /= 100;
+
+  return price > 0 && price <= 1
+
+    ? (price * 100).toFixed(1) + "%"
+
+    : "—";
+
+}
+
+function active(x) {
+
+  return x &&
+
+    x.active !== false && x.active !== "false" &&
+
+    x.closed !== true && x.closed !== "true" &&
+
+    x.archived !== true && x.archived !== "true";
+
+}
+
+function textOfTags(v) {
+
+  return parse(v).map(t =>
+
+    typeof t === "string"
+
+      ? t
+
+      : [t?.label, t?.name, t?.slug].filter(Boolean).join(" ")
+
+  ).join(" ");
+
+}
+
+function categoryOf(event, market) {
+
+  const text = [
+
+    event.title, event.slug, event.seriesTitle,
+
+    market.question, market.title, market.slug,
+
+    textOfTags(event.tags), textOfTags(market.tags)
+
   ].filter(Boolean).join(" ").toLowerCase();
 
-  const text = title + " " + tags;
+  if (/\b(cricket|ipl|t20|odi|ashes|wpl)\b/.test(text))
 
-  if (/\b(cricket|ipl|t20|odi|ashes|wpl)\b/i.test(text)) {
     return "Cricket";
-  }
 
-  if (/\b(tennis|atp|wta|wimbledon|roland garros|us open tennis)\b/i.test(text)) {
+  if (/\b(tennis|atp|wta|wimbledon|roland garros)\b/.test(text))
+
     return "Tennis";
-  }
 
-  if (/\b(soccer|football|premier league|la liga|bundesliga|serie a|mls|uefa|fifa)\b/i.test(text)) {
-    return "Soccer";
-  }
+  if (/\b(ufc|mma|mixed martial arts)\b/.test(text))
 
-  if (/\b(ufc|mma|mixed martial arts)\b/i.test(text)) {
     return "MMA";
-  }
+
+  if (/\b(soccer|football|premier league|la liga|bundesliga|serie a|mls|uefa|fifa)\b/.test(text))
+
+    return "Soccer";
 
   return null;
+
 }
 
-async function loadFallbackEvents() {
-  const offsets = [0, 500, 1000, 1500, 2000];
+/* Keep match markets, exclude season and tournament futures. */
 
-  const results = await Promise.allSettled(
-    offsets.map(offset =>
-      get(
-        API +
-        "/events?active=true&closed=false" +
-        "&order=volume_24hr&ascending=false" +
-        "&limit=500&offset=" + offset
-      )
-    )
-  );
+function isMatchMarket(event, market) {
 
-  const events = results.flatMap(result =>
-    result.status === "fulfilled" ? result.value : []
-  );
+  const title = [
 
-  if (!events.length) {
-    throw new Error("Could not retrieve active events");
-  }
+    event.title, event.slug, market.question,
 
-  const collected = new Map();
+    market.title, market.slug
 
-  events.forEach(event => {
-    if (!isActive(event)) return;
+  ].filter(Boolean).join(" ").toLowerCase();
 
-    parse(event.markets).forEach(market => {
-      if (!isActive(market)) return;
+  if (/\b(champion|championship winner|league winner|season winner|win the league|win the tournament|top scorer|relegated|qualify for the playoffs|regular season wins)\b/i.test(title))
 
-      const category = classifyEvent(event, market);
-      if (!category) return;
+    return false;
 
-      addEventMarkets(
-        { ...event, markets: [market] },
-        category,
-        collected
-      );
-    });
-  });
+  const matchPattern =
 
-  return [...collected.values()];
+    /\b(vs\.?|versus)\b|head.to.head|match winner|win this match|winner of this match/i;
+
+  const hasMatchTitle = matchPattern.test(title);
+
+  /* Allow player/team winner questions when the event is clearly a matchup. */
+
+  const eventTitle = String(event.title || "").toLowerCase();
+
+  const matchup = /\b(vs\.?|versus)\b/.test(eventTitle);
+
+  return hasMatchTitle || matchup;
+
 }
-async function load() {
-  if (busy) return;
-  busy = true;
-  $("refresh").disabled = true;
-  $("status").textContent = "Loading sports markets…";
-  const withTimeout = (promise, ms) =>
-    Promise.race([
-      promise,
-      new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Request timed out")), ms)
-      )
-    ]);
+
+async function fetchEvents(offset) {
+
+  const controller = new AbortController();
+
+  const timer = setTimeout(() => controller.abort(), 18000);
+
   try {
-    let loaded;
-    try {
-      loaded = await withTimeout(loadSportsFromMetadata(), 15000);
-    } catch (error) {
-      console.warn("Metadata fetch failed:", error);
-      $("status").textContent = "Trying fallback sports data…";
-      loaded = await withTimeout(loadFallbackEvents(), 20000);
-    }
-    markets = loaded.filter(m =>
-      ["Cricket", "Tennis", "Soccer", "MMA"].includes(m._cat)
-    );
-    $("count").textContent = markets.length.toLocaleString();
-    $("volume").textContent = money(
-      markets.reduce((sum, m) => sum + m._volume, 0)
-    );
-    $("updated").textContent = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit"
+
+    const url = API +
+
+      "/events?active=true&closed=false&limit=100&offset=" +
+
+      offset + "&order=volume_24hr&ascending=false";
+
+    const response = await fetch(url, {
+
+      signal: controller.signal,
+
+      cache: "no-store",
+
+      headers: { Accept: "application/json" }
+
     });
-    $("status").textContent =
-      "Connected · " + markets.length + " sports markets loaded";
-    render();
-  } catch (error) {
-    console.error("Sports loading failed:", error);
-    $("status").textContent =
-      "Loading failed: " + error.message + ". Tap Refresh to retry.";
-    $("list").innerHTML =
-      '<div class="empty">Sports data could not load. Please tap Refresh to retry.</div>';
+
+    if (!response.ok) throw new Error("API HTTP " + response.status);
+
+    const data = await response.json();
+
+    if (!Array.isArray(data)) throw new Error("Unexpected API response");
+
+    return data;
+
   } finally {
-    busy = false;
-    $("refresh").disabled = false;
+
+    clearTimeout(timer);
+
   }
 
 }
-function render() {
-  const query = $("search").value.trim().toLowerCase();
 
-  let list = markets.filter(m =>
-    (filter === "All" || m._cat === filter) &&
-    searchText(m).includes(query)
-  );
+function getOutcomes(market) {
+
+  const outcomes = parse(market.outcomes);
+
+  const prices = parse(market.outcomePrices);
+
+  return outcomes.map((name, i) => ({
+
+    name: String(name),
+
+    price: num(prices[i])
+
+  })).filter(x => x.price > 0 && x.price <= 1);
+
+}
+
+function prepareMarkets(events) {
+
+  const result = new Map();
+
+  for (const event of events) {
+
+    if (!active(event)) continue;
+
+    for (const market of parse(event.markets)) {
+
+      if (!active(market)) continue;
+
+      const category = categoryOf(event, market);
+
+      if (!category || !isMatchMarket(event, market)) continue;
+
+      const outcomes = getOutcomes(market);
+
+      if (outcomes.length < 2) continue;
+
+      const key = String(market.id || market.conditionId || market.slug || market.question || "");
+
+      if (!key) continue;
+
+      result.set(key, {
+
+        id: key,
+
+        category,
+
+        question: market.question || market.title || event.title || "Match market",
+
+        eventTitle: event.title || "",
+
+        eventSlug: event.slug || market.slug || "",
+
+        outcomes,
+
+        volume: num(market.volume24hr || market.volume_24hr || market.volume),
+
+        liquidity: num(market.liquidity),
+
+        updated: market.updatedAt || market.updated_at || ""
+
+      });
+
+    }
+
+  }
+
+  return [...result.values()];
+
+}
+
+function render() {
+
+  const query = $("search").value.trim().toLowerCase();
 
   const sort = $("sort").value;
 
+  const list = markets.filter(m =>
+
+    (filter === "All" || m.category === filter) &&
+
+    (m.question + " " + m.eventTitle + " " + m.category)
+
+      .toLowerCase().includes(query)
+
+  );
+
   list.sort((a, b) => {
-    if (sort === "question") {
-      return String(a.question || a.title || "")
-        .localeCompare(String(b.question || b.title || ""));
-    }
 
-    if (sort === "newest") {
-      return String(b._updated).localeCompare(String(a._updated));
-    }
+    if (sort === "question")
 
-    return b._volume - a._volume;
+      return a.question.localeCompare(b.question);
+
+    if (sort === "newest")
+
+      return String(b.updated).localeCompare(String(a.updated));
+
+    return b.volume - a.volume;
+
   });
 
   if (!list.length) {
+
     $("list").innerHTML =
-      '<div class="empty">No matching markets found.<br>' +
-      'Try another sport filter or search term.</div>';
+
+      '<div class="empty">No player/team match markets found in the events retrieved. Try another sport or refresh.</div>';
+
     return;
+
   }
 
   $("list").innerHTML = list.map(m => {
-    const question = m.question || m.title || "Untitled market";
-    const slug = m.slug || m.eventSlug;
 
-    const url = slug
-      ? "https://polymarket.com/event/" + encodeURIComponent(slug)
+    const url = m.eventSlug
+
+      ? "https://polymarket.com/event/" + encodeURIComponent(m.eventSlug)
+
       : "https://polymarket.com";
 
-    const oddsA = m._yes > 0 && m._yes <= 1
-      ? (1 / m._yes).toFixed(2)
-      : "—";
+    const outcomesHTML = m.outcomes.map((o, i) => `
 
-    const oddsB = m._no > 0 && m._no <= 1
-      ? (1 / m._no).toFixed(2)
-      : "—";
+      <div class="odd ${i === 0 ? "yes" : "no"}">
+
+        <small>${esc(o.name)}</small>
+
+        <strong>${pct(o.price)}</strong>
+
+        <small>Decimal odds: ${odds(o.price)}</small>
+
+      </div>
+
+    `).join("");
 
     return `
+
       <article class="card">
+
         <div class="cardtop">
-          <span class="tag">${esc(m._cat)}</span>
-          <span class="volume">24H VOL ${money(m._volume)}</span>
+
+          <span class="tag">${esc(m.category)}</span>
+
+          <span class="volume">24H VOL ${money(m.volume)}</span>
+
         </div>
 
-        <div class="question">${esc(question)}</div>
+        <div class="question">${esc(m.eventTitle || m.question)}</div>
 
-        <div class="odds">
-          <div class="odd yes">
-            <small>${esc(m._outcomeA || "YES")} probability</small>
-            <strong>${pct(m._yes)}</strong>
-            <small>Decimal odds: ${oddsA}</small>
-          </div>
+        <div class="sub">${esc(m.question)}</div>
 
-          <div class="odd no">
-            <small>${esc(m._outcomeB || "NO")} probability</small>
-            <strong>${pct(m._no)}</strong>
-            <small>Decimal odds: ${oddsB}</small>
-          </div>
-        </div>
-
-        <div class="bar">
-          <span style="width:${Math.max(0, Math.min(100, m._yes * 100))}%"></span>
-        </div>
+        <div class="odds">${outcomesHTML}</div>
 
         <div class="meta">
-          <span>Liquidity: ${money(num(m.liquidity))}</span>
-          <span>${m.closed ? "Closed" : "Active"}</span>
+
+          <span>Liquidity: ${money(m.liquidity)}</span>
+
+          <span>Active</span>
+
         </div>
 
-        <a class="link" href="${url}" target="_blank"
-           rel="noopener noreferrer">Open market ↗</a>
+        <a class="link" href="${url}" target="_blank" rel="noopener noreferrer">
+
+          Open market ↗
+
+        </a>
+
       </article>`;
+
   }).join("");
+
 }
+
+async function load() {
+
+  if (busy) return;
+
+  busy = true;
+
+  $("refresh").disabled = true;
+
+  $("status").textContent = "Loading player/team match markets…";
+
+  $("list").innerHTML = '<div class="empty">Fetching active markets…</div>';
+
+  try {
+
+    const offsets = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900];
+
+    const responses = await Promise.allSettled(
+
+      offsets.map(fetchEvents)
+
+    );
+
+    const events = responses.flatMap(r =>
+
+      r.status === "fulfilled" ? r.value : []
+
+    );
+
+    if (!events.length)
+
+      throw new Error("API unavailable. Check connection and retry.");
+
+    markets = prepareMarkets(events);
+
+    $("count").textContent = markets.length.toLocaleString();
+
+    $("volume").textContent = money(
+
+      markets.reduce((sum, m) => sum + m.volume, 0)
+
+    );
+
+    $("updated").textContent = new Date().toLocaleTimeString([], {
+
+      hour: "2-digit", minute: "2-digit"
+
+    });
+
+    $("status").textContent = markets.length
+
+      ? "Connected · " + markets.length + " match markets loaded"
+
+      : "Connected to API, but no matching markets were found in the retrieved events.";
+
+    render();
+
+  } catch (error) {
+
+    console.error(error);
+
+    $("status").textContent = "Loading failed: " + error.message;
+
+    $("list").innerHTML =
+
+      '<div class="empty">Could not retrieve markets. Tap Refresh to retry.</div>';
+
+  } finally {
+
+    busy = false;
+
+    $("refresh").disabled = false;
+
+  }
+
 }
+
 $("refresh").addEventListener("click", load);
+
 $("search").addEventListener("input", render);
+
 $("sort").addEventListener("change", render);
+
 $("filters").addEventListener("click", event => {
- const button = event.target.closest("button[data-filter]");
- if (!button) return;
- filter = button.dataset.filter;
- $("filters").querySelectorAll("button").forEach(item =>
-  item.classList.toggle("active", item === button)
- );
- render()
+
+  const button = event.target.closest("button[data-filter]");
+
+  if (!button) return;
+
+  filter = button.dataset.filter;
+
+  $("filters").querySelectorAll("button").forEach(item => {
+
+    item.classList.toggle("active", item === button);
+
+  });
+
+  render();
+
+});
+
 load();
+
 setInterval(() => {
- if (!document.hidden) load();
+
+  if (!document.hidden) load();
+
 }, 60000);
+
 </script>
-</body>
-</html>
