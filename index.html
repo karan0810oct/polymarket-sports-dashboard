@@ -106,16 +106,70 @@ function connectSelected(){
  let ids=[...new Set(selected.markets.flatMap(tokens).map(t=>t.id))];
  if(!ids.length){setFeed("No tokens","No outcome token IDs available");return}
  setFeed("Connecting",`${ids.length} outcome tokens`);
- try{socket=new WebSocket(WSURL);socket.onopen=()=>{if(!socket||socket.readyState!==1)return;socket.send(JSON.stringify({
-  assets_ids: ids,
-  type: "market",
-  custom_feature_enabled: true
+ try{
+socket=new WebSocket(WSURL);
+socket.onopen=()=>{
+if(!socket||socket.readyState!==1)return;
+socket.send(JSON.stringify({
+assets_ids:ids,
+type:“market”,
+custom_feature_enabled:true
 }));
 clearInterval(heartbeatTimer);
-heartbeatTimer = setInterval(() => {
-  if (socket && socket.readyState === 1) socket.send("PING");
-}, 10000);$("selectedFeed").textContent="Subscribed to selected match";setFeed("Connected","Waiting for first price message");
-setFeed("Connected","Waiting for first price message");};$("selectedFeed").textContent="Subscribed to selected match";setFeed("Connected","Waiting for first price message")};
+heartbeatTimer=setInterval(()=>{
+if(socket&&socket.readyState===1)socket.send(“PING”);
+},10000);
+$(“selectedFeed”).textContent=“Subscribed to selected match”;
+setFeed(“Connected”,“Waiting for first price message”);
+};
+if(ev.data===“PONG”||!ev.data)return;
+let d;
+try{d=JSON.parse(ev.data)}catch{return}
+let list=Array.isArray(d)?d:[d],changed=false;
+for(let msg of list){
+if(msg.event_type===“price_change”&&Array.isArray(msg.price_changes)){
+for(let p of msg.price_changes){
+let id=String(p.asset_id||””);
+if(!id)continue;
+let ask=Number(p.best_ask),bid=Number(p.best_bid),last=Number(p.price);
+let val=Number.isFinite(ask)&&ask>0?ask:Number.isFinite(last)&&last>0?last:Number.isFinite(bid)&&bid>0?bid:null;
+if(val!==null){
+livePrices.set(id,{price:val,source:Number.isFinite(ask)&&ask>0?“Live best ask”:“Live market price”,time:Date.now()});
+changed=true;
+}
+}
+}
+let id=String(msg.asset_id||””);
+if(id&&msg.event_type===“book”){
+let asks=Array.isArray(msg.asks)?msg.asks:[],bids=Array.isArray(msg.bids)?msg.bids:[];
+let ask=asks.length?Number(asks[0].price):null,bid=bids.length?Number(bids[0].price):null;
+let val=Number.isFinite(ask)&&ask>0?ask:Number.isFinite(bid)&&bid>0?bid:null;
+if(val!==null){
+livePrices.set(id,{price:val,source:Number.isFinite(ask)&&ask>0?“Live best ask”:“Live best bid”,time:Date.now()});
+changed=true;
+}
+}
+}
+if(changed){
+lastMessage=Date.now();
+$(“lastUpdate”).textContent=fmtTime(lastMessage);
+setFeed(“Live”,“Price message received “+fmtTime(lastMessage));
+$(“selectedFeed”).textContent=“Prices updating · “+fmtTime(lastMessage);
+renderDetail();
+}
+};
+socket.onerror=()=>{
+setFeed(“Error”,“WebSocket error; check network restrictions”);
+$(“selectedFeed”).textContent=“Live feed error”;
+};
+socket.onclose=()=>{
+clearInterval(heartbeatTimer);
+setFeed(“Disconnected”,lastMessage?“Last price “+fmtTime(lastMessage):“No price messages received”);
+if(selected)reconnectTimer=setTimeout(()=>{if(selected)connectSelected()},5000);
+};
+}catch(e){setFeed(“Error”,e.message)}
+} 
+  sage");};$("selectedFeed").textContent="Subscribed to selected match";setFeed("Connected","Waiting for first price message")};
  socket.onmessage=ev=>{if(ev.data==="PONG"||!ev.data)return;let d;try{d=JSON.parse(ev.data)}catch{return}let list=Array.isArray(d)?d:[d], changed=false;
   for(let msg of list){if(msg.event_type==="price_change"&&Array.isArray(msg.price_changes)){for(let p of msg.price_changes){let id=String(p.asset_id||"");if(!id)continue;let ask=Number(p.best_ask),bid=Number(p.best_bid),last=Number(p.price);let val=Number.isFinite(ask)&&ask>0?ask:Number.isFinite(last)&&last>0?last:Number.isFinite(bid)&&bid>0?bid:null;if(val!==null){livePrices.set(id,{price:val,source:Number.isFinite(ask)&&ask>0?"Live best ask":"Live market price",time:Date.now()});changed=true}}}
    let id=String(msg.asset_id||"");if(id&&msg.event_type==="book"){let asks=Array.isArray(msg.asks)?msg.asks:[],bids=Array.isArray(msg.bids)?msg.bids:[];let ask=asks.length?Number(asks[0].price):null,bid=bids.length?Number(bids[0].price):null;let val=Number.isFinite(ask)&&ask>0?ask:Number.isFinite(bid)&&bid>0?bid:null;if(val!==null){livePrices.set(id,{price:val,source:Number.isFinite(ask)&&ask>0?"Live best ask":"Live best bid",time:Date.now()});changed=true}}
@@ -126,7 +180,7 @@ setFeed("Connected","Waiting for first price message");};$("selectedFeed").textC
  socket.onclose=()=>{setFeed("Disconnected",lastMessage?"Last price "+fmtTime(lastMessage):"No price messages received");if(selected)reconnectTimer=setTimeout(()=>{if(selected)connectSelected()},5000)};
  }catch(e){setFeed("Error",e.message)}
 }
-$("search").addEventListener("input",renderList);$("sportFilter").addEventListener("change",()=>{visibleLimit=50  ;renderList()});$("refresh").addEventListener("click",discover);$("more").addEventListener("click",()=>{visibleLimit+=50 letheartbeatTimer= null;renderList()});$("liveRefresh").addEventListener("click",connectSelected);
+$("search").addEventListener("input",renderList);$("sportFilter").addEventListener("change",()=>{visibleLimit=50  ;renderList()});$("refresh").addEventListener("click",discover);$("more").addEventListener("click",()=>{visibleLimit+=50;renderList()});$("liveRefresh").addEventListener("click",connectSelected);
 setInterval(()=>{if(lastMessage&&Date.now()-lastMessage>60000){setFeed("Stale","No price messages for over 60 seconds");$("selectedFeed").textContent="Feed may be stale; reconnect or select the match again"}},5000);
 discover();
 })();
