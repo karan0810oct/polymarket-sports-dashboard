@@ -314,7 +314,112 @@ function prepareMarkets(events) {
 
   return result;
 }
+  
+window.bookmakerEvents = window.bookmakerEvents || [];
 
+function normalizeTeamName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function findBookmakerEvent(market) {
+  const text = normalizeTeamName(
+    (market.eventTitle || "") + " " +
+    (market.question || "")
+  );
+
+  return window.bookmakerEvents.find(event => {
+    const home = normalizeTeamName(event.home_team);
+    const away = normalizeTeamName(event.away_team);
+
+    return home && away &&
+      text.includes(home) &&
+      text.includes(away);
+  });
+}
+
+function renderBookmakerOdds(market) {
+  const event = findBookmakerEvent(market);
+
+  if (!event || !event.bookmakers?.length) {
+    return `
+      <div class="meta">
+        <span>UK bookmaker odds unavailable for this match</span>
+      </div>`;
+  }
+
+  const rows = event.bookmakers.map(book => {
+    const marketOdds = (book.markets || [])
+      .find(item => item.key === "h2h");
+
+    if (!marketOdds) return "";
+
+    const outcomes = marketOdds.outcomes.map(outcome => `
+      <div class="odd">
+        <small>${esc(outcome.name)}</small>
+        <strong>${Number(outcome.price).toFixed(2)}</strong>
+        <small>Decimal odds</small>
+      </div>
+      
+window.bookmakerEvents = window.bookmakerEvents || [];
+
+function normalizeTeamName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function findBookmakerEvent(market) {
+  const text = normalizeTeamName(
+    (market.eventTitle || "") + " " +
+    (market.question || "")
+  );
+
+  return window.bookmakerEvents.find(event => {
+    const home = normalizeTeamName(event.home_team);
+    const away = normalizeTeamName(event.away_team);
+
+    return home && away &&
+      text.includes(home) &&
+      text.includes(away);
+  });
+}
+
+function renderBookmakerOdds(market) {
+  const event = findBookmakerEvent(market);
+
+  if (!event || !event.bookmakers?.length) {
+    return `
+      <div class="meta">
+        <span>UK bookmaker odds unavailable for this match</span>
+      </div>`;
+  }
+
+  const rows = event.bookmakers.map(book => {
+    const marketOdds = (book.markets || [])
+      .find(item => item.key === "h2h");
+
+    if (!marketOdds) return "";
+
+    const outcomes = marketOdds.outcomes.map(outcome => `
+      <div class="odd">
+        <small>${esc(outcome.name)}</small>
+        <strong>${Number(outcome.price).toFixed(2)}</strong>
+        <small>Decimal odds</small>
+      </div>
+    `).join("");
+
+    return `
+      <div class="sub">${esc(book.title)}</div>
+<div class="odds">${outcomes}</div>`;
+}).join("");
+return `
+  <div class="bookmaker-section">
+    <div class="question">UK Bookmaker Odds</div>
+    ${rows || "<div>No head-to-head odds available.</div>"}
+  </div>`;
+}
 function render() {
   const query = $("search").value.trim().toLowerCase();
   const sort = $("sort").value;
@@ -362,7 +467,8 @@ const url = m.eventSlug
         <div class="question">${esc(m.eventTitle)}</div>
         <div class="sub">${esc(m.question)}</div>
         <div class="odds">${outcomesHTML}</div>
-        <div class="meta">
+        ${renderBookmakerOdds(m)}
+         <div class="meta">
           <span>Liquidity: ${money(m.liquidity)}</span>
           <span>Polymarket</span>
         </div>
