@@ -199,25 +199,16 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 12px}
 const API="https://gamma-api.polymarket.com";
 
 const TERMS={
-
-NFL:["nfl","super bowl","touchdown","afc","nfc","chiefs","eagles","cowboys","ravens","bills","49ers","football"],
-
-NBA:["nba","basketball","lakers","celtics","warriors","knicks","bucks","mavericks","playoffs"],
-
-MLB:["mlb","baseball","world series","yankees","dodgers","mets"],
-
-NHL:["nhl","hockey","stanley cup","oilers","bruins","rangers"],
-
-Soccer:["soccer","premier league","champions league","la liga","serie a","bundesliga","ligue 1","mls","fifa","world cup","uefa","fc barcelona","real madrid","manchester","arsenal","liverpool","inter milan","juventus"],
-
-Tennis:["tennis","atp","wta","wimbledon","french open","us open","australian open"],
-
-NCAAF:["ncaa football","college football","cfb"],
-
-NCAAB:["ncaa basketball","college basketball","march madness"],
-
-MMA:["ufc","mma","mixed martial arts"]
-
+NFL:[“nfl”,“super bowl”,“touchdown”,“afc”,“nfc”,“kansas city chiefs”,“philadelphia eagles”,“dallas cowboys”,“baltimore ravens”,“buffalo bills”,“san francisco 49ers”],
+NBA:[“nba”,“basketball”,“lakers”,“celtics”,“warriors”,“knicks”,“bucks”,“mavericks”,“nba playoffs”],
+MLB:[“mlb”,“baseball”,“world series”,“yankees”,“dodgers”,“mets”],
+NHL:[“nhl”,“hockey”,“stanley cup”,“oilers”,“bruins”,“rangers”],
+Soccer:[“soccer”,“premier league”,“champions league”,“la liga”,“serie a”,“bundesliga”,“ligue 1”,“mls”,“fifa”,“uefa”,“fc barcelona”,“real madrid”,“manchester united”,“arsenal”,“liverpool”,“juventus”,“inter milan”],
+Tennis:[“tennis”,“atp”,“wta”,“wimbledon”,“french open”,“us open”,“australian open”,“roland garros”],
+Cricket:[“cricket”,“ipl”,“t20”,“odi”,“test match”,“ashes”,“big bash”,“psl”,“pakistan super league”,“cricket world cup”,“champions trophy”,“the hundred”,“wpl”],
+NCAAF:[“ncaa football”,“college football”,“cfb”],
+NCAAB:[“ncaa basketball”,“college basketball”,“march madness”],
+MMA:[“ufc”,“mma”,“mixed martial arts”]
 };
 
 const $=id=>document.getElementById(id);
@@ -231,6 +222,9 @@ function parse(v){if(Array.isArray(v))return v;try{return JSON.parse(v||"[]")}ca
 function text(m){return [m.question,m.title,m.description,m.slug,m.eventTitle,m.seriesTitle,m.sport].filter(Boolean).join(" ").toLowerCase()}
 
 function category(m){
+ function decimalOdds(p){
+return p>0 && p<=1 ? (1/p).toFixed(2) : “—”;
+}
 
 const t=text(m);
 
@@ -369,7 +363,9 @@ return v>=1e6?"$"+(v/1e6).toFixed(2)+"M":v>=1000?"$"+(v/1000).toFixed(1)+"K":"$"
 }
 
 function pct(v){return v>0?(v*100).toFixed(1)+"%":"—"}
-
+function decimalOdds(p){
+  return p>0 && p<=1 ? (1/p).toFixed(2) : "—";
+}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 
 function render(){
@@ -408,9 +404,11 @@ return `<article class="card">
 
 <div class="odds">
 
-<div class="odd yes"><small>YES</small><strong>${pct(m._yes)}</strong></div>
+<div class="odd yes"><small>YES</small><strong>${pct(m._yes)}</strong>
+<small>Decimal odds: ${decimalOdds(m._yes)}</small></div>
 
-<div class="odd no"><small>NO</small><strong>${pct(m._no)}</strong></div>
+<div class="odd no"><small>NO</small><strong>${pct(m._no)}</strong>
+<small>Decimal odds: ${decimalOdds(m._no)}</small></div>
 
 </div>
 
