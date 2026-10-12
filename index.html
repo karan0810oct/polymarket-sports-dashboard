@@ -172,6 +172,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 12px}
 
 <button data-filter="Tennis">Tennis</button>
 
+ <button data-filter="Cricket">Cricket</button>
 <button data-filter="NCAAF">College football</button>
 
 <button data-filter="NCAAB">College basketball</button>
@@ -198,43 +199,60 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 12px}
 
 const API="https://gamma-api.polymarket.com";
 
-const TERMS={
-NFL:[“nfl”,“super bowl”,“touchdown”,“afc”,“nfc”,“kansas city chiefs”,“philadelphia eagles”,“dallas cowboys”,“baltimore ravens”,“buffalo bills”,“san francisco 49ers”],
-NBA:[“nba”,“basketball”,“lakers”,“celtics”,“warriors”,“knicks”,“bucks”,“mavericks”,“nba playoffs”],
-MLB:[“mlb”,“baseball”,“world series”,“yankees”,“dodgers”,“mets”],
-NHL:[“nhl”,“hockey”,“stanley cup”,“oilers”,“bruins”,“rangers”],
-Soccer:[“soccer”,“premier league”,“champions league”,“la liga”,“serie a”,“bundesliga”,“ligue 1”,“mls”,“fifa”,“uefa”,“fc barcelona”,“real madrid”,“manchester united”,“arsenal”,“liverpool”,“juventus”,“inter milan”],
-Tennis:[“tennis”,“atp”,“wta”,“wimbledon”,“french open”,“us open”,“australian open”,“roland garros”],
-Cricket:[“cricket”,“ipl”,“t20”,“odi”,“test match”,“ashes”,“big bash”,“psl”,“pakistan super league”,“cricket world cup”,“champions trophy”,“the hundred”,“wpl”],
-NCAAF:[“ncaa football”,“college football”,“cfb”],
-NCAAB:[“ncaa basketball”,“college basketball”,“march madness”],
-MMA:[“ufc”,“mma”,“mixed martial arts”]
+
+const TERMS = {
+  NFL: ["nfl", "super bowl", "touchdown", "afc", "nfc", "kansas city chiefs", "philadelphia eagles", "dallas cowboys", "baltimore ravens", "buffalo bills", "san francisco 49ers"],
+  NBA: ["nba", "basketball", "lakers", "celtics", "warriors", "knicks", "bucks", "mavericks"],
+  MLB: ["mlb", "baseball", "world series", "yankees", "dodgers", "mets"],
+  NHL: ["nhl", "hockey", "stanley cup", "oilers", "bruins", "rangers"],
+  Soccer: ["soccer", "premier league", "champions league", "la liga", "serie a", "bundesliga", "ligue 1", "mls", "fifa", "uefa", "fc barcelona", "real madrid", "manchester united", "arsenal", "liverpool", "juventus", "inter milan"],
+  Tennis: ["tennis", "atp", "wta", "wimbledon", "french open", "us open", "australian open", "roland garros"],
+  Cricket: ["cricket", "ipl", "t20", "odi", "test match", "ashes", "big bash", "psl", "pakistan super league", "cricket world cup", "champions trophy", "the hundred", "wpl"],
+  NCAAF: ["ncaa football", "college football", "cfb"],
+  NCAAB: ["ncaa basketball", "college basketball", "march madness"],
+  MMA: ["ufc", "mma", "mixed martial arts"]
 };
 
-const $=id=>document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-let markets=[],filter="All",busy=false;
+let markets = [], filter = "All", busy = false;
 
-const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+const num = v => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+};
 
-function parse(v){if(Array.isArray(v))return v;try{return JSON.parse(v||"[]")}catch{return []}}
-
-function text(m){return [m.question,m.title,m.description,m.slug,m.eventTitle,m.seriesTitle,m.sport].filter(Boolean).join(" ").toLowerCase()}
-
-function category(m){
- function decimalOdds(p){
-return p>0 && p<=1 ? (1/p).toFixed(2) : “—”;
+function parse(v) {
+  if (Array.isArray(v)) return v;
+  try {
+    return JSON.parse(v || "[]");
+  } catch {
+    return [];
+  }
 }
 
-const t=text(m);
+function text(m) {
+  return [
+    m.question, m.title, m.description, m.slug,
+    m.eventTitle, m.seriesTitle, m.sport
+  ].filter(Boolean).join(" ").toLowerCase();
+}
 
-for(const [k,words] of Object.entries(TERMS))if(words.some(w=>t.includes(w)))return k;
+function category(m) {
+  const t = text(m);
+  const tags = parse(m.tags)
+    .map(x => typeof x === "string" ? x : (x.label || x.slug || ""))
+    .join(" ").toLowerCase();
 
-const tags=parse(m.tags).map(x=>typeof x==="string"?x:(x.label||x.slug||"")).join(" ").toLowerCase();
+  for (const [k, words] of Object.entries(TERMS)) {
+    if (words.some(w => t.includes(w) || tags.includes(w))) {
+      return k;
+    }
+  }
 
-for(const [k,words] of Object.entries(TERMS))if(words.some(w=>tags.includes(w)))return k;
+  return "Other";
+}
 
-return "Other";
 
 }
 
