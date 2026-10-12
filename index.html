@@ -41,7 +41,7 @@ main{max-width:1050px;margin:auto;padding:20px 13px calc(30px + env(safe-area-in
 const $=id=>document.getElementById(id);
 const GAMMA="https://gamma-api.polymarket.com";
 const WSURL="wss://ws-subscriptions-clob.polymarket.com/ws/market";
-let matches=[], visibleLimit=50, selected=null, socket=null, reconnectTimer=null, lastMessage=0, discoveryBusy=false;
+let matches=[], visibleLimit=50, selected=null, socket=null, reconnectTimer=null, heartbeatTimer=null, lastMessage=0, discoveryBusy=false;
 const livePrices=new Map();
 const sportsRx=/sport|nba|wnba|nfl|nhl|mlb|ufc|mma|soccer|football|basketball|baseball|hockey|tennis|golf|cricket|rugby|f1|formula.?1|premier league|champions league|atp|wta|ncaa|olympic|esports|valorant|counter.?strike|dota|league of legends|lol\b|ipl\b|t20|test match/i;
 const fmtTime=t=>t?new Date(t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"}):"—";
