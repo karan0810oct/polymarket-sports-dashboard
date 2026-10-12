@@ -125,7 +125,7 @@ heartbeatTimer = setInterval(() => {
  socket.onclose=()=>{setFeed("Disconnected",lastMessage?"Last price "+fmtTime(lastMessage):"No price messages received");if(selected)reconnectTimer=setTimeout(()=>{if(selected)connectSelected()},5000)};
  }catch(e){setFeed("Error",e.message)}
 }
-$("search").addEventListener("input",renderList);$("sportFilter").addEventListener("change",()=>{visibleLimit=50;renderList()});$("refresh").addEventListener("click",discover);$("more").addEventListener("click",()=>{visibleLimit+=50;renderList()});$("liveRefresh").addEventListener("click",connectSelected);
+$("search").addEventListener("input",renderList);$("sportFilter").addEventListener("change",()=>{visibleLimit=50  ;renderList()});$("refresh").addEventListener("click",discover);$("more").addEventListener("click",()=>{visibleLimit+=50 letheartbeatTimer= null;renderList()});$("liveRefresh").addEventListener("click",connectSelected);
 setInterval(()=>{if(lastMessage&&Date.now()-lastMessage>60000){setFeed("Stale","No price messages for over 60 seconds");$("selectedFeed").textContent="Feed may be stale; reconnect or select the match again"}},5000);
 discover();
 })();
