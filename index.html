@@ -522,10 +522,10 @@ const oddsStatus = document.getElementById("oddsStatus");
 if (oddsKeyInput && saveOddsButton && oddsStatus) {
   oddsKeyInput.value =
     localStorage.getItem("oddsApiKey") || "";
-
   saveOddsButton.addEventListener("click", () => {
     const key = oddsKeyInput.value.trim();
 
+}
     if (!key) {
       oddsStatus.textContent = "Please enter your API key.";
       return;
