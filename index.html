@@ -315,6 +315,8 @@ jobs.push(get(API+"/markets?closed=false&limit=100&offset="+offset)
 }
 
 let pages=await Promise.all(jobs);
+ console.log("API pages:", pages.length);
+console.log("Markets received:", pages.flat().length);
 
 let all=pages.flat().filter(active);
 
