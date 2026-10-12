@@ -79,6 +79,18 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 12px}
 <button data-filter="Tennis">Tennis</button>
 <button data-filter="Soccer">Soccer / Football</button>
 <button data-filter="MMA">MMA / UFC</button>
+
+<div class="api-key-box">
+  <label for="oddsApiKey">The Odds API Key</label>
+  <input
+    id="oddsApiKey"
+    type="password"
+    placeholder="Paste your API key"
+    autocomplete="off"
+  />
+  <button id="saveOddsKey" type="button">Load UK Bookmaker Odds</button>
+  <p id="oddsStatus">API key not entered</p>
+</div>
 </nav>
 <div class="status" id="status" role="status">Connecting to Polymarket…</div>
 <section id="list"><div class="empty">Loading sports markets…</div></section>
@@ -417,6 +429,44 @@ load();
 setInterval(() => {
   if (!document.hidden) load();
 }, 60000);
+ 
+    $("status").textContent = markets.length
+      ? "Connected · " + markets.length + " matching markets loaded · refreshes every 60 seconds"
+      : "API connected, but no markets matched the current match filters.";
+
+    render();
+  } catch (error) {
+    console.error(error);
+    $("status").textContent = "Loading failed: " + error.message;
+    $("list").innerHTML =
+      '<div class="empty">Could not load Polymarket markets. Check the API connection and tap Refresh to retry.</div>';
+  } finally {
+    busy = false;
+    $("refresh").disabled = false;
+  }
+}
+
+$("refresh").addEventListener("click", load);
+$("search").addEventListener("input", render);
+$("sort").addEventListener("change", render);
+
+$("filters").addEventListener("click", event => {
+  const button = event.target.closest("button[data-filter]");
+  if (!button) return;
+
+  filter = button.dataset.filter;
+
+  $("filters").querySelectorAll("button").forEach(item => {
+    item.classList.toggle("active", item === button);
+  });
+
+  render();
+});
+
+load();
+setInterval(() => {
+  if (!document.hidden) load();
+}, 60000); 
 </script>
 </body>
 </html>
