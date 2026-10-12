@@ -310,7 +310,7 @@ const jobs=[];
 
 for(let offset=0;offset<500;offset+=100){
 
-jobs.push(get(API+"/markets?active=true&closed=false&limit=100&offset="+offset)
+jobs.push(get(API+"/markets?closed=false&limit=100&offset="+offset)
 
 .then(data=>Array.isArray(data)?data:[])
 
