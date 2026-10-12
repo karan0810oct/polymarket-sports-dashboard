@@ -265,12 +265,12 @@ async function fetchEvents(offset) {
   const timer = setTimeout(() => controller.abort(), 18000);
 
   try {
+  
+const url = API +
+  "/events?active=true&closed=false&limit=100&offset=" +
+  offset;
 
-    const url = API +
-
-      "/events?active=true&closed=false&limit=100&offset=" +
-
-      offset + "&order=volume_24hr&ascending=false";
+    
 
     const response = await fetch(url, {
 
