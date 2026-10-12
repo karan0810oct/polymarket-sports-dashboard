@@ -52,7 +52,14 @@ function sport(e){let text=tagsText(e)+" "+[e.sport,e.league,e.title,e.slug].fil
 function tokens(m){let ids=arr(m.clobTokenIds||m.clob_token_ids), outs=arr(m.outcomes), initial=arr(m.outcomePrices||m.outcome_prices);return ids.map((id,i)=>({id:String(id),name:outs[i]||"Outcome "+(i+1),initial:initial[i]!==undefined?Number(initial[i]):null}))}
 function isSportEvent(e){return !!sport(e)}
 function slugUrl(m,e){let slug=e?.slug||m?.slug;return slug?"https://polymarket.com/event/"+encodeURIComponent(slug):"https://polymarket.com"}
-async function getJson(url){let r=await fetch(url,{headers:{accept:"application/json"}});if(!r.ok)throw Error("HTTP "+r.status);return r.json()}
+async function getJson(url){
+let r=await fetch(url,{headers:{accept:“application/json”},cache:“no-store”});
+if(!r.ok){
+let body=await r.text().catch(()=>””);
+throw Error(“HTTP “+r.status+” “+new URL(url).pathname+”: “+body.slice(0,300));
+}
+return r.json();
+}
 async function discover(){
  if(discoveryBusy)return;discoveryBusy=true;$("refresh").disabled=true;$("discoveryStatus").textContent="Loading event pages…";let byId=new Map(), pageSize=100, maxPages=15;
  try{
