@@ -524,13 +524,11 @@ if (oddsKeyInput && saveOddsButton && oddsStatus) {
     localStorage.getItem("oddsApiKey") || "";
   saveOddsButton.addEventListener("click", () => {
     const key = oddsKeyInput.value.trim();
-
-}
+                                  
     if (!key) {
       oddsStatus.textContent = "Please enter your API key.";
       return;
     }
-
     localStorage.setItem("oddsApiKey", key);
     oddsStatus.textContent = "API key saved in this browser.";
   });
