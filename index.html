@@ -328,9 +328,14 @@ function render() {
   }
 
   $("list").innerHTML = list.map(m => {
-    const url = m.eventSlug
-      ? "https://polymarket.com/event/" + encodeURIComponent(m.eventSlug)
-      : "https://polymarket.com";
+    const url = eventSlug: String(
+  event.slug ||
+  market.eventSlug ||
+  market.slug ||
+  ""
+),
+  ? "https://polymarket.com/event/" + m.eventSlug
+  : "https://polymarket.com";
 
     const outcomesHTML = m.outcomes.map(o => `
       <div class="odd">
