@@ -185,67 +185,119 @@ function esc(s) {
   "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
  })[c]);
 }
+function classifySport(m) {
+ const tags = parse(m.tags).map(x =>
+  typeof x === "string" ? x : (x.label || x.slug || x.name || "")
+ ).join(" ");
+ // Do NOT classify using market descriptions.
+ const text = [
+  m.question, m.title, m.slug, m.eventTitle,
+  m.eventSlug, m.seriesTitle, tags
+ ].filter(Boolean).join(" ").toLowerCase();
+ const has = words => words.some(word => {
+  if (word.length <= 4) {
+   const safe = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+   return new RegExp("(^|[^a-z0-9])" + safe + "([^a-z0-9]|$)", "i").test(text);
+  }
+  return text.includes(word);
+ });
+ if (has([
+  "cricket", "ipl", "t20", "odi", "test match",
+  "ashes", "big bash", "pakistan super league",
+  "champions trophy", "cricket world cup",
+  "the hundred", "wpl"
+ ])) return "Cricket";
+ if (has([
+  "tennis", "atp", "wta", "wimbledon",
+  "french open", "us open", "australian open",
+  "roland garros"
+ ])) return "Tennis";
+ if (has([
+  "soccer", "premier league", "champions league",
+  "la liga", "serie a", "bundesliga", "ligue 1",
+  "mls", "fifa", "uefa", "real madrid",
+  "manchester united", "manchester city",
+  "arsenal", "liverpool", "fc barcelona",
+  "inter milan", "juventus", "world cup qualifier"
+ ])) return "Soccer";
+ if (has([
+  "ufc", "mma", "mixed martial arts"
+ ])) return "MMA";
+ return "Other";
+}
 async function load() {
  if (busy) return;
  busy = true;
  $("refresh").disabled = true;
- $("status").textContent = "Connecting to Polymarket API…";
+ $("status").textContent = "Loading selected sports…";
  try {
-  const offsets = [0,100,200,300,400];
+  const offsets = [0, 100, 200, 300, 400];
   const results = await Promise.allSettled(
    offsets.map(offset =>
-    get(API + "/markets?closed=false&limit=100&offset=" + offset)
+    get(API +
+     "/markets?active=true&closed=false&limit=100&offset=" +
+     offset)
    )
   );
   let all = results.flatMap(result =>
    result.status === "fulfilled" ? result.value : []
   );
-  const failedPages = results.filter(result => result.status === "rejected").length;
+  const failedPages = results.filter(
+   result => result.status === "rejected"
+  ).length;
   if (!all.length) {
-   $("status").textContent = "Markets endpoint failed; trying events endpoint…";
-   const events = await get(API + "/events?active=true&closed=false&limit=100&offset=0");
+   $("status").textContent = "Trying sports events…";
+   const events = await get(
+    API + "/events?active=true&closed=false&limit=100"
+   );
    all = events.flatMap(event =>
     parse(event.markets).map(m => ({
      ...m,
      eventTitle: event.title,
-     seriesTitle: event.seriesTitle
+     eventSlug: event.slug,
+     seriesTitle: event.seriesTitle,
+     tags: m.tags || event.tags || []
     }))
    );
   }
-  all = all.filter(isActive);
   const unique = new Map();
-  all.map(normalize)
-   .filter(m => m._cat !== "Other")
-   .forEach(m => unique.set(marketKey(m), m));
+  all.filter(isActive).forEach(m => {
+   const item = normalize(m);
+   // Replace the old description-based category.
+   item._cat = classifySport(m);
+   if (item._cat === "Other") return;
+   unique.set(marketKey(item), item);
+  });
   markets = [...unique.values()];
   $("count").textContent = markets.length.toLocaleString();
   $("volume").textContent = money(
    markets.reduce((sum, m) => sum + m._volume, 0)
   );
   $("updated").textContent = new Date().toLocaleTimeString([], {
-   hour:"2-digit", minute:"2-digit"
+   hour: "2-digit",
+   minute: "2-digit"
   });
   if (markets.length) {
    $("status").textContent =
-    "Connected · " + markets.length + " sports markets loaded" +
-    (failedPages ? " · " + failedPages + " API pages failed" : "");
+    "Connected · " + markets.length +
+    " selected sports markets loaded" +
+    (failedPages ? " · " + failedPages + " pages failed" : "");
    render();
   } else {
-   $("status").textContent = failedPages === results.length
-    ? "API requests failed. Check connection and tap Refresh."
-    : "API responded, but no matching sports markets were found.";
+   $("status").textContent =
+    "No matching sports markets found. Try Refresh.";
    $("list").innerHTML =
-    '<div class="empty">No sports markets found in the API results.<br>Tap Refresh to try again.</div>';
+    '<div class="empty">No matching Cricket, Tennis, Soccer or MMA markets found. Tap Refresh to try again.</div>';
   }
  } catch (error) {
   const message = error.name === "AbortError"
    ? "Request timed out"
    : error.message;
-  $("status").textContent = "Could not connect: " + message + ". Tap Refresh to retry.";
+  $("status").textContent =
+   "Could not connect: " + message + ". Tap Refresh to retry.";
   $("list").innerHTML =
    '<div class="empty">Could not load markets.<br>' +
-   'The API may be temporarily unavailable or blocked by the browser.<br>' +
-   'Tap Refresh to try again.</div>';
+   'Check your connection and tap Refresh.</div>';
  } finally {
   busy = false;
   $("refresh").disabled = false;
@@ -258,16 +310,20 @@ function render() {
   marketText(m).includes(query)
  );
  const sort = $("sort").value;
- list.sort((a,b) =>
+ list.sort((a, b) =>
   sort === "question"
-   ? String(a.question || a.title).localeCompare(String(b.question || b.title))
+   ? String(a.question || a.title || "").localeCompare(
+      String(b.question || b.title || "")
+     )
    : sort === "newest"
-    ? String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))
+    ? String(b.updatedAt || "").localeCompare(
+       String(a.updatedAt || "")
+      )
     : b._volume - a._volume
  );
  if (!list.length) {
   $("list").innerHTML =
-   '<div class="empty">No matching sports markets found.<br>Try another filter or search term.</div>';
+   '<div class="empty">No matching markets found. Try another filter or search.</div>';
   return;
  }
  $("list").innerHTML = list.map(m => {
@@ -295,12 +351,15 @@ function render() {
       <small>Decimal odds: ${decimalOdds(m._no)}</small>
      </div>
     </div>
-    <div class="bar"><span style="width:${Math.max(0,Math.min(100,m._yes*100))}%"></span></div>
+    <div class="bar">
+     <span style="width:${Math.max(0, Math.min(100, m._yes * 100))}%"></span>
+    </div>
     <div class="meta">
      <span>Liquidity: ${money(num(m.liquidity))}</span>
      <span>${m.closed ? "Closed" : "Active"}</span>
     </div>
-    <a class="link" href="${url}" target="_blank" rel="noopener noreferrer">Open market ↗</a>
+    <a class="link" href="${url}" target="_blank"
+       rel="noopener noreferrer">Open market ↗</a>
    </article>`;
  }).join("");
 }
