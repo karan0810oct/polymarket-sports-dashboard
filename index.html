@@ -403,73 +403,55 @@ async function loadFallbackEvents() {
   return [...collected.values()];
 }
 
+}
+ Fallback: browse active events, but classify only from event/market
+ titles, slugs and actual tags. Descriptions are deliberately excluded.
+*
 async function load() {
   if (busy) return;
-
   busy = true;
   $("refresh").disabled = true;
-  $("status").textContent = "Loading sports and player markets…";
-
-  try {
-    const results = await Promise.allSettled([
-      loadSportsFromMetadata(),
-      loadFallbackEvents()
+  $("status").textContent = "Loading sports markets…";
+  const withTimeout = (promise, ms) =>
+    Promise.race([
+      promise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Request timed out")), ms)
+      )
     ]);
-
-    const merged = new Map();
-
-    results.forEach(result => {
-      if (result.status !== "fulfilled") {
-        console.warn("Sports data source failed:", result.reason);
-        return;
-      }
-
-      result.value.forEach(market => {
-        const key = marketKey(market);
-        if (key) merged.set(key, market);
-      });
-    });
-
-    markets = [...merged.values()].filter(market =>
-      ["Cricket", "Tennis", "Soccer", "MMA"].includes(market._cat)
-    );
-
-    if (!markets.length) {
-      throw new Error("No supported sports markets found");
+  try {
+    let loaded;
+    try {
+      loaded = await withTimeout(loadSportsFromMetadata(), 15000);
+    } catch (error) {
+      console.warn("Metadata fetch failed:", error);
+      $("status").textContent = "Trying fallback sports data…";
+      loaded = await withTimeout(loadFallbackEvents(), 20000);
     }
-
-    $("count").textContent = markets.length.toLocaleString();
-
-    $("volume").textContent = money(
-      markets.reduce((sum, market) => sum + market._volume, 0)
+    markets = loaded.filter(m =>
+      ["Cricket", "Tennis", "Soccer", "MMA"].includes(m._cat)
     );
-
+    $("count").textContent = markets.length.toLocaleString();
+    $("volume").textContent = money(
+      markets.reduce((sum, m) => sum + m._volume, 0)
+    );
     $("updated").textContent = new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit"
     });
-
     $("status").textContent =
       "Connected · " + markets.length + " sports markets loaded";
-
     render();
   } catch (error) {
-    console.error("Sports market load failed:", error);
-
+    console.error("Sports loading failed:", error);
     $("status").textContent =
-      "Could not load sports markets: " + error.message;
-
+      "Loading failed: " + error.message + ". Tap Refresh to retry.";
     $("list").innerHTML =
-      '<div class="empty">Could not load sports markets.<br>' +
-      'Check your connection and tap Refresh to retry.</div>';
+      '<div class="empty">Sports data could not load. Please tap Refresh to retry.</div>';
   } finally {
     busy = false;
     $("refresh").disabled = false;
   }
-}
- Fallback: browse active events, but classify only from event/market
- titles, slugs and actual tags. Descriptions are deliberately excluded.
-*/
 
 }
 function render() {
