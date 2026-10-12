@@ -323,7 +323,7 @@ async function loadSportsFromMetadata() {
  }
  return [...collected.values()];
 }
-*function classifyEvent(event, market) {
+function classifyEvent(event, market) {
   const tags = [
     tagText(event.tags),
     tagText(market.tags)
@@ -404,9 +404,6 @@ async function loadFallbackEvents() {
 }
 
 }
- Fallback: browse active events, but classify only from event/market
- titles, slugs and actual tags. Descriptions are deliberately excluded.
-*
 async function load() {
   if (busy) return;
   busy = true;
