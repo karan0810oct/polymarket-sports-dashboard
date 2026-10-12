@@ -1,473 +1,325 @@
-
-
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<meta name="theme-color" content="#0b1119">
-
-<title>Polymarket Live Sports Dashboard</title>
-
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080d14">
+<title>Polymarket Live Sports Odds</title>
 <style>
-
 :root{color-scheme:dark;--bg:#080d14;--panel:#111a26;--border:#243246;--muted:#8b9bb0;--green:#21d69a;--red:#ff687d;--blue:#6ca8ff}
-
 *{box-sizing:border-box}
-
 body{margin:0;background:var(--bg);color:#edf3fb;font:15px system-ui,-apple-system,sans-serif}
-
 header{padding:24px 16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#10251f,#0b1119 60%)}
-
-.wrap{max-width:1100px;margin:auto}
-
+.wrap,main{max-width:1100px;margin:auto}
 .eyebrow{color:var(--green);font-size:11px;font-weight:800;letter-spacing:2px}
-
 h1{font-size:clamp(25px,5vw,39px);margin:8px 0}
-
 .sub{color:var(--muted);margin:0;line-height:1.5}
-
-main{max-width:1100px;margin:auto;padding:18px 14px 40px}
-
+main{padding:18px 14px 40px}
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px}
-
 .stat,.card,.toolbar{background:var(--panel);border:1px solid var(--border);border-radius:14px}
-
 .stat{padding:14px 10px;min-width:0}
-
-.stat small{display:block;color:var(--muted);font-size:11px;letter-spacing:.5px}
-
+.stat small{display:block;color:var(--muted);font-size:11px}
 .stat strong{display:block;font-size:20px;margin-top:7px;overflow-wrap:anywhere}
-
 .toolbar{padding:12px;display:grid;gap:10px;margin-bottom:14px}
-
 input,select,button{font:inherit;color:#edf3fb;background:#0b121d;border:1px solid var(--border);border-radius:9px;padding:11px}
-
 input{width:100%;min-width:0}
-
 button{cursor:pointer;font-weight:700}
-
-button:hover{border-color:var(--green)}
-
+button:disabled{opacity:.55}
 .controls{display:flex;gap:8px;flex-wrap:wrap}
-
 .filters{display:flex;gap:7px;overflow-x:auto;padding:2px 0 8px}
-
 .filters button{white-space:nowrap;font-size:12px;padding:8px 12px}
-
 .filters button.active{background:#164c3d;border-color:var(--green)}
-
-.status{color:var(--muted);font-size:12px;margin:12px 2px}
-
+.status{color:var(--muted);font-size:12px;margin:12px 2px;line-height:1.6;overflow-wrap:anywhere}
 #list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
-
 .card{padding:15px;min-width:0}
-
 .cardtop{display:flex;align-items:center;justify-content:space-between;gap:8px}
-
 .tag{font-size:10px;font-weight:800;color:var(--green);background:#12352c;padding:5px 8px;border-radius:20px}
-
 .volume{font-size:11px;color:var(--muted);text-align:right}
-
 .question{font-weight:750;font-size:16px;line-height:1.45;margin:15px 0}
-
 .odds{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-
 .odd{padding:12px;border-radius:10px;background:#0b131d;border:1px solid var(--border)}
-
 .odd small{color:var(--muted);display:block}
-
-.odd strong{font-size:24px;display:block;margin-top:5px}
-
-.yes strong{color:var(--green)}
-
-.no strong{color:var(--red)}
-
+.odd strong{font-size:21px;display:block;margin-top:5px;overflow-wrap:anywhere}
+.yes strong{color:var(--green)}.no strong{color:var(--red)}
 .bar{height:5px;background:#273445;border-radius:9px;overflow:hidden;margin-top:12px}
-
 .bar span{display:block;height:100%;background:var(--green)}
-
 .meta{font-size:11px;color:var(--muted);margin-top:12px;display:flex;justify-content:space-between;gap:8px}
-
 .link{display:block;color:var(--blue);font-size:12px;text-decoration:none;margin-top:12px}
-
-.empty{grid-column:1/-1;padding:30px 15px;text-align:center;color:var(--muted);background:var(--panel);border:1px solid var(--border);border-radius:14px;line-height:1.7}
-
+.empty{grid-column:1/-1;padding:30px 15px;text-align:center;color:var(--muted);background:var(--panel);border:1px solid var(--border);border-radius:14px;line-height:1.7;overflow-wrap:anywhere}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 12px}
-
 @media(min-width:650px){.toolbar{grid-template-columns:1fr auto;align-items:center}.stats{gap:14px}.stat{padding:18px}}
-
 </style>
-
 </head>
-
 <body>
-
-<header>
-
-<div class="wrap">
-
+<header><div class="wrap">
 <div class="eyebrow">● LIVE SPORTS MARKETS</div>
-
 <h1>Polymarket Sports</h1>
-
-<p class="sub">Live prediction-market probabilities, sports matchups and market volume.</p>
-
-</div>
-
-</header>
-
+<p class="sub">Sports matchups, market probabilities, decimal odds and trading volume.</p>
+</div></header>
 <main>
-
 <section class="stats">
-
 <div class="stat"><small>SPORTS MARKETS</small><strong id="count">—</strong></div>
-
 <div class="stat"><small>24H VOLUME</small><strong id="volume">—</strong></div>
-
 <div class="stat"><small>LAST UPDATED</small><strong id="updated" style="font-size:15px">Waiting…</strong></div>
-
 </section>
-
 <section class="toolbar">
-
 <input id="search" type="search" placeholder="Search teams, leagues or matchups…">
-
 <div class="controls">
-
 <select id="sort" aria-label="Sort markets">
-
 <option value="volume">Highest volume</option>
-
 <option value="newest">Recently updated</option>
-
 <option value="question">Alphabetical</option>
-
 </select>
-
 <button id="refresh">↻ Refresh</button>
-
 </div>
-
 </section>
-
 <nav class="filters" id="filters">
-
 <button class="active" data-filter="All">All sports</button>
-
-<button data-filter="NFL">NFL</button>
-
-<button data-filter="NBA">NBA</button>
-
-<button data-filter="MLB">MLB</button>
-
-<button data-filter="NHL">NHL</button>
-
-<button data-filter="Soccer">Soccer</button>
-
-<button data-filter="Tennis">Tennis</button>
-
- <button data-filter="Cricket">Cricket</button>
-<button data-filter="NCAAF">College football</button>
-
-<button data-filter="NCAAB">College basketball</button>
-
-<button data-filter="MMA">MMA / UFC</button>
-
-<button data-filter="Other">Other</button>
-
+<button data-filter="NFL">NFL</button><button data-filter="NBA">NBA</button>
+<button data-filter="MLB">MLB</button><button data-filter="NHL">NHL</button>
+<button data-filter="Soccer">Soccer</button><button data-filter="Tennis">Tennis</button>
+<button data-filter="Cricket">Cricket</button><button data-filter="NCAAF">College football</button>
+<button data-filter="NCAAB">College basketball</button><button data-filter="MMA">MMA / UFC</button>
 </nav>
-
-<div class="status" id="status" role="status">Connecting to Polymarket…</div>
-
-<section id="list">
-
-<div class="empty">Loading active sports markets…</div>
-
-</section>
-
+<div class="status" id="status" role="status">Starting connection…</div>
+<section id="list"><div class="empty">Loading active sports markets…</div></section>
 </main>
-
 <footer>Market data from Polymarket's public API. Probabilities are market prices, not guaranteed outcomes.</footer>
-
 <script>
-
-const API="https://gamma-api.polymarket.com";
-
-
+"use strict";
+const API = "https://gamma-api.polymarket.com";
 const TERMS = {
-  NFL: ["nfl", "super bowl", "touchdown", "afc", "nfc", "kansas city chiefs", "philadelphia eagles", "dallas cowboys", "baltimore ravens", "buffalo bills", "san francisco 49ers"],
-  NBA: ["nba", "basketball", "lakers", "celtics", "warriors", "knicks", "bucks", "mavericks"],
-  MLB: ["mlb", "baseball", "world series", "yankees", "dodgers", "mets"],
-  NHL: ["nhl", "hockey", "stanley cup", "oilers", "bruins", "rangers"],
-  Soccer: ["soccer", "premier league", "champions league", "la liga", "serie a", "bundesliga", "ligue 1", "mls", "fifa", "uefa", "fc barcelona", "real madrid", "manchester united", "arsenal", "liverpool", "juventus", "inter milan"],
-  Tennis: ["tennis", "atp", "wta", "wimbledon", "french open", "us open", "australian open", "roland garros"],
-  Cricket: ["cricket", "ipl", "t20", "odi", "test match", "ashes", "big bash", "psl", "pakistan super league", "cricket world cup", "champions trophy", "the hundred", "wpl"],
-  NCAAF: ["ncaa football", "college football", "cfb"],
-  NCAAB: ["ncaa basketball", "college basketball", "march madness"],
-  MMA: ["ufc", "mma", "mixed martial arts"]
+ NFL:["nfl","super bowl","touchdown","afc","nfc","kansas city chiefs","philadelphia eagles","dallas cowboys","baltimore ravens","buffalo bills","san francisco 49ers"],
+ NBA:["nba","basketball","lakers","celtics","warriors","knicks","bucks","mavericks"],
+ MLB:["mlb","baseball","world series","yankees","dodgers","mets"],
+ NHL:["nhl","hockey","stanley cup","oilers","bruins","rangers"],
+ Soccer:["soccer","premier league","champions league","la liga","serie a","bundesliga","ligue 1","mls","fifa","uefa","fc barcelona","real madrid","manchester united","arsenal","liverpool","juventus","inter milan","world cup","copa"],
+ Tennis:["tennis","atp","wta","wimbledon","french open","us open","australian open","roland garros"],
+ Cricket:["cricket","ipl","t20","odi","test match","ashes","big bash","psl","pakistan super league","cricket world cup","champions trophy","the hundred","wpl"],
+ NCAAF:["ncaa football","college football","cfb"],
+ NCAAB:["ncaa basketball","college basketball","march madness"],
+ MMA:["ufc","mma","mixed martial arts"]
 };
-
 const $ = id => document.getElementById(id);
-
-let markets = [], filter = "All", busy = false;
-
-const num = v => {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-};
-
+let markets = [];
+let filter = "All";
+let busy = false;
+function num(v) {
+ const n = Number(v);
+ return Number.isFinite(n) ? n : 0;
+}
 function parse(v) {
-  if (Array.isArray(v)) return v;
-  try {
-    return JSON.parse(v || "[]");
-  } catch {
-    return [];
-  }
+ if (Array.isArray(v)) return v;
+ try { return JSON.parse(v || "[]"); }
+ catch { return []; }
 }
-function decimalOdds(p){
-  return p > 0 ? (1 / p).toFixed(2) : "—";
+function marketText(m) {
+ return [m.question,m.title,m.description,m.slug,m.eventTitle,m.seriesTitle,m.sport]
+  .filter(Boolean).join(" ").toLowerCase();
 }
-function text(m) {
-  return [
-    m.question, m.title, m.description, m.slug,
-    m.eventTitle, m.seriesTitle, m.sport
-  ].filter(Boolean).join(" ").toLowerCase();
-}
-
 function category(m) {
-  const t = text(m);
-  const tags = parse(m.tags)
-    .map(x => typeof x === "string" ? x : (x.label || x.slug || ""))
-    .join(" ").toLowerCase();
-
-  for (const [k, words] of Object.entries(TERMS)) {
-    if (words.some(w => t.includes(w) || tags.includes(w))) {
-      return k;
+ const t = marketText(m);
+ const tags = parse(m.tags).map(x =>
+  typeof x === "string" ? x : (x.label || x.slug || "")
+ ).join(" ").toLowerCase();
+ for (const [name, words] of Object.entries(TERMS)) {
+  if (words.some(word => t.includes(word) || tags.includes(word))) {
+   return name;
   }
-
-  return "Other";
+ }
+ return "Other";
 }
-
-function active(m){return m&&m.closed!==true&&m.active!==false&&m.archived!==true}
-
-function marketKey(m){return String(m.id||m.conditionId||m.slug||m.question||"")}
-
-function normalize(m){
-
-const outcomes=parse(m.outcomes);
-
-const prices=parse(m.outcomePrices);
-
-const yesIndex=outcomes.findIndex(x=>String(x).toLowerCase()==="yes");
-
-const noIndex=outcomes.findIndex(x=>String(x).toLowerCase()==="no");
-
-let yes=yesIndex>=0?num(prices[yesIndex]):num(prices[0]);
-
-let no=noIndex>=0?num(prices[noIndex]):num(prices[1]);
-
-if(yes>1)yes/=100;
-
-if(no>1)no/=100;
-
-return {...m,_yes:yes,_no:no,_volume:num(m.volume24hr||m.volume_24hr),_cat:category(m)};
-
+function isActive(m) {
+ return m && m.closed !== true && m.active !== false && m.archived !== true;
 }
-
-async function get(url){
-
-const r=await fetch(url,{headers:{"Accept":"application/json"}});
-
-if(!r.ok)throw Error("Polymarket API returned HTTP "+r.status);
-
-return r.json();
-
+function normalize(m) {
+ const outcomes = parse(m.outcomes);
+ const prices = parse(m.outcomePrices);
+ const yi = outcomes.findIndex(x => String(x).toLowerCase() === "yes");
+ const ni = outcomes.findIndex(x => String(x).toLowerCase() === "no");
+ let yes = yi >= 0 ? num(prices[yi]) : num(prices[0]);
+ let no = ni >= 0 ? num(prices[ni]) : num(prices[1]);
+ if (yes > 1) yes /= 100;
+ if (no > 1) no /= 100;
+ return {
+  ...m,
+  _yes: yes,
+  _no: no,
+  _volume: num(m.volume24hr || m.volume_24hr),
+  _cat: category(m)
+ };
 }
-
-async function load(){
-
-if(busy)return;
-
-busy=true;
-
-$("refresh").disabled=true;
-
-$("status").textContent="Fetching active markets…";
-
-try{
-
-const jobs=[];
-
-for(let offset=0;offset<500;offset+=100){
-
-jobs.push(get(API+"/markets?closed=false&limit=100&offset="+offset)
-
-.then(data=>Array.isArray(data)?data:[])
-
-.catch(()=>[]));
-
+function marketKey(m) {
+ return String(m.id || m.conditionId || m.slug || m.question || "");
 }
-
-let pages=await Promise.all(jobs);
- console.log("API pages:", pages.length);
-console.log("Markets received:", pages.flat().length);
-
-let all=pages.flat().filter(active);
-
-if(!all.length){
-
-const ev=await get(API+"/events?active=true&closed=false&limit=100&offset=0");
-
-all=(Array.isArray(ev)?ev:[]).flatMap(e=>
-
-(parse(e.markets)).map(m=>({...m,eventTitle:e.title,seriesTitle:e.seriesTitle}))
-
-).filter(active);
-
+async function get(url) {
+ const controller = new AbortController();
+ const timer = setTimeout(() => controller.abort(), 15000);
+ try {
+  const response = await fetch(url, {
+   headers: {Accept:"application/json"},
+   signal: controller.signal,
+   cache: "no-store"
+  });
+  if (!response.ok) throw new Error("API HTTP " + response.status);
+  const data = await response.json();
+  if (!Array.isArray(data)) throw new Error("API response was not a list");
+  return data;
+ } finally {
+  clearTimeout(timer);
+ }
 }
-
-const map=new Map();
-
-all.map(normalize).filter(m=>m._cat!=="Other").forEach(m=>map.set(marketKey(m),m));
-
-markets=[...map.values()];
-
-if(!markets.length){
-
-$("status").textContent="No sports markets found in this API response. Try Refresh, or check the connection.";
-
-}else{
-
-$("status").textContent="Connected · "+markets.length+" sports markets loaded";
-
+function money(v) {
+ return v >= 1e6 ? "$" + (v/1e6).toFixed(2) + "M" :
+        v >= 1000 ? "$" + (v/1000).toFixed(1) + "K" :
+        "$" + Math.round(v).toLocaleString();
 }
-
-$("count").textContent=markets.length.toLocaleString();
-
-const vol=markets.reduce((s,m)=>s+m._volume,0);
-
-$("volume").textContent=vol>=1e6?"$"+(vol/1e6).toFixed(2)+"M":vol>=1000?"$"+(vol/1000).toFixed(1)+"K":"$"+Math.round(vol).toLocaleString();
-
-$("updated").textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
-
-render();
-
-}catch(e){
-
-$("status").textContent="Could not load data: "+e.message;
-
-$("list").innerHTML='<div class="empty">Unable to connect to Polymarket right now.<br>Check your internet connection and tap Refresh.</div>';
-
-}finally{
-
-busy=false;
-
-$("refresh").disabled=false;
-
+function pct(v) {
+ return Number.isFinite(v) && v >= 0 && v <= 1 ? (v*100).toFixed(1) + "%" : "—";
 }
-
+function decimalOdds(p) {
+ return p > 0 && p <= 1 ? (1/p).toFixed(2) : "—";
 }
-
-function money(v){
-
-return v>=1e6?"$"+(v/1e6).toFixed(2)+"M":v>=1000?"$"+(v/1000).toFixed(1)+"K":"$"+Math.round(v).toLocaleString();
-
+function esc(s) {
+ return String(s ?? "").replace(/[&<>"']/g, c => ({
+  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ })[c]);
 }
-
-function pct(v){return v>0?(v*100).toFixed(1)+"%":"—"}
-function decimalOdds(p){
-  return p>0 && p<=1 ? (1/p).toFixed(2) : "—";
+async function load() {
+ if (busy) return;
+ busy = true;
+ $("refresh").disabled = true;
+ $("status").textContent = "Connecting to Polymarket API…";
+ try {
+  const offsets = [0,100,200,300,400];
+  const results = await Promise.allSettled(
+   offsets.map(offset =>
+    get(API + "/markets?closed=false&limit=100&offset=" + offset)
+   )
+  );
+  let all = results.flatMap(result =>
+   result.status === "fulfilled" ? result.value : []
+  );
+  const failedPages = results.filter(result => result.status === "rejected").length;
+  if (!all.length) {
+   $("status").textContent = "Markets endpoint failed; trying events endpoint…";
+   const events = await get(API + "/events?active=true&closed=false&limit=100&offset=0");
+   all = events.flatMap(event =>
+    parse(event.markets).map(m => ({
+     ...m,
+     eventTitle: event.title,
+     seriesTitle: event.seriesTitle
+    }))
+   );
+  }
+  all = all.filter(isActive);
+  const unique = new Map();
+  all.map(normalize)
+   .filter(m => m._cat !== "Other")
+   .forEach(m => unique.set(marketKey(m), m));
+  markets = [...unique.values()];
+  $("count").textContent = markets.length.toLocaleString();
+  $("volume").textContent = money(
+   markets.reduce((sum, m) => sum + m._volume, 0)
+  );
+  $("updated").textContent = new Date().toLocaleTimeString([], {
+   hour:"2-digit", minute:"2-digit"
+  });
+  if (markets.length) {
+   $("status").textContent =
+    "Connected · " + markets.length + " sports markets loaded" +
+    (failedPages ? " · " + failedPages + " API pages failed" : "");
+   render();
+  } else {
+   $("status").textContent = failedPages === results.length
+    ? "API requests failed. Check connection and tap Refresh."
+    : "API responded, but no matching sports markets were found.";
+   $("list").innerHTML =
+    '<div class="empty">No sports markets found in the API results.<br>Tap Refresh to try again.</div>';
+  }
+ } catch (error) {
+  const message = error.name === "AbortError"
+   ? "Request timed out"
+   : error.message;
+  $("status").textContent = "Could not connect: " + message + ". Tap Refresh to retry.";
+  $("list").innerHTML =
+   '<div class="empty">Could not load markets.<br>' +
+   'The API may be temporarily unavailable or blocked by the browser.<br>' +
+   'Tap Refresh to try again.</div>';
+ } finally {
+  busy = false;
+  $("refresh").disabled = false;
+ }
 }
-function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-
-function render(){
-
-let list=markets.filter(m=>{
-
-const match=filter==="All"||(filter==="Other"?m._cat==="Other":m._cat===filter);
-
-return match&&text(m).includes($("search").value.trim().toLowerCase());
-
+function render() {
+ const query = $("search").value.trim().toLowerCase();
+ let list = markets.filter(m =>
+  (filter === "All" || m._cat === filter) &&
+  marketText(m).includes(query)
+ );
+ const sort = $("sort").value;
+ list.sort((a,b) =>
+  sort === "question"
+   ? String(a.question || a.title).localeCompare(String(b.question || b.title))
+   : sort === "newest"
+    ? String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))
+    : b._volume - a._volume
+ );
+ if (!list.length) {
+  $("list").innerHTML =
+   '<div class="empty">No matching sports markets found.<br>Try another filter or search term.</div>';
+  return;
+ }
+ $("list").innerHTML = list.map(m => {
+  const question = m.question || m.title || "Untitled market";
+  const slug = m.slug || m.eventSlug;
+  const url = slug
+   ? "https://polymarket.com/event/" + encodeURIComponent(slug)
+   : "https://polymarket.com";
+  return `
+   <article class="card">
+    <div class="cardtop">
+     <span class="tag">${esc(m._cat)}</span>
+     <span class="volume">24H VOL ${money(m._volume)}</span>
+    </div>
+    <div class="question">${esc(question)}</div>
+    <div class="odds">
+     <div class="odd yes">
+      <small>YES probability</small>
+      <strong>${pct(m._yes)}</strong>
+      <small>Decimal odds: ${decimalOdds(m._yes)}</small>
+     </div>
+     <div class="odd no">
+      <small>NO probability</small>
+      <strong>${pct(m._no)}</strong>
+      <small>Decimal odds: ${decimalOdds(m._no)}</small>
+     </div>
+    </div>
+    <div class="bar"><span style="width:${Math.max(0,Math.min(100,m._yes*100))}%"></span></div>
+    <div class="meta">
+     <span>Liquidity: ${money(num(m.liquidity))}</span>
+     <span>${m.closed ? "Closed" : "Active"}</span>
+    </div>
+    <a class="link" href="${url}" target="_blank" rel="noopener noreferrer">Open market ↗</a>
+   </article>`;
+ }).join("");
+}
+$("refresh").addEventListener("click", load);
+$("search").addEventListener("input", render);
+$("sort").addEventListener("change", render);
+$("filters").addEventListener("click", event => {
+ const button = event.target.closest("button[data-filter]");
+ if (!button) return;
+ filter = button.dataset.filter;
+ $("filters").querySelectorAll("button").forEach(item =>
+  item.classList.toggle("active", item === button)
+ );
+ render();
 });
-
-const sort=$("sort").value;
-
-list.sort((a,b)=>sort==="question"?String(a.question).localeCompare(String(b.question)):sort==="newest"?String(b.updatedAt||"").localeCompare(String(a.updatedAt||"")):b._volume-a._volume);
-
-if(!list.length){
-
-$("list").innerHTML='<div class="empty">No matching sports markets found.<br>Try another filter or search term.</div>';
-
-return;
-
-}
-
-$("list").innerHTML=list.map(m=>{
-
-const q=m.question||m.title||"Untitled market";
-
-const url=m.slug?"https://polymarket.com/event/"+encodeURIComponent(m.slug):"https://polymarket.com";
-
-return `<article class="card">
-
-<div class="cardtop"><span class="tag">${esc(m._cat)}</span><span class="volume">24H VOL ${money(m._volume)}</span></div>
-
-<div class="question">${esc(q)}</div>
-
-<div class="odds">
-
-<div class="odd yes"><small>YES</small><strong>${pct(m._yes)} · ${decimalOdds(m._yes)}</strong>
-<small>Decimal odds: ${decimalOdds(m._yes)}</small></div>
-
-<div class="odd no"><small>NO</small><strong>${pct(m._no)} · ${decimalOdds(m._no)}</strong>
-<small>Decimal odds: ${decimalOdds(m._no)}</small></div>
-
-</div>
-
-<div class="bar"><span style="width:${Math.max(0,Math.min(100,m._yes*100))}%"></span></div>
-
-<div class="meta"><span>Liquidity: ${money(num(m.liquidity))}</span><span>${m.active?"Active":"Inactive"}</span></div>
-
-<a class="link" href="${url}" target="_blank" rel="noopener noreferrer">Open market ↗</a>
-
-</article>`;
-
-}).join("");
-
-}
-
-$("refresh").addEventListener("click",load);
-
-$("search").addEventListener("input",render);
-
-$("sort").addEventListener("change",render);
-
-$("filters").addEventListener("click",e=>{
-
-const b=e.target.closest("button[data-filter]");
-
-if(!b)return;
-
-filter=b.dataset.filter;
-
-$("filters").querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));
-
-render();
-
-});
-
 load();
-
-setInterval(()=>{if(!document.hidden)load()},60000);
-
+setInterval(() => {
+ if (!document.hidden) load();
+}, 60000);
 </script>
-
 </body>
-
 </html>
