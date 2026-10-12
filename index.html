@@ -522,11 +522,22 @@ const oddsStatus = document.getElementById("oddsStatus");
 if (oddsKeyInput && saveOddsButton && oddsStatus) {
   oddsKeyInput.value =
     localStorage.getItem("oddsApiKey") || "";
-  saveOddsButton.addEventListener("click", () => {
-    const key = oddsKeyInput.value.trim();
-                                  
-    if (!key) {
-      oddsStatus.textContent = "Please enter your API key.";
+  if (!response.ok) {
+  throw new Error("HTTP " + response.status);
+}
+const sports = await response.json();
+const supported = sports.filter(s =>
+  s.active &&
+  (
+    s.key === "mma_mixed_martial_arts" ||
+    s.key.startsWith("soccer_") ||
+    s.key.startsWith("tennis_") ||
+    s.key.includes("cricket")
+);
+
+oddsStatus.textContent =
+  "API connected. " + supported.length +
+  " supported active sports found. Next: load odds.";
       return;
     }
     localStorage.setItem("oddsApiKey", key);
