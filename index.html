@@ -230,7 +230,9 @@ function parse(v) {
     return [];
   }
 }
-
+function decimalOdds(p){
+  return p > 0 ? (1 / p).toFixed(2) : "—";
+}
 function text(m) {
   return [
     m.question, m.title, m.description, m.slug,
@@ -422,10 +424,10 @@ return `<article class="card">
 
 <div class="odds">
 
-<div class="odd yes"><small>YES</small><strong>${pct(m._yes)}</strong>
+<div class="odd yes"><small>YES</small><strong>${pct(m._yes)} · ${decimalOdds(m._yes)}</strong>
 <small>Decimal odds: ${decimalOdds(m._yes)}</small></div>
 
-<div class="odd no"><small>NO</small><strong>${pct(m._no)}</strong>
+<div class="odd no"><small>NO</small><strong>${pct(m._no)} · ${decimalOdds(m._no)}</strong>
 <small>Decimal odds: ${decimalOdds(m._no)}</small></div>
 
 </div>
