@@ -402,8 +402,6 @@ async function loadFallbackEvents() {
 
   return [...collected.values()];
 }
-
-}
 async function load() {
   if (busy) return;
   busy = true;
@@ -545,8 +543,7 @@ $("filters").addEventListener("click", event => {
  $("filters").querySelectorAll("button").forEach(item =>
   item.classList.toggle("active", item === button)
  );
- render();
-});
+ render()
 load();
 setInterval(() => {
  if (!document.hidden) load();
