@@ -35,7 +35,7 @@ button:disabled{opacity:.55}
 .cardtop{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .tag{font-size:10px;font-weight:800;color:var(--green);background:#12352c;padding:5px 8px;border-radius:20px}
 .volume{font-size:11px;color:var(--muted);text-align:right}
-.question{font-weight:750;font-size:16px;line-height:1.45;margin:15px 0}
+.question{font-weight:750;font-size:16px;line-height:1.45;margin:15px 0;overflow-wrap:anywhere}
 .odds{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .odd{padding:12px;border-radius:10px;background:#0b131d;border:1px solid var(--border)}
 .odd small{color:var(--muted);display:block}
@@ -54,7 +54,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 12px}
 <header><div class="wrap">
 <div class="eyebrow">● LIVE SPORTS MARKETS</div>
 <h1>Polymarket Sports</h1>
-<p class="sub">Sports matchups, market probabilities, decimal odds and trading volume.</p>
+<p class="sub">Cricket, tennis, soccer and MMA market probabilities, decimal odds and trading volume.</p>
 </div></header>
 <main>
 <section class="stats">
@@ -75,78 +75,94 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 12px}
 </section>
 <nav class="filters" id="filters">
 <button class="active" data-filter="All">All sports</button>
-<button data-filter="NFL">NFL</button><button data-filter="NBA">NBA</button>
-<button data-filter="MLB">MLB</button><button data-filter="NHL">NHL</button>
-<button data-filter="Soccer">Soccer</button><button data-filter="Tennis">Tennis</button>
-<button data-filter="Cricket">Cricket</button><button data-filter="NCAAF">College football</button>
-<button data-filter="NCAAB">College basketball</button><button data-filter="MMA">MMA / UFC</button>
+<button data-filter="Cricket">Cricket</button>
+<button data-filter="Tennis">Tennis</button>
+<button data-filter="Soccer">Soccer / Football</button>
+<button data-filter="MMA">MMA / UFC</button>
 </nav>
-<div class="status" id="status" role="status">Starting connection…</div>
-<section id="list"><div class="empty">Loading active sports markets…</div></section>
+<div class="status" id="status" role="status">Connecting to Polymarket…</div>
+<section id="list"><div class="empty">Loading sports markets…</div></section>
 </main>
 <footer>Market data from Polymarket's public API. Probabilities are market prices, not guaranteed outcomes.</footer>
 <script>
 "use strict";
 const API = "https://gamma-api.polymarket.com";
-const TERMS = {
- NFL:["nfl","super bowl","touchdown","afc","nfc","kansas city chiefs","philadelphia eagles","dallas cowboys","baltimore ravens","buffalo bills","san francisco 49ers"],
- NBA:["nba","basketball","lakers","celtics","warriors","knicks","bucks","mavericks"],
- MLB:["mlb","baseball","world series","yankees","dodgers","mets"],
- NHL:["nhl","hockey","stanley cup","oilers","bruins","rangers"],
- Soccer:["soccer","premier league","champions league","la liga","serie a","bundesliga","ligue 1","mls","fifa","uefa","fc barcelona","real madrid","manchester united","arsenal","liverpool","juventus","inter milan","world cup","copa"],
- Tennis:["tennis","atp","wta","wimbledon","french open","us open","australian open","roland garros"],
- Cricket:["cricket","ipl","t20","odi","test match","ashes","big bash","psl","pakistan super league","cricket world cup","champions trophy","the hundred","wpl"],
- NCAAF:["ncaa football","college football","cfb"],
- NCAAB:["ncaa basketball","college basketball","march madness"],
- MMA:["ufc","mma","mixed martial arts"]
-};
 const $ = id => document.getElementById(id);
 let markets = [];
 let filter = "All";
 let busy = false;
-function num(v) {
- const n = Number(v);
+function num(value) {
+ const n = Number(value);
  return Number.isFinite(n) ? n : 0;
 }
-function parse(v) {
- if (Array.isArray(v)) return v;
- try { return JSON.parse(v || "[]"); }
- catch { return []; }
-}
-function marketText(m) {
- return [m.question,m.title,m.description,m.slug,m.eventTitle,m.seriesTitle,m.sport]
-  .filter(Boolean).join(" ").toLowerCase();
-}
-function category(m) {
- const t = marketText(m);
- const tags = parse(m.tags).map(x =>
-  typeof x === "string" ? x : (x.label || x.slug || "")
- ).join(" ").toLowerCase();
- for (const [name, words] of Object.entries(TERMS)) {
-  if (words.some(word => t.includes(word) || tags.includes(word))) {
-   return name;
-  }
+function parse(value) {
+ if (Array.isArray(value)) return value;
+ try {
+  return JSON.parse(value || "[]");
+ } catch {
+  return [];
  }
- return "Other";
+}
+function listValues(value) {
+ if (Array.isArray(value)) {
+  return value.map(String).map(x => x.trim()).filter(Boolean);
+ }
+ return String(value || "")
+  .split(",")
+  .map(x => x.trim())
+  .filter(Boolean);
+}
+function tagText(value) {
+ return parse(value).map(item => {
+  if (typeof item === "string") return item;
+  return [
+   item.label,
+   item.slug,
+   item.name
+  ].filter(Boolean).join(" ");
+ }).join(" ");
+}
+function searchText(m) {
+ return [
+  m.question,
+  m.title,
+  m.slug,
+  m.eventTitle,
+  m.eventSlug,
+  m.seriesTitle,
+  tagText(m.tags)
+ ].filter(Boolean).join(" ").toLowerCase();
 }
 function isActive(m) {
- return m && m.closed !== true && m.active !== false && m.archived !== true;
+ return m &&
+  m.closed !== true &&
+  m.active !== false &&
+  m.archived !== true;
 }
-function normalize(m) {
+function normalize(m, sport) {
  const outcomes = parse(m.outcomes);
  const prices = parse(m.outcomePrices);
- const yi = outcomes.findIndex(x => String(x).toLowerCase() === "yes");
- const ni = outcomes.findIndex(x => String(x).toLowerCase() === "no");
- let yes = yi >= 0 ? num(prices[yi]) : num(prices[0]);
- let no = ni >= 0 ? num(prices[ni]) : num(prices[1]);
+ const yesIndex = outcomes.findIndex(
+  x => String(x).toLowerCase() === "yes"
+ );
+ const noIndex = outcomes.findIndex(
+  x => String(x).toLowerCase() === "no"
+ );
+ let yes = yesIndex >= 0
+  ? num(prices[yesIndex])
+  : num(prices[0]);
+ let no = noIndex >= 0
+  ? num(prices[noIndex])
+  : num(prices[1]);
  if (yes > 1) yes /= 100;
  if (no > 1) no /= 100;
  return {
   ...m,
+  _cat: sport,
   _yes: yes,
   _no: no,
   _volume: num(m.volume24hr || m.volume_24hr),
-  _cat: category(m)
+  _updated: m.updatedAt || m.updated_at || m.createdAt || ""
  };
 }
 function marketKey(m) {
@@ -154,121 +170,256 @@ function marketKey(m) {
 }
 async function get(url) {
  const controller = new AbortController();
- const timer = setTimeout(() => controller.abort(), 15000);
+ const timer = setTimeout(() => controller.abort(), 20000);
  try {
   const response = await fetch(url, {
-   headers: {Accept:"application/json"},
+   headers: {Accept: "application/json"},
    signal: controller.signal,
    cache: "no-store"
   });
-  if (!response.ok) throw new Error("API HTTP " + response.status);
+  if (!response.ok) {
+   throw new Error("API HTTP " + response.status);
+  }
   const data = await response.json();
-  if (!Array.isArray(data)) throw new Error("API response was not a list");
+  if (!Array.isArray(data)) {
+   throw new Error("Unexpected API response");
+  }
   return data;
  } finally {
   clearTimeout(timer);
  }
 }
-function money(v) {
- return v >= 1e6 ? "$" + (v/1e6).toFixed(2) + "M" :
-        v >= 1000 ? "$" + (v/1000).toFixed(1) + "K" :
-        "$" + Math.round(v).toLocaleString();
+function money(value) {
+ const v = num(value);
+ if (v >= 1e6) return "$" + (v / 1e6).toFixed(2) + "M";
+ if (v >= 1000) return "$" + (v / 1000).toFixed(1) + "K";
+ return "$" + Math.round(v).toLocaleString();
 }
-function pct(v) {
- return Number.isFinite(v) && v >= 0 && v <= 1 ? (v*100).toFixed(1) + "%" : "—";
+function pct(value) {
+ return Number.isFinite(value) && value >= 0 && value <= 1
+  ? (value * 100).toFixed(1) + "%"
+  : "—";
 }
-function decimalOdds(p) {
- return p > 0 && p <= 1 ? (1/p).toFixed(2) : "—";
+function decimalOdds(value) {
+ return value > 0 && value <= 1
+  ? (1 / value).toFixed(2)
+  : "—";
 }
-function esc(s) {
- return String(s ?? "").replace(/[&<>"']/g, c => ({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
- })[c]);
+function esc(value) {
+ return String(value ?? "").replace(/[&<>"']/g, char => ({
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;"
+ })[char]);
 }
-function classifySport(m) {
- const tags = parse(m.tags).map(x =>
-  typeof x === "string" ? x : (x.label || x.slug || x.name || "")
- ).join(" ");
- // Do NOT classify using market descriptions.
- const text = [
-  m.question, m.title, m.slug, m.eventTitle,
-  m.eventSlug, m.seriesTitle, tags
- ].filter(Boolean).join(" ").toLowerCase();
- const has = words => words.some(word => {
-  if (word.length <= 4) {
-   const safe = word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-   return new RegExp("(^|[^a-z0-9])" + safe + "([^a-z0-9]|$)", "i").test(text);
-  }
-  return text.includes(word);
+/*
+ Sports metadata is used to discover sport-specific event series
+ and tag IDs. The category comes from the metadata query that
+ returned the event, not from the market description.
+*/
+function sportName(value) {
+ return String(value || "")
+  .toLowerCase()
+  .replace(/[^a-z0-9]/g, "");
+}
+function getSportCategory(sport) {
+ const name = sportName(
+  sport.sport || sport.name || sport.slug || sport.title
+ );
+ if (["cricket", "ipl", "t20", "odi"].includes(name)) {
+  return "Cricket";
+ }
+ if (["tennis", "atp", "wta"].includes(name)) {
+  return "Tennis";
+ }
+ if (["soccer", "football"].includes(name)) {
+  return "Soccer";
+ }
+ if (["mma", "ufc", "mixedmartialarts"].includes(name)) {
+  return "MMA";
+ }
+ return null;
+}
+function addEventMarkets(event, category, destination) {
+ if (!event || !isActive(event)) return;
+ const eventTags = event.tags || [];
+ parse(event.markets).forEach(m => {
+  if (!isActive(m)) return;
+  const item = normalize({
+   ...m,
+   eventTitle: event.title || m.eventTitle,
+   eventSlug: event.slug || m.eventSlug,
+   seriesTitle: event.seriesTitle || m.seriesTitle,
+   tags: m.tags && parse(m.tags).length
+    ? m.tags
+    : eventTags
+  }, category);
+  const key = marketKey(item);
+  if (key) destination.set(key, item);
  });
- if (has([
-  "cricket", "ipl", "t20", "odi", "test match",
-  "ashes", "big bash", "pakistan super league",
-  "champions trophy", "cricket world cup",
-  "the hundred", "wpl"
- ])) return "Cricket";
- if (has([
-  "tennis", "atp", "wta", "wimbledon",
-  "french open", "us open", "australian open",
-  "roland garros"
- ])) return "Tennis";
- if (has([
-  "soccer", "premier league", "champions league",
-  "la liga", "serie a", "bundesliga", "ligue 1",
-  "mls", "fifa", "uefa", "real madrid",
-  "manchester united", "manchester city",
-  "arsenal", "liverpool", "fc barcelona",
-  "inter milan", "juventus", "world cup qualifier"
- ])) return "Soccer";
- if (has([
-  "ufc", "mma", "mixed martial arts"
- ])) return "MMA";
- return "Other";
+}
+async function fetchEventsFor(category, kind, id) {
+ const query = kind === "series"
+  ? "series_id=" + encodeURIComponent(id)
+  : "tag_id=" + encodeURIComponent(id);
+ const events = await get(
+  API + "/events?" + query +
+  "&active=true&closed=false&limit=100&offset=0"
+ );
+ return events.map(event => ({event, category}));
+}
+async function loadSportsFromMetadata() {
+ const sports = await get(API + "/sports");
+ const targets = sports
+  .map(sport => ({
+   sport,
+   category: getSportCategory(sport)
+  }))
+  .filter(item => item.category);
+ if (!targets.length) {
+  throw new Error("No supported sports found in metadata");
+ }
+ const requests = new Map();
+ targets.forEach(({sport, category}) => {
+  const seriesIds = listValues(sport.series);
+  const tagIds = listValues(sport.tags);
+  seriesIds.forEach(id => {
+   if (!/^\d+$/.test(id)) return;
+   const key = category + "|series|" + id;
+   requests.set(key, {category, kind: "series", id});
+  });
+  tagIds.forEach(id => {
+   if (!/^\d+$/.test(id)) return;
+   const key = category + "|tag|" + id;
+   requests.set(key, {category, kind: "tag", id});
+  });
+ });
+ if (!requests.size) {
+  throw new Error("No sport series or tag IDs available");
+ }
+ const jobs = [...requests.values()];
+ const results = await Promise.allSettled(
+  jobs.map(job =>
+   fetchEventsFor(job.category, job.kind, job.id)
+  )
+ );
+ const collected = new Map();
+ let successfulQueries = 0;
+ results.forEach(result => {
+  if (result.status !== "fulfilled") return;
+  successfulQueries++;
+  result.value.forEach(({event, category}) => {
+   addEventMarkets(event, category, collected);
+  });
+ });
+ if (!successfulQueries || !collected.size) {
+  throw new Error("No events found using sports metadata");
+ }
+ return [...collected.values()];
+}
+/*
+ Fallback: browse active events, but classify only from event/market
+ titles, slugs and actual tags. Descriptions are deliberately excluded.
+*/
+function classifyEvent(event, market) {
+ const tags = [
+  tagText(event.tags),
+  tagText(market.tags)
+ ].join(" ").toLowerCase();
+ const title = [
+  event.title,
+  event.slug,
+  event.seriesTitle,
+  market.question,
+  market.title,
+  market.slug
+ ].filter(Boolean).join(" ").toLowerCase();
+ const exactTag = names => {
+  const values = [
+   ...listValues(event.tags).map(x => x.toLowerCase()),
+   ...listValues(market.tags).map(x => x.toLowerCase())
+  ];
+  return values.some(value =>
+   names.some(name =>
+    value === name ||
+    value.replace(/[^a-z0-9]/g, "") ===
+     name.replace(/[^a-z0-9]/g, "")
+   )
+  );
+ };
+ if (
+  exactTag(["cricket"]) ||
+  /\b(cricket|ipl|t20|odi|ashes|wpl)\b/i.test(title)
+ ) return "Cricket";
+ if (
+  exactTag(["tennis", "atp", "wta"]) ||
+  /\b(tennis|atp|wta|wimbledon|roland garros)\b/i.test(title)
+ ) return "Tennis";
+ if (
+  exactTag(["soccer", "football"]) ||
+  /\b(soccer|premier league|la liga|bundesliga|serie a|mls|uefa|fifa)\b/i.test(title)
+ ) return "Soccer";
+ if (
+  exactTag(["mma", "ufc"]) ||
+  /\b(ufc|mma|mixed martial arts)\b/i.test(title)
+ ) return "MMA";
+ // Generic "sports" tags do not qualify a market by themselves.
+ void tags;
+ return null;
+}
+async function loadFallbackEvents() {
+ const offsets = [0, 100, 200, 300, 400];
+ const results = await Promise.allSettled(
+  offsets.map(offset =>
+   get(API +
+    "/events?active=true&closed=false&limit=100&offset=" +
+    offset)
+  )
+ );
+ const eventLists = results.flatMap(result =>
+  result.status === "fulfilled" ? result.value : []
+ );
+ if (!eventLists.length) {
+  throw new Error("Could not retrieve events from API");
+ }
+ const collected = new Map();
+ eventLists.forEach(event => {
+  if (!isActive(event)) return;
+  parse(event.markets).forEach(m => {
+   if (!isActive(m)) return;
+   const category = classifyEvent(event, m);
+   if (!category) return;
+   addEventMarkets({
+    ...event,
+    markets: [m]
+   }, category, collected);
+  });
+ });
+ if (!collected.size) {
+  throw new Error("No supported sports events found");
+ }
+ return [...collected.values()];
 }
 async function load() {
  if (busy) return;
  busy = true;
  $("refresh").disabled = true;
- $("status").textContent = "Loading selected sports…";
+ $("status").textContent = "Loading sports metadata and events…";
  try {
-  const offsets = [0, 100, 200, 300, 400];
-  const results = await Promise.allSettled(
-   offsets.map(offset =>
-    get(API +
-     "/markets?active=true&closed=false&limit=100&offset=" +
-     offset)
-   )
-  );
-  let all = results.flatMap(result =>
-   result.status === "fulfilled" ? result.value : []
-  );
-  const failedPages = results.filter(
-   result => result.status === "rejected"
-  ).length;
-  if (!all.length) {
-   $("status").textContent = "Trying sports events…";
-   const events = await get(
-    API + "/events?active=true&closed=false&limit=100"
-   );
-   all = events.flatMap(event =>
-    parse(event.markets).map(m => ({
-     ...m,
-     eventTitle: event.title,
-     eventSlug: event.slug,
-     seriesTitle: event.seriesTitle,
-     tags: m.tags || event.tags || []
-    }))
-   );
+  let loaded;
+  try {
+   loaded = await loadSportsFromMetadata();
+   $("status").textContent = "Sports metadata loaded.";
+  } catch (metadataError) {
+   console.warn("Metadata lookup failed; trying event fallback.", metadataError);
+   $("status").textContent = "Trying active sports events…";
+   loaded = await loadFallbackEvents();
   }
-  const unique = new Map();
-  all.filter(isActive).forEach(m => {
-   const item = normalize(m);
-   // Replace the old description-based category.
-   item._cat = classifySport(m);
-   if (item._cat === "Other") return;
-   unique.set(marketKey(item), item);
-  });
-  markets = [...unique.values()];
+  markets = loaded.filter(m =>
+   ["Cricket", "Tennis", "Soccer", "MMA"].includes(m._cat)
+  );
   $("count").textContent = markets.length.toLocaleString();
   $("volume").textContent = money(
    markets.reduce((sum, m) => sum + m._volume, 0)
@@ -277,27 +428,17 @@ async function load() {
    hour: "2-digit",
    minute: "2-digit"
   });
-  if (markets.length) {
-   $("status").textContent =
-    "Connected · " + markets.length +
-    " selected sports markets loaded" +
-    (failedPages ? " · " + failedPages + " pages failed" : "");
-   render();
-  } else {
-   $("status").textContent =
-    "No matching sports markets found. Try Refresh.";
-   $("list").innerHTML =
-    '<div class="empty">No matching Cricket, Tennis, Soccer or MMA markets found. Tap Refresh to try again.</div>';
-  }
- } catch (error) {
-  const message = error.name === "AbortError"
-   ? "Request timed out"
-   : error.message;
   $("status").textContent =
-   "Could not connect: " + message + ". Tap Refresh to retry.";
+   "Connected · " + markets.length + " supported sports markets loaded";
+  render();
+ } catch (error) {
+  console.error("Sports market load failed:", error);
+  $("status").textContent =
+   "Could not load sports markets: " + error.message;
   $("list").innerHTML =
-   '<div class="empty">Could not load markets.<br>' +
-   'Check your connection and tap Refresh.</div>';
+   '<div class="empty">Could not load supported sports markets.<br>' +
+   'Check your connection and tap Refresh to retry.<br>' +
+   'If this continues, the API metadata may not expose the required sport IDs.</div>';
  } finally {
   busy = false;
   $("refresh").disabled = false;
@@ -307,23 +448,23 @@ function render() {
  const query = $("search").value.trim().toLowerCase();
  let list = markets.filter(m =>
   (filter === "All" || m._cat === filter) &&
-  marketText(m).includes(query)
+  searchText(m).includes(query)
  );
  const sort = $("sort").value;
- list.sort((a, b) =>
-  sort === "question"
-   ? String(a.question || a.title || "").localeCompare(
-      String(b.question || b.title || "")
-     )
-   : sort === "newest"
-    ? String(b.updatedAt || "").localeCompare(
-       String(a.updatedAt || "")
-      )
-    : b._volume - a._volume
- );
+ list.sort((a, b) => {
+  if (sort === "question") {
+   return String(a.question || a.title || "")
+    .localeCompare(String(b.question || b.title || ""));
+  }
+  if (sort === "newest") {
+   return String(b._updated).localeCompare(String(a._updated));
+  }
+  return b._volume - a._volume;
+ });
  if (!list.length) {
   $("list").innerHTML =
-   '<div class="empty">No matching markets found. Try another filter or search.</div>';
+   '<div class="empty">No matching markets found.<br>' +
+   'Try another sport filter or search term.</div>';
   return;
  }
  $("list").innerHTML = list.map(m => {
