@@ -428,7 +428,26 @@ $("filters").addEventListener("click", event => {
 load();
 setInterval(() => {
   if (!document.hidden) load();
-}, 60000);
+}, 60000); 
+const oddsKeyInput = document.getElementById("oddsApiKey");
+const saveOddsButton = document.getElementById("saveOddsKey");
+const oddsStatus = document.getElementById("oddsStatus");
+
+if (oddsKeyInput && saveOddsButton && oddsStatus) {
+  oddsKeyInput.value =
+    localStorage.getItem("oddsApiKey") || "";
+
+  saveOddsButton.addEventListener("click", () => {
+    const key = oddsKeyInput.value.trim();
+
+    if (!key) {
+      oddsStatus.textContent = "Please enter your API key.";
+      return;
+    }
+
+    localStorage.setItem("oddsApiKey", key);
+    oddsStatus.textContent = "API key saved in this browser.";
+  });
 </script>
 </body>
 </html>
