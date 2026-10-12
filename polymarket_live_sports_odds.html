@@ -57,7 +57,7 @@ async function discover(){
  if(discoveryBusy)return;discoveryBusy=true;$("refresh").disabled=true;$("discoveryStatus").textContent="Loading event pages…";let byId=new Map(), pageSize=100, maxPages=15;
  try{
   for(let page=0;page<maxPages;page++){
-   let data=await getJson(`${GAMMA}/events?active=true&closed=false&limit=${pageSize}&offset=${page*pageSize}&order=volume_24hr&ascending=false`);
+let data=await getJson(`${GAMMA}/events?active=true&closed=false&limit=${pageSize}&offset=${page*pageSize}`);
    if(!Array.isArray(data)||!data.length)break;
    for(let e of data){if(!isSportEvent(e))continue;let activeMarkets=(e.markets||[]).filter(m=>!m.closed&&m.active!==false&&tokens(m).length);if(!activeMarkets.length)continue;let key=String(e.id||e.slug||e.title);if(!byId.has(key))byId.set(key,{event:e,sport:sport(e),markets:activeMarkets})}
    $("discoveryStatus").textContent=`Scanned ${(page+1)*pageSize} events…`;
