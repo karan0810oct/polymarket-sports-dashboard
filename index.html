@@ -195,7 +195,7 @@ function textOfTags(v) {
 }
 
 function categoryOf(event, market) {
-
+if (event._sportCategory) return event._sportCategory;
   const text = [
 
     event.title, event.slug, event.seriesTitle,
@@ -256,115 +256,78 @@ function isMatchMarket(event, market) {
 
   return hasMatchTitle || matchup;
 
-}
+async function fetchSportsEvents() {
+  const response = await fetch(API + "/sports", {
+    cache: "no-store"
+  });
 
-async function fetchEvents(offset) {
-
-  const controller = new AbortController();
-
-  const timer = setTimeout(() => controller.abort(), 18000);
-
-  try {
-  
-const url = API +
-  "/events?active=true&closed=false&limit=100&offset=" +
-  offset;
-
-    
-
-    const response = await fetch(url, {
-
-      signal: controller.signal,
-
-      cache: "no-store",
-
-      headers: { Accept: "application/json" }
-
-    });
-
-    if (!response.ok) throw new Error("API HTTP " + response.status);
-
-    const data = await response.json();
-
-    if (!Array.isArray(data)) throw new Error("Unexpected API response");
-
-    return data;
-
-  } finally {
-
-    clearTimeout(timer);
-
+  if (!response.ok) {
+    throw new Error("Sports API HTTP " + response.status);
   }
 
-}
+  const sports = await response.json();
+  if (!Array.isArray(sports)) {
+    throw new Error("Invalid sports metadata");
+  }
 
-function getOutcomes(market) {
+  const categories = [
+    { pattern: /cricket|ipl|t20|odi|ashes|wpl/i, name: "Cricket" },
+    { pattern: /tennis|atp|wta|wimbledon|roland garros/i, name: "Tennis" },
+    { pattern: /ufc|mma|mixed martial/i, name: "MMA" },
+    { pattern: /soccer|football|epl|premier league|la liga|bundesliga|serie a|mls|uefa|fifa/i, name: "Soccer" }
+  ];
 
-  const outcomes = parse(market.outcomes);
+  const jobs = [];
 
-  const prices = parse(market.outcomePrices);
+  for (const sport of sports) {
+    const label = String(sport.sport || "");
+    const match = categories.find(c => c.pattern.test(label));
+    if (!match || !sport.tags) continue;
 
-  return outcomes.map((name, i) => ({
+    const tagIds = String(sport.tags)
+      .split(",")
+      .map(id => id.trim())
+      .filter(Boolean);
 
-    name: String(name),
-
-    price: num(prices[i])
-
-  })).filter(x => x.price > 0 && x.price <= 1);
-
-}
-
-function prepareMarkets(events) {
-
-  const result = new Map();
-
-  for (const event of events) {
-
-    if (!active(event)) continue;
-
-    for (const market of parse(event.markets)) {
-
-      if (!active(market)) continue;
-
-      const category = categoryOf(event, market);
-
-      if (!category || !isMatchMarket(event, market)) continue;
-
-      const outcomes = getOutcomes(market);
-
-      if (outcomes.length < 2) continue;
-
-      const key = String(market.id || market.conditionId || market.slug || market.question || "");
-
-      if (!key) continue;
-
-      result.set(key, {
-
-        id: key,
-
-        category,
-
-        question: market.question || market.title || event.title || "Match market",
-
-        eventTitle: event.title || "",
-
-        eventSlug: event.slug || market.slug || "",
-
-        outcomes,
-
-        volume: num(market.volume24hr || market.volume_24hr || market.volume),
-
-        liquidity: num(market.liquidity),
-
-        updated: market.updatedAt || market.updated_at || ""
-
-      });
-
+    for (const tagId of tagIds) {
+      jobs.push({ tagId, category: match.name });
     }
-
   }
 
-  return [...result.values()];
+  const unique = [...new Map(
+    jobs.map(job => [job.tagId, job])
+  ).values()];
+
+  const responses = await Promise.allSettled(
+    unique.map(async job => {
+      const url = API + "/events?active=true&closed=false&limit=100&tag_id=" +
+        encodeURIComponent(job.tagId);
+
+      const r = await fetch(url, { cache: "no-store" });
+      if (!r.ok) throw new Error("Events API HTTP " + r.status);
+
+      const data = await r.json();
+      if (!Array.isArray(data)) return [];
+
+      return data.map(event => ({
+        ...event,
+        _sportCategory: job.category
+      }));
+    })
+  );
+
+  const events = responses.flatMap(r =>
+    r.status === "fulfilled" ? r.value : []
+  );
+
+  if (!events.length) {
+    throw new Error("No sports events returned. Check sports tags/API.");
+  }
+
+  return [...new Map(events.map(e => [String(e.id), e])).values()];
+}
+
+return [...result.values()];
 
 }
 
@@ -468,73 +431,6 @@ function render() {
 
 }
 
-async function load() {
-
-  if (busy) return;
-
-  busy = true;
-
-  $("refresh").disabled = true;
-
-  $("status").textContent = "Loading player/team match markets…";
-
-  $("list").innerHTML = '<div class="empty">Fetching active markets…</div>';
-
-  try {
-
-    const offsets = [0, 100, 200, 300, 400, 500, 600, 700, 800, 900];
-
-    const responses = await Promise.allSettled(
-
-      offsets.map(fetchEvents)
-
-    );
-
-    const events = responses.flatMap(r =>
-
-      r.status === "fulfilled" ? r.value : []
-
-    );
-
-    if (!events.length)
-
-      throw new Error("API unavailable. Check connection and retry.");
-
-    markets = prepareMarkets(events);
-
-    $("count").textContent = markets.length.toLocaleString();
-
-    $("volume").textContent = money(
-
-      markets.reduce((sum, m) => sum + m.volume, 0)
-
-    );
-
-    $("updated").textContent = new Date().toLocaleTimeString([], {
-
-      hour: "2-digit", minute: "2-digit"
-
-    });
-
-    $("status").textContent = markets.length
-
-      ? "Connected · " + markets.length + " match markets loaded"
-
-      : "Connected to API, but no matching markets were found in the retrieved events.";
-
-    render();
-
-  } catch (error) {
-
-    console.error(error);
-
-    $("status").textContent = "Loading failed: " + error.message;
-
-    $("list").innerHTML =
-
-      '<div class="empty">Could not retrieve markets. Tap Refresh to retry.</div>';
-
-  } finally {
 
     busy = false;
 
@@ -562,8 +458,43 @@ $("filters").addEventListener("click", event => {
 
     item.classList.toggle("active", item === button);
 
-  });
+async function load() {
+  if (busy) return;
 
+  busy = true;
+  $("refresh").disabled = true;
+  $("status").textContent = "Loading sports match markets…";
+  $("list").innerHTML =
+    '<div class="empty">Fetching sports events…</div>';
+
+  try {
+    const events = await fetchSportsEvents();
+    markets = prepareMarkets(events);
+
+    $("count").textContent = markets.length.toLocaleString();
+    $("volume").textContent = money(
+      markets.reduce((sum, m) => sum + m.volume, 0)
+    );
+    $("updated").textContent = new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+
+    $("status").textContent = markets.length
+      ? "Connected · " + markets.length + " match markets loaded"
+      : "Sports events found, but match filters returned zero markets.";
+
+    render();
+  } catch (error) {
+    console.error(error);
+    $("status").textContent = "Loading failed: " + error.message;
+    $("list").innerHTML =
+      '<div class="empty">Could not load sports markets. Tap Refresh to retry.</div>';
+  } finally {
+    busy = false;
+    $("refresh").disabled = false;
+  }
+}
   render();
 
 });
