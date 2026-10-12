@@ -249,13 +249,9 @@ function category(m) {
   for (const [k, words] of Object.entries(TERMS)) {
     if (words.some(w => t.includes(w) || tags.includes(w))) {
       return k;
-    }
   }
 
   return "Other";
-}
-
-
 }
 
 function active(m){return m&&m.closed!==true&&m.active!==false&&m.archived!==true}
