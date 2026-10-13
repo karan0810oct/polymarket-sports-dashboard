@@ -21,8 +21,6 @@ environment:
 name: github\-pages
 url: $\{\{ steps\.deployment\.outputs\.page\_url \}\}
 runs\-on: ubuntu\-latest
-
-```
 steps:
   - name: Checkout repository
     uses: actions/checkout@v4
