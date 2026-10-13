@@ -1,5 +1,7 @@
+
 name: Deploy Sports Dashboard
-'on':
+
+on:
   push:
     branches:
       - main
@@ -16,13 +18,19 @@ concurrency:
 
 jobs:
   deploy:
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Verify dashboard file
+        run: |
+          test -f index.html || (echo "ERROR: index.html not found in repository root" && exit 1)
+          echo "index.html found"
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
