@@ -3,452 +3,314 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#f3f7fc">
-<title>Crystal Odds | Live Sports Dashboard</title>
+<meta name="theme-color" content="#f2f7ff">
+<title>Crystal Sports Odds Dashboard</title>
 <style>
-:root{color-scheme:light;--bg:#f3f7fc;--text:#182b43;--muted:#71839a;--blue:#287ec6;--red:#c84f69;--shadow:0 5px 18px rgba(61,94,133,.06)}
+:root{--bg:#f3f7ff;--white:#fff;--ice:#edf5ff;--ice2:#e3efff;--blue:#3479d8;--text:#172b48;--muted:#72839c;--line:#e1eafa;--green:#087d60;--red:#c65c67;--shadow:0 6px 24px rgba(50,91,145,.075)}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 8% -10%,#73b5f426,transparent 42%),radial-gradient(ellipse at 100% 5%,#b2a4ec20,transparent 35%),var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{margin:0;color:var(--text);background:linear-gradient(145deg,#f8fbff,#eef5ff 60%,#f8fbff);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;min-height:100vh}
 button,input,select{font:inherit}
-button{cursor:pointer;touch-action:manipulation}
-button:disabled{opacity:.55}
-header,main{width:min(1240px,100%);margin:auto}
-header{padding:24px 16px 10px}
-.brand{display:flex;align-items:center;gap:12px}
-.logo{display:grid;place-items:center;width:45px;height:45px;border-radius:15px;background:linear-gradient(135deg,#74d5ff,#8a8bff 55%,#e08cff);font-size:23px}
-.eyebrow{color:#6486b4;text-transform:uppercase;letter-spacing:.16em;font-size:10px;font-weight:800}
-h1{font-size:clamp(25px,4vw,36px);margin:3px 0;letter-spacing:-.04em}
-.subtitle{color:var(--muted);font-size:13px;line-height:1.55}
-.live-dot{display:inline-block;width:7px;height:7px;background:#168b73;border-radius:50%;margin-right:6px}
-main{padding:12px 15px 34px}
-.glass{background:rgba(255,255,255,.84);border:1px solid rgba(150,177,209,.14);box-shadow:var(--shadow);backdrop-filter:blur(12px);border-radius:17px}
-.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0}
-.control{min-height:44px;border-radius:12px;border:1px solid #dce6f1;background:#fff;color:var(--text);padding:10px 12px;outline:none}
-.control:focus{border-color:#6eb6ff}
-.search{flex:1 1 220px;min-width:130px}
-.btn{min-height:42px;padding:10px 14px;border:1px solid #dce6f1;border-radius:12px;color:#27425f;background:#fff;font-weight:750}
-.btn-primary{background:linear-gradient(135deg,#e3f2ff,#ecebff);border-color:#cfe2f7;color:#1f5b91}
-.tabs{display:flex;gap:7px;overflow:auto;padding:3px 0 12px}
-.tab{flex-shrink:0;padding:9px 13px;min-height:39px;border:1px solid #dfe8f2;border-radius:12px;background:#fff;color:#526982;font-size:12px;font-weight:750}
-.tab.active{color:#205c91;background:linear-gradient(135deg,#e2f2ff,#eeedff);border-color:#c9def3}
-.settings{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px;margin:4px 0 13px}
-.settings label{font-size:11px;color:var(--muted)}
-.key-input{flex:1 1 230px;min-width:130px}
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}
-.stat{padding:12px;min-width:0}
-.stat strong{display:block;font-size:21px;letter-spacing:-.03em}
-.stat span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
-.status{padding:11px 13px;border-radius:12px;border:1px solid #e0e8f1;background:#fff;font-size:12px;color:#526982;line-height:1.5;overflow-wrap:anywhere}
-.status.error{border-color:#f3b5c0;color:#a22c45}
-.status.ok{border-color:#b9e5d9}
-.section-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:22px 2px 11px}
-.section-head h2{font-size:16px;margin:0;color:#243e5b}
-.section-head p{font-size:11px;color:var(--muted);margin:4px 0}
-.count-pill{font-size:10px;color:#38678f;background:#e9f3fc;border-radius:99px;padding:5px 8px;white-space:nowrap}
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,350px),1fr));gap:12px}
-.match-card{min-width:0;padding:14px;overflow:hidden}
-.card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.sport-tag,.source-tag{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#376b98;background:#edf6ff;padding:5px 8px;border-radius:999px}
-.source-tag{color:#6a5ba4;background:#f2efff}
-.match-name{font-size:17px;font-weight:850;line-height:1.35;margin:12px 0 5px;overflow-wrap:anywhere}
-.match-meta{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0 12px}
-.meta{font-size:10px;color:#70849a;background:#f5f8fc;padding:5px 7px;border-radius:7px}
-.compare-head{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
-.compare-label{font-size:10px;font-weight:850;padding:7px 5px;border-radius:9px;text-align:center}
-.compare-label.pm{color:#1764a1;background:#e8f4ff}
-.compare-label.bk{color:#a6324d;background:#fff0f3}
-.outcome-row{padding:10px 0;border-top:1px solid #edf1f6}
-.outcome-name{font-size:12px;font-weight:800;margin:0 0 8px;overflow-wrap:anywhere}
-.parallel{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.source-box{border-radius:11px;padding:8px;min-width:0}
-.source-box.pm{background:#edf7ff}
-.source-box.bk{background:#fff1f4}
-.source-mini{font-size:9px;text-transform:uppercase;letter-spacing:.05em;font-weight:800;margin-bottom:7px}
-.source-box.pm .source-mini{color:#1764a1}
-.source-box.bk .source-mini{color:#a6324d}
-.price-pair{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.price-cell{border-radius:8px;padding:7px 5px;background:rgba(255,255,255,.9);min-width:0}
-.price-cell .side{font-size:9px;color:#71869d;display:block}
-.price-cell strong{display:block;font-size:15px;line-height:1.25;margin-top:3px;overflow-wrap:anywhere;color:#203b59}
-.price-note{font-size:9px;color:#75899f;line-height:1.35;margin-top:6px;overflow-wrap:anywhere}
-.details-toggle{width:100%;margin-top:10px;padding:9px;border:1px solid #e0e9f3;border-radius:10px;background:#f7faff;color:#456482;font-size:11px;font-weight:750;min-height:38px}
-.details{display:none;border-top:1px solid #e5edf5;margin-top:12px;padding-top:12px}
-.details.open{display:block}
-.detail-title{font-size:10px;color:var(--muted);letter-spacing:.08em;font-weight:850;margin-bottom:9px}
-.detail-market{padding:9px 0;border-bottom:1px solid #edf1f6}
-.detail-market h4{font-size:12px;margin:0 0 8px}
-.detail-line{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:5px 0;color:#637991}
-.detail-line strong{text-align:right;color:#263f5b}
-.market-link{display:inline-block;margin-top:10px;color:#287ec6;font-size:11px}
-.empty{grid-column:1/-1;padding:26px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6}
-.footnote{margin:18px 2px 0;color:#7b8da2;font-size:10px;line-height:1.6}
-@media(max-width:430px){header{padding-top:20px}.stats{gap:6px}.stat{padding:10px}.stat strong{font-size:18px}.match-card{padding:11px}.source-box{padding:6px}.price-cell{padding:6px 4px}.price-cell strong{font-size:13px}.compare-label{font-size:9px}}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(248,251,255,.96);backdrop-filter:blur(18px);border-bottom:1px solid var(--line);padding:13px 13px 8px}
+.topline,.headingrow,.sectionrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{font-weight:900;font-size:20px;letter-spacing:-.7px}.brand span{color:var(--blue)}
+.subtitle,.muted{color:var(--muted)}.subtitle{font-size:11px;margin-top:3px}
+.actions{display:flex;gap:6px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:11px;padding:9px 11px;font-weight:750;min-height:38px}
+.btn.primary{background:var(--blue);color:white;border-color:var(--blue)}
+.pill{border:1px solid var(--line);background:white;color:var(--muted);border-radius:50px;padding:6px 9px;font-size:11px}
+.statusline{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.dot{display:inline-block;width:7px;height:7px;background:#a3b2c6;border-radius:50%;margin-right:5px}.dot.ok{background:#19a57e}.dot.err{background:#d77a7a}
+.sportsbar{display:flex;gap:7px;overflow-x:auto;padding:12px 0 3px;scrollbar-width:none}.sportsbar::-webkit-scrollbar{display:none}
+.sportwrap{position:relative;flex-shrink:0}
+.sportbtn{display:flex;align-items:center;gap:7px;white-space:nowrap;background:white;border:1px solid var(--line);border-radius:12px;padding:10px 11px;min-height:40px;color:#3a5271;font-weight:800}
+.sportbtn.active{background:var(--ice2);border-color:#c6dcfb;color:#215ba9}
+.menu{display:none;position:absolute;top:calc(100% + 8px);left:0;width:min(340px,88vw);max-height:55vh;overflow:auto;padding:8px;background:white;border:1px solid var(--line);border-radius:15px;box-shadow:0 18px 45px rgba(35,70,120,.17);z-index:70}
+.menu.open{display:block}.menuhead{padding:7px 8px 9px;font-size:11px;color:var(--muted)}
+.menuitem{display:block;text-align:left;width:100%;border:0;background:white;padding:11px 9px;border-radius:10px;color:var(--text);line-height:1.4;margin-bottom:3px;overflow-wrap:anywhere}
+.menuitem:hover,.menuitem.selected{background:var(--ice)}.menuitem small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+main{max-width:1120px;margin:0 auto;padding:17px 13px 42px}
+h1{font-size:20px;letter-spacing:-.4px;margin:0 0 4px}h2{font-size:16px;margin:0}h3{font-size:13px;margin:0}
+.small{font-size:11px}.tiny{font-size:10px}
+.card{background:rgba(255,255,255,.95);border:1px solid #e3ecf9;border-radius:17px;box-shadow:var(--shadow);padding:14px;margin-bottom:12px;min-width:0}
+.empty{text-align:center;padding:30px 15px;line-height:1.7;color:var(--muted)}
+.searchrow{display:flex;gap:8px;margin-bottom:13px}
+.search,.select{width:100%;min-width:0;border:1px solid var(--line);background:white;border-radius:12px;padding:12px;color:var(--text);outline:none}
+.search:focus,.select:focus{border-color:#91baf3;box-shadow:0 0 0 3px #eaf2ff}
+.select{padding:9px;max-width:48%}
+.matchtitle{font-size:18px;font-weight:850;line-height:1.4;overflow-wrap:anywhere}
+.matchmeta{font-size:11px;color:var(--muted);margin-top:5px;overflow-wrap:anywhere}
+.tags,.match-actions,.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+.tag{border-radius:99px;padding:5px 8px;background:#eef5ff;color:#56759d;font-size:10px}
+.teamgrid,.outcomegrid,.oddsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+.team,.outcome,.oddcard{padding:11px;border-radius:12px;border:1px solid var(--line);background:#f8fbff;min-width:0}
+.teamname,.outcomename{font-weight:800;line-height:1.4;overflow-wrap:anywhere}
+.teamodds,.outcomeprice,.oddvalue{font-size:22px;font-weight:900;color:#285f9f;margin-top:6px;font-variant-numeric:tabular-nums}
+.teamlabel,.oddlabel,.oddfoot{font-size:10px;color:var(--muted);margin-top:4px}
+.marketblock{border-top:1px solid #eaf0fa;padding-top:12px;margin-top:13px}
+.markettitle{font-weight:800;line-height:1.45;overflow-wrap:anywhere}.marketmeta{font-size:10px;color:var(--muted);margin-top:4px}
+.odds-table{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:11px}
+.odds-table th{color:var(--muted);font-weight:700;text-align:left;padding:4px 6px}
+.odds-table td{background:#f8fbff;padding:10px 6px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+.odds-table td:first-child{border-left:1px solid var(--line);border-radius:9px 0 0 9px}
+.odds-table td:last-child{border-right:1px solid var(--line);border-radius:0 9px 9px 0}
+.priceback{color:var(--green);font-weight:850}.pricelay{color:var(--red);font-weight:850}
+.tab{border:1px solid var(--line);background:white;color:#647b99;padding:8px 10px;border-radius:10px;font-weight:750;font-size:11px}
+.tab.active{background:var(--ice2);border-color:#c7dcfa;color:#215ba9}
+details{margin-top:11px}summary{color:#285f9f;font-weight:750;cursor:pointer;padding:6px 0}
+.note{font-size:10px;color:var(--muted);line-height:1.7;margin-top:11px;overflow-wrap:anywhere}
+.settings{display:none;margin-top:12px}.settings.open{display:block}
+.settings .search{margin-top:7px}.settingsrow{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.settingsrow .btn{flex:1}
+.toast{font-size:11px;color:var(--green);margin-top:7px;min-height:14px}
+.footer{text-align:center;font-size:10px;line-height:1.7;color:var(--muted);padding:20px 4px}
+@media(min-width:650px){main{padding:22px 20px 45px}.card{padding:18px}.outcomegrid{grid-template-columns:repeat(3,minmax(0,1fr))}.oddsgrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:380px){.brand{font-size:17px}.btn{padding:8px}.card{padding:12px}}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">
-    <div class="logo">✦</div>
-    <div>
-      <div class="eyebrow">Crystal markets · live comparison</div>
-      <h1>Sports Odds <span style="color:#6486d9">Studio</span></h1>
-    </div>
+<header class="topbar">
+  <div class="topline">
+    <div><div class="brand">CRYSTAL <span>ODDS</span></div><div class="subtitle">Sports markets · Odds comparison</div></div>
+    <div class="actions"><button class="btn" id="settingsBtn">⚙ Setup</button><button class="btn primary" id="refreshBtn">↻ Refresh</button></div>
   </div>
-  <p class="subtitle"><span class="live-dot"></span>Polymarket exchange prices and available UK bookmaker odds in one view.</p>
+  <div class="statusline">
+    <span class="pill"><span class="dot" id="statusDot"></span><span id="statusText">Connecting…</span></span>
+    <span class="pill" id="matchCount">0 matches</span>
+    <span class="pill" id="updatedAt">Waiting for feed</span>
+  </div>
+  <div class="settings" id="settingsPanel">
+    <div class="small muted" style="margin-top:12px">Backend API base URL</div>
+    <input class="search" id="apiBase" type="url" placeholder="https://your-secure-worker.example.com">
+    <div class="small muted" style="margin-top:10px">Refresh interval</div>
+    <select class="select" id="refreshInterval" style="max-width:none;margin-top:7px">
+      <option value="15">Every 15 seconds</option><option value="30" selected>Every 30 seconds</option><option value="60">Every 60 seconds</option>
+    </select>
+    <div class="settingsrow"><button class="btn primary" id="saveBtn">Save settings</button><button class="btn" id="testBtn">Test backend</button><button class="btn" id="clearBtn">Clear</button></div>
+    <div class="toast" id="settingsMsg"></div>
+    <div class="note">Private API keys and bookmaker credentials must remain on the secure backend, never in this public HTML.</div>
+  </div>
+  <nav class="sportsbar" id="sportsBar"></nav>
 </header>
 <main>
-  <div class="toolbar">
-    <input class="control search" id="search" placeholder="Search team, player, league or match…" autocomplete="off" aria-label="Search matches">
-    <button class="btn btn-primary" id="refresh" type="button">↻ Refresh odds</button>
-  </div>
-
-  <nav class="tabs" id="tabs" aria-label="Choose sport">
-    <button class="tab active" data-sport="all" type="button">✦ All sports⌄</button>
-    <button class="tab" data-sport="cricket" type="button">🏏 Cricket⌄</button>
-    <button class="tab" data-sport="tennis" type="button">🎾 Tennis⌄</button>
-    <button class="tab" data-sport="soccer" type="button">⚽ Football⌄</button>
-    <button class="tab" data-sport="mma" type="button">🥊 MMA / UFC⌄</button>
-  </nav>
-
-  <div class="settings glass">
-    <label for="oddsFormat">ODDS FORMAT</label>
-    <select class="control" id="oddsFormat">
-      <option value="decimal">Decimal</option>
-      <option value="fractional">Fractional</option>
-      <option value="american">American</option>
-    </select>
-    <label for="apiKey">THE ODDS API KEY</label>
-    <input class="control key-input" id="apiKey" type="password" placeholder="Paste API key on this device" autocomplete="off" autocapitalize="off" spellcheck="false">
-    <button class="btn" id="saveKey" type="button">Save key</button>
-  </div>
-
-  <div class="stats">
-    <div class="stat glass"><strong id="pmCount">—</strong><span>Polymarket markets</span></div>
-    <div class="stat glass"><strong id="bookCount">—</strong><span>Bookmaker events</span></div>
-    <div class="stat glass"><strong id="updated">—</strong><span>Last successful refresh</span></div>
-  </div>
-
-  <div class="status" id="status" role="status" aria-live="polite">Connecting to live data sources…</div>
-  <div class="section-head">
-    <div><h2>Parallel odds board</h2><p>Blue = Polymarket · Pink = UK bookmaker</p></div>
-    <span class="count-pill" id="visibleCount">0 matches</span>
-  </div>
-  <section class="cards" id="cards" aria-label="Live odds">
-    <div class="empty">Loading available markets…</div>
-  </section>
-  <p class="footnote">Live data depends on provider coverage, API quota and network access. Polymarket bid/ask are exchange order-book prices. The Odds API normally provides bookmaker BACK prices, not bookmaker LAY prices; missing prices are shown as “—”, never fabricated. The API key is stored in this browser. Use a secure backend proxy if you need to keep the key confidential.</p>
+  <div class="headingrow"><div><h1 id="pageTitle">Sports matches</h1><div class="small muted" id="pageSub">Choose a sport from the top dropdowns.</div></div></div>
+  <div class="searchrow"><input class="search" id="searchInput" placeholder="Search teams, players or match…" autocomplete="off"><select class="select" id="marketFilter"><option value="all">All markets</option><option value="match">Match winner</option><option value="player">Player markets</option><option value="innings">Innings / overs</option><option value="other">Other markets</option></select></div>
+  <div id="content"><div class="card empty">Loading available markets…</div></div>
+  <div class="footer">Only data returned by connected sources is displayed. Missing prices appear as —. Prediction-market odds equivalents are not the same as bookmaker back/lay offers.</div>
 </main>
-
 <script>
-'use strict';
-
-const GAMMA='https://gamma-api.polymarket.com';
-const CLOB='https://clob.polymarket.com';
-const ODDS='https://api.the-odds-api.com/v4';
+"use strict";
 const $=id=>document.getElementById(id);
-
-let selectedSport='all',pmMarkets=[],bookEvents=[],loading=false;
-const expanded=new Set(),orderBookCache=new Map();
-
-const SPORTS=['cricket','tennis','soccer','mma'];
-const candidateKeys={
- cricket:['cricket_test_match','cricket_one_day_international','cricket_international_t20','cricket_t20_blast','cricket_big_bash','cricket_ipl'],
- tennis:['tennis_atp_french_open','tennis_atp_wimbledon','tennis_atp_us_open','tennis_atp_australian_open'],
- soccer:['soccer_epl','soccer_uefa_champs_league','soccer_spain_la_liga','soccer_italy_serie_a','soccer_germany_bundesliga','soccer_france_ligue_one'],
- mma:['mma_mixed_martial_arts']
-};
-
-function esc(v){
- return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SPORTS=[
+{id:"all",label:"All Sports",emoji:"🌐"},
+{id:"cricket",label:"Cricket",emoji:"🏏"},
+{id:"soccer",label:"Football",emoji:"⚽"},
+{id:"tennis",label:"Tennis",emoji:"🎾"},
+{id:"basketball",label:"Basketball",emoji:"🏀"},
+{id:"hockey",label:"Hockey",emoji:"🏒"},
+{id:"mma",label:"MMA / Boxing",emoji:"🥊"}
+];
+let events=[],quotes=[],selectedSport="all",selectedId="",openMenu="",busy=false,lastUpdated=null,timer=null,apiBase="";
+let expandedMarkets=new Set();
+const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function arr(v){if(Array.isArray(v))return v;if(typeof v==="string"){try{let a=JSON.parse(v);return Array.isArray(a)?a:[]}catch(e){}}return []}
+function eventId(e){return String(e.id??e.slug??e.title??"")}
+function eventName(e){return e.title||e.name||e.slug||"Untitled match"}
+function sportOf(e){
+ const t=[e.title,e.slug,e.description,e.sport,e.sportKey,...(e.tags||[]).map(x=>typeof x==="string"?x:x.label)].join(" ").toLowerCase();
+ if(/cricket|ipl|t20|test match|\bodi\b|ashes|big bash|ranji/.test(t))return "cricket";
+ if(/tennis|\batp\b|\bwta\b|wimbledon|roland garros/.test(t))return "tennis";
+ if(/basketball|\bnba\b|\bwnba\b|euroleague/.test(t))return "basketball";
+ if(/hockey|\bnhl\b|field hockey/.test(t))return "hockey";
+ if(/\bmma\b|\bufc\b|boxing|bellator/.test(t))return "mma";
+ if(/soccer|football|premier league|champions league|la liga|serie a|bundesliga|world cup|europa league|\bmls\b/.test(t))return "soccer";
+ return "other";
 }
-function arr(v){
- if(Array.isArray(v))return v;
- if(typeof v==='string'){try{const p=JSON.parse(v);return Array.isArray(p)?p:[]}catch{return[]}}
- return [];
+function allMatches(){return events.filter(e=>selectedSport==="all"?sportOf(e)!=="other":sportOf(e)===selectedSport)}
+function visibleMatches(){
+ const q=$("searchInput").value.trim().toLowerCase();
+ return allMatches().filter(e=>{
+  const title=[eventName(e),e.description,e.slug].join(" ").toLowerCase();
+  return !q||title.includes(q)||markets(e).some(m=>(m.question||"").toLowerCase().includes(q));
+ });
 }
-function norm(v){
- return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\b(fc|afc|sc|club|team|women|womens|men|mens)\b/g,' ').replace(/[^a-z0-9]+/g,' ').trim();
+function markets(e){return Array.isArray(e.markets)?e.markets:[]}
+function isActive(e){return e&&e.closed!==true&&e.active!==false}
+function fmt(n){n=Number(n);return Number.isFinite(n)&&n>1?n.toFixed(2):"—"}
+function decimal(p){p=Number(p);return p>0&&p<1?1/p:null}
+function percent(p){p=Number(p);return Number.isFinite(p)?(p*100).toFixed(1)+"%":"—"}
+function marketType(m){
+ const t=[m.question,m.groupItemTitle,m.description].join(" ").toLowerCase();
+ if(/player|top scorer|most runs|wickets by|player to|batter|bowler|century|player points/.test(t))return "player";
+ if(/innings|over \d|overs|powerplay|partnership|session|runs in over/.test(t))return "innings";
+ if(/winner|win the match|moneyline|match result|to win|who will win/.test(t))return "match";
+ return "other";
 }
-function classify(text){
- const t=String(text||'').toLowerCase();
- if(/\b(cricket|ipl|t20|odi|test match|ashes|ranji|wpl|big bash|county championship)\b/.test(t))return'cricket';
- if(/\b(tennis|atp|wta|wimbledon|roland garros|french open|us open|australian open)\b/.test(t))return'tennis';
- if(/\b(soccer|football|fifa|uefa|premier league|champions league|la liga|serie a|bundesliga|ligue 1|world cup|europa league|fa cup|epl)\b/.test(t))return'soccer';
- if(/\b(mma|ufc|mixed martial arts|ultimate fighting championship)\b/.test(t))return'mma';
- return'other';
+function renderSports(){
+ $("sportsBar").innerHTML=SPORTS.map(s=>{
+  const list=events.filter(e=>s.id==="all"?sportOf(e)!=="other":sportOf(e)===s.id);
+  return `<div class="sportwrap"><button class="sportbtn ${selectedSport===s.id?"active":""}" data-sport="${s.id}" aria-expanded="${openMenu===s.id}">${s.emoji} ${s.label} <span>⌄</span></button><div class="menu ${openMenu===s.id?"open":""}" data-menu="${s.id}"><div class="menuhead">${list.length} available events · tap to select</div>${list.length?list.map(e=>`<button class="menuitem ${eventId(e)===selectedId?"selected":""}" data-event="${esc(eventId(e))}">${esc(eventName(e))}<small>${esc(e.live?"Live":"Event")} · ${markets(e).length} markets</small></button>`).join(""):'<div class="empty">No matching events found.</div>'}</div></div>`;
+ }).join("");
 }
-function fmt(decimal){
- if(!Number.isFinite(decimal)||decimal<1.001)return'—';
- const mode=$('oddsFormat').value;
- if(mode==='fractional'){
-  let n=Math.round((decimal-1)*1000),d=1000;
-  const gcd=(a,b)=>b?gcd(b,a%b):a;
-  const g=gcd(n,d)||1;
-  return(n/g)+'/'+(d/g);
- }
- if(mode==='american'){
-  const n=decimal>=2?Math.round((decimal-1)*100):-Math.round(100/(decimal-1));
-  return n>0?'+'+n:String(n);
- }
- return decimal.toFixed(2);
+function findQuotes(e,m,outcome){
+ const eventNameLower=eventName(e).toLowerCase(),marketName=(m.question||"").toLowerCase(),outcomeLower=String(outcome||"").toLowerCase();
+ return quotes.filter(q=>{
+  const qe=String(q.event||q.eventName||q.match||"").toLowerCase();
+  const qm=String(q.market||q.marketName||"").toLowerCase();
+  const qo=String(q.outcome||q.selection||q.runner||"").toLowerCase();
+  return (!qe||qe===eventNameLower||eventNameLower.includes(qe)||qe.includes(eventNameLower))
+   &&(!qm||qm===marketName||marketName.includes(qm)||qm.includes(marketName))
+   &&(!qo||qo===outcomeLower);
+ });
 }
-function setStatus(msg,type=''){
- const el=$('status');el.className='status'+(type?' '+type:'');el.textContent=msg;
+function quotePrice(q,type){
+ const v=type==="back"?(q.back??q.backOdds??q.bestBack??q.back_odds):(q.lay??q.layOdds??q.bestLay??q.lay_odds);
+ return v===undefined||v===null||v===""?"—":esc(v);
 }
-async function json(url){
- const r=await fetch(url,{headers:{Accept:'application/json'}});
- if(!r.ok)throw new Error('HTTP '+r.status+' from '+new URL(url).hostname);
- return r.json();
+function bookmakerRows(e,m,outcome){
+ const found=findQuotes(e,m,outcome);
+ if(!found.length)return `<tr><td colspan="4" class="muted">No connected bookmaker quotes</td></tr>`;
+ return found.map(q=>`<tr><td>${esc(q.source||q.bookmaker||q.provider||"Bookmaker")}</td><td class="priceback">${quotePrice(q,"back")}</td><td class="pricelay">${quotePrice(q,"lay")}</td><td>${esc(q.updatedAt||q.sourceUpdatedAt||"—")}</td></tr>`).join("");
 }
-function getKey(){try{return localStorage.getItem('crystalOddsApiKey')||''}catch{return''}}
-function saveKey(){
- const k=$('apiKey').value.trim();
- try{if(k)localStorage.setItem('crystalOddsApiKey',k);else localStorage.removeItem('crystalOddsApiKey')}catch{}
- if(!k){setStatus('API key cleared. Polymarket remains available without it.');bookEvents=[];render();return}
- setStatus('Key saved on this device. Checking available bookmaker markets…');
- refreshAll();
+function renderMarket(e,m,index){
+ const names=arr(m.outcomes),prices=arr(m.outcomePrices);
+ const type=marketType(m),key=eventId(e)+"_"+(m.id||index);
+ const filter=$("marketFilter").value;
+ if(filter!=="all"&&filter!==type)return "";
+ const outcomes=names.map((name,i)=>{
+  const p=Number(prices[i]),d=decimal(p);
+  return `<div class="outcome"><div class="outcomename">${esc(name)}</div><div class="outcomeprice">${fmt(d)}</div><div class="oddfoot">${percent(p)} implied probability · Polymarket equivalent</div><div class="sourceheading">Bookmaker back / lay</div><table class="odds-table"><thead><tr><th>Source</th><th>Back</th><th>Lay</th><th>Updated</th></tr></thead><tbody>${bookmakerRows(e,m,name)}</tbody></table></div>`;
+ }).join("");
+ return `<div class="marketblock"><div class="markettitle">${esc(m.question||m.groupItemTitle||"Market")}</div><div class="marketmeta">${esc(type)} · ${m.closed?"Closed":"Market"}</div><div class="outcomegrid">${outcomes||'<div class="muted small">Outcome prices not supplied.</div>'}</div><details ${expandedMarkets.has(key)?"open":""}><summary>Market details</summary><div class="note">${esc(m.description||"No further description supplied.")}${m.endDate?"<br>End date: "+esc(m.endDate):""}<br>Market ID: ${esc(m.id||"Not supplied")}</div></details></div>`;
 }
-function getEventTitle(e){return e?.title||e?.name||''}
-function sportText(e){
- return [e.title,e.name,e.slug,e.description,arr(e.tags).map(t=>typeof t==='string'?t:[t.label,t.name,t.slug].filter(Boolean).join(' ')).join(' ')].join(' ');
+function renderEvent(e){
+ const ms=markets(e);
+ const teams=arr(e.teams);
+ const teamHtml=teams.length?`<div class="teamgrid">${teams.map(t=>`<div class="team"><div class="teamname">${esc(typeof t==="string"?t:t.name||"Team")}</div><div class="teamodds">—</div><div class="teamlabel">No verified price supplied</div></div>`).join("")}</div>`:"";
+ const playerNames=arr(e.players);
+ const playerHtml=playerNames.length?`<div class="marketblock"><h3>Players</h3><div class="tags">${playerNames.map(p=>`<span class="tag">${esc(typeof p==="string"?p:p.name||"Player")}</span>`).join("")}</div></div>`:"";
+ return `<div class="card"><div class="matchtitle">${esc(eventName(e))}</div><div class="matchmeta">${esc(e.slug||"")}</div><div class="tags"><span class="tag">${esc((SPORTS.find(s=>s.id===sportOf(e))||{}).label||"Sports")}</span><span class="tag">${e.closed?"Closed":"Active event"}</span><span class="tag">${ms.length} markets</span></div>${teamHtml}${playerHtml}<div class="sectionrow" style="margin-top:17px"><h2>Markets & odds</h2><span class="muted">Available feed data</span></div>${ms.length?ms.map((m,i)=>renderMarket(e,m,i)).join(""):'<div class="empty">This event has no market data in the current response.</div>'}<div class="note">Polymarket probabilities are converted into decimal-odds equivalents for reference only. They are not bookmaker odds or exchange back/lay offers. Bookmaker rows appear only when your backend supplies matching quotes.</div><div class="match-actions"><button class="btn" id="backToMatches">← Back to matches</button></div></div>`;
 }
-function outcomesOf(m){
- const names=arr(m.outcomes),prices=arr(m.outcomePrices),tokens=arr(m.clobTokenIds||m.clob_token_ids);
- return names.map((x,i)=>({name:String(typeof x==='object'?(x.name||x.label||''):x),prob:Number(prices[i]),tokenId:tokens[i]?String(tokens[i]):''})).filter(x=>x.name.trim());
-}
-function volume(m,e){
- for(const x of [m.volumeNum,m.volume,m.volume24hr,m.liquidityNum,e?.volumeNum,e?.volume]){
-  const n=Number(x);
-  if(x!==''&&x!=null&&Number.isFinite(n)&&n>=0)return new Intl.NumberFormat('en',{notation:n>=1000?'compact':'standard',maximumFractionDigits:1}).format(n);
- }
- return'—';
-}
-function makePMMarket(m,e={},hint='other'){
- if(m.closed===true||m.active===false)return null;
- const outs=outcomesOf(m);
- if(outs.length<2)return null;
- const titleEvent=getEventTitle(e)||m.eventTitle||'';
- const matchupText=[titleEvent,m.question,m.slug].join(' ');
- if(!/\b(?:vs?\.?|versus)\b/i.test(matchupText))return null;
- const sport=classify([sportText(e),m.question,m.slug,m.description,titleEvent].join(' '));
- const actualSport=sport==='other'?hint:sport;
- if(actualSport==='other')return null;
- const title=titleEvent&&/\b(vs?\.?|versus)\b/i.test(titleEvent)?titleEvent:(m.question||titleEvent||outs.map(o=>o.name).slice(0,2).join(' vs '));
- const eventSlug=e.slug||m.eventSlug||m.slug||'';
- return{
-  id:String(m.id||m.conditionId||m.slug||m.question),
-  sport:actualSport,title,question:m.question||'',eventTitle:titleEvent,
-  outcomes:outs,volume:volume(m,e),
-  url:eventSlug?'https://polymarket.com/event/'+encodeURIComponent(eventSlug):'https://polymarket.com'
- };
-}
-async function loadPM(){
- const map=new Map(),errors=[];
- try{
-  const evs=await json(GAMMA+'/events?active=true&closed=false&limit=100&order=volume24hr&ascending=false');
-  if(Array.isArray(evs))for(const e of evs){
-   const s=classify(sportText(e));
-   for(const m of arr(e.markets)){const item=makePMMarket(m,e,s);if(item)map.set(item.id,item)}
-  }
- }catch(e){errors.push(e.message)}
- try{
-  const pages=await Promise.allSettled([0,100,200].map(o=>json(GAMMA+'/markets?active=true&closed=false&limit=100&offset='+o+'&order=volume24hr&ascending=false')));
-  for(const p of pages){
-   if(p.status!=='fulfilled'||!Array.isArray(p.value))continue;
-   for(const m of p.value){
-    const ev=arr(m.events)[0]||{};
-    const item=makePMMarket(m,ev,'other');
-    if(item&&!map.has(item.id))map.set(item.id,item);
-   }
-  }
- }catch(e){errors.push(e.message)}
- pmMarkets=[...map.values()];
- if(!pmMarkets.length&&errors.length)throw new Error(errors[0]);
-}
-function parseBookEvent(e,sport){return{...e,sport:sport||classify(e.sport_title||e.sport_key||'other')}}
-async function loadBooks(){
- const key=$('apiKey').value.trim()||getKey();
- if(!key){bookEvents=[];return}
- const sports=await json(ODDS+'/sports/?apiKey='+encodeURIComponent(key));
- const active=Array.isArray(sports)?sports.filter(s=>s.active):[];
- let chosen=[];
- const wanted=selectedSport==='all'?SPORTS:[selectedSport];
- for(const cat of wanted){
-  let found=active.filter(s=>{
-   const title=[s.key,s.title,s.group].join(' ').toLowerCase();
-   if(cat==='soccer')return title.includes('soccer');
-   if(cat==='cricket')return title.includes('cricket');
-   if(cat==='tennis')return title.includes('tennis');
-   if(cat==='mma')return title.includes('mma')||title.includes('ufc');
-   return false;
-  });
-  const exact=candidateKeys[cat]||[];
-  found.sort((a,b)=>{
-   const ai=exact.indexOf(a.key),bi=exact.indexOf(b.key);
-   return(ai<0?999:ai)-(bi<0?999:bi);
-  });
-  chosen.push(...found.slice(0,cat==='soccer'?5:3));
- }
- chosen=[...new Map(chosen.map(s=>[s.key,s])).values()];
- const settled=await Promise.allSettled(chosen.map(s=>
-  json(ODDS+'/sports/'+encodeURIComponent(s.key)+'/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey='+encodeURIComponent(key)).then(events=>({s,events}))
- ));
- const map=new Map();
- for(const r of settled){
-  if(r.status!=='fulfilled'||!Array.isArray(r.value.events))continue;
-  for(const e of r.value.events){
-   const item=parseBookEvent(e,classify([r.value.s.key,r.value.s.title,r.value.s.group].join(' ')));
-   const id=e.id||[e.home_team,e.away_team,e.commence_time].join('|');
-   map.set(id,item);
-  }
- }
- bookEvents=[...map.values()];
- const bad=settled.filter(x=>x.status==='rejected');
- if(!bookEvents.length&&bad.length)throw bad[0].reason;
-}
-function marketBest(outcome){
- if(!outcome.tokenId)return{bid:null,ask:null};
- return orderBookCache.get(outcome.tokenId)||{bid:null,ask:null,pending:true};
-}
-async function loadBookFor(outcome){
- if(!outcome.tokenId||orderBookCache.get(outcome.tokenId)?.loading)return;
- orderBookCache.set(outcome.tokenId,{...(orderBookCache.get(outcome.tokenId)||{}),loading:true});
- try{
-  const d=await json(CLOB+'/book?token_id='+encodeURIComponent(outcome.tokenId));
-  const bids=arr(d.bids).map(x=>Number(x.price)).filter(x=>Number.isFinite(x)&&x>0&&x<=1);
-  const asks=arr(d.asks).map(x=>Number(x.price)).filter(x=>Number.isFinite(x)&&x>0&&x<=1);
-  orderBookCache.set(outcome.tokenId,{bid:bids.length?Math.max(...bids):null,ask:asks.length?Math.min(...asks):null,at:Date.now()});
- }catch(e){orderBookCache.set(outcome.tokenId,{bid:null,ask:null,error:e.message})}
-}
-function isGenericOutcome(name){return['yes','no','true','false','over','under'].includes(norm(name))}
-function getMarketPair(m){
- const nonGeneric=m.outcomes.filter(o=>!isGenericOutcome(o.name));
- if(nonGeneric.length>=2)return nonGeneric.slice(0,2).map(o=>o.name);
- const txt=m.eventTitle+' '+m.title;
- const vs=txt.split(/\s+(?:vs?\.?|versus)\s+/i);
- return vs.length>=2?vs.slice(0,2).map(x=>x.trim()):[];
-}
-function eventTeams(e){return[e.home_team||'',e.away_team||'']}
-function sameName(a,b){
- const x=norm(a),y=norm(b);
- return!!x&&!!y&&(x===y||x.includes(y)||y.includes(x));
-}
-function findBookForMarket(m){
- const pair=getMarketPair(m);
- if(pair.length<2)return null;
- let best=null,bestScore=0;
- for(const e of bookEvents){
-  if(selectedSport!=='all'&&e.sport!==selectedSport)continue;
-  const teams=eventTeams(e);
-  if(!teams[0]||!teams[1])continue;
-  const direct=sameName(pair[0],teams[0])&&sameName(pair[1],teams[1]);
-  const reverse=sameName(pair[0],teams[1])&&sameName(pair[1],teams[0]);
-  const score=direct||reverse?3:0;
-  if(score>bestScore){best=e;bestScore=score}
- }
- return bestScore>=3?best:null;
-}
-function bookPrice(event,outcomeName){
- if(!event)return null;
- const want=norm(outcomeName);
- for(const b of arr(event.bookmakers)){
-  const m=arr(b.markets).find(x=>x.key==='h2h');
-  if(!m)continue;
-  const o=arr(m.outcomes).find(x=>norm(x.name)===want||sameName(x.name,outcomeName));
-  if(o&&Number.isFinite(Number(o.price)))return{price:Number(o.price),book:b.title};
- }
- return null;
-}
-function renderPriceBox(side,marketOutcome,bookEvent,bookOutcomeName){
- if(side==='pm'){
-  const ob=marketBest(marketOutcome),bid=ob.bid,ask=ob.ask;
-  return '<div class="source-box pm"><div class="source-mini">Polymarket · Exchange</div><div class="price-pair"><div class="price-cell"><span class="side">BACK / BUY</span><strong>'+esc(ask!=null?fmt(1/ask):'—')+'</strong></div><div class="price-cell"><span class="side">LAY / SELL</span><strong>'+esc(bid!=null?fmt(1/bid):'—')+'</strong></div></div><div class="price-note">'+(bid!=null?'Bid '+bid.toFixed(3):'Bid unavailable')+' · '+(ask!=null?'Ask '+ask.toFixed(3):'Ask unavailable')+'</div></div>';
- }
- const p=bookPrice(bookEvent,bookOutcomeName);
- return '<div class="source-box bk"><div class="source-mini">UK bookmaker</div><div class="price-pair"><div class="price-cell"><span class="side">BACK</span><strong>'+esc(p?fmt(p.price):'—')+'</strong></div><div class="price-cell"><span class="side">LAY</span><strong>—</strong></div></div><div class="price-note">'+esc(p?p.book:'No matching UK price')+' · Lay not supplied by this feed</div></div>';
-}
-function renderCard(m){
- const be=findBookForMarket(m),isOpen=expanded.has(m.id);
- const nonGeneric=m.outcomes.filter(o=>!isGenericOutcome(o.name));
- const shown=nonGeneric.length?nonGeneric.slice(0,4):m.outcomes.slice(0,2);
- const rows=shown.map(o=>{
-  let matchedName=o.name;
-  if(be){
-   const teams=eventTeams(be);
-   if(sameName(o.name,teams[0]))matchedName=teams[0];
-   else if(sameName(o.name,teams[1]))matchedName=teams[1];
-  }
-  const p=Number(o.prob);
-  const pct=Number.isFinite(p)&&p>=0&&p<=1?(p*100).toFixed(1)+'%':'—';
-  return '<div class="outcome-row"><div class="outcome-name">'+esc(o.name)+' <span style="font-weight:500;color:#7c90a6">· '+esc(pct)+'</span></div><div class="parallel">'+renderPriceBox('pm',o,null,null)+renderPriceBox('bk',null,be,matchedName)+'</div></div>';
- }).join('');
- const bTitle=be?be.home_team+' vs '+be.away_team:'No exact bookmaker match found';
- const bTime=be?.commence_time?new Date(be.commence_time).toLocaleString():'Bookmaker event not matched';
- return '<article class="match-card glass"><div class="card-top"><span class="sport-tag">'+esc(m.sport)+'</span><span class="source-tag">POLYMARKET'+(be?' + UK MATCH':'')+'</span></div><div class="match-name">'+esc(m.title)+'</div><div class="match-meta"><span class="meta">Volume '+esc(m.volume)+'</span><span class="meta">'+esc(be?bTime:'UK odds: unmatched')+'</span></div><div class="compare-head"><div class="compare-label pm">🔵 POLYMARKET</div><div class="compare-label bk">🔴 UK BOOKMAKER</div></div>'+(rows||'<div class="empty">No outcomes returned for this market.</div>')+'<button class="details-toggle" type="button" data-toggle="'+esc(m.id)+'" aria-expanded="'+isOpen+'">'+(isOpen?'Hide market details ↑':'View full market details ↓')+'</button><div class="details '+(isOpen?'open':'')+'"><div class="detail-title">MARKET DETAILS</div><div class="detail-market"><h4>Polymarket question</h4><div class="detail-line"><span>'+esc(m.question||m.title)+'</span><strong>'+esc(m.outcomes.length)+' outcomes</strong></div><div class="detail-line"><span>UK bookmaker match</span><strong>'+esc(be?bTitle:'Not matched')+'</strong></div>'+(be?'<div class="detail-line"><span>Start time</span><strong>'+esc(bTime)+'</strong></div>':'')+'<a class="market-link" href="'+esc(m.url)+'" target="_blank" rel="noopener noreferrer">Open Polymarket market ↗</a></div>'+(m.outcomes.length>shown.length?'<div class="detail-market"><h4>Other outcomes</h4>'+m.outcomes.slice(shown.length).map(o=>'<div class="detail-line"><span>'+esc(o.name)+'</span><strong>'+esc(Number.isFinite(o.prob)?(o.prob*100).toFixed(1)+'%':'—')+'</strong></div>').join('')+'</div>':'')+'</div></article>';
-}
-function render(){
- const q=norm($('search').value);
- let list=pmMarkets.filter(m=>(selectedSport==='all'||m.sport===selectedSport)&&(!q||norm([m.title,m.question,m.eventTitle,m.sport,...m.outcomes.map(o=>o.name)].join(' ')).includes(q)));
- list.sort((a,b)=>(findBookForMarket(b)?1:0)-(findBookForMarket(a)?1:0));
- $('pmCount').textContent=String(pmMarkets.length);
- $('bookCount').textContent=String(bookEvents.length);
- $('visibleCount').textContent=list.length+' matches';
- if(!list.length){
-  $('cards').innerHTML='<div class="empty glass">No matching markets found. Try All sports, clear your search, or tap Refresh odds.</div>';
+function renderContent(){
+ const selected=events.find(e=>eventId(e)===selectedId);
+ if(selected){
+  $("pageTitle").textContent="Match details";
+  $("pageSub").textContent="Markets, selections and connected odds";
+  $("content").innerHTML=renderEvent(selected);
   return;
  }
- $('cards').innerHTML=list.slice(0,250).map(renderCard).join('');
-}
-async function refreshAll(){
- if(loading)return;
- loading=true;
- $('refresh').disabled=true;
- $('refresh').textContent='↻ Refreshing…';
- setStatus('Refreshing Polymarket and available UK bookmaker prices…');
- const results=await Promise.allSettled([loadPM(),loadBooks()]);
- const pmOk=results[0].status==='fulfilled',bookOk=results[1].status==='fulfilled';
- if(pmOk||bookOk){
-  $('updated').textContent=new Date().toLocaleTimeString();
-  setStatus('Refresh complete. '+pmMarkets.length+' Polymarket markets · '+bookEvents.length+' bookmaker events. '+(!$('apiKey').value.trim()&&!getKey()?'Add The Odds API key to load UK bookmaker odds. ':'')+'Unmatched events are not falsely paired.','ok');
- }else{
-  setStatus('Could not refresh data. Check internet, API key/quota, and retry. '+(results[0].reason?.message||results[1].reason?.message||''),'error');
+ const list=visibleMatches();
+ $("pageTitle").textContent=(SPORTS.find(s=>s.id===selectedSport)||SPORTS[0]).label;
+ $("pageSub").textContent="Matches appear in the dropdown next to each sport.";
+ if(!list.length){
+  $("content").innerHTML=`<div class="card empty">No events to show for this selection.<br>Open a sport dropdown or refresh the data feed.</div>`;
+  return;
  }
- render();
- $('refresh').disabled=false;
- $('refresh').textContent='↻ Refresh odds';
- loading=false;
- const priority=[...pmMarkets.filter(m=>expanded.has(m.id)),...pmMarkets.filter(m=>!expanded.has(m.id))];
- const tokens=[];
- for(const m of priority.slice(0,10))for(const o of m.outcomes.slice(0,2))if(o.tokenId)tokens.push(o);
- await Promise.allSettled(tokens.map(o=>loadBookFor(o)));
- render();
+ $("content").innerHTML=list.slice(0,100).map(e=>`<div class="card"><div class="matchtitle">${esc(eventName(e))}</div><div class="matchmeta">${esc(e.live?"Live event":"Sports market")} · ${markets(e).length} markets</div><div class="tags"><span class="tag">${esc((SPORTS.find(s=>s.id===sportOf(e))||{}).label||"Sports")}</span><span class="tag">${e.closed?"Closed":"Active"}</span></div><div class="match-actions"><button class="btn primary" data-open-event="${esc(eventId(e))}">Open match & odds →</button></div></div>`).join("");
 }
-$('cards').addEventListener('click',e=>{
- const b=e.target.closest('button[data-toggle]');
- if(!b)return;
- const id=b.getAttribute('data-toggle');
- if(expanded.has(id))expanded.delete(id);
- else{
-  expanded.add(id);
-  const m=pmMarkets.find(x=>x.id===id);
-  if(m)for(const o of m.outcomes.slice(0,4))if(o.tokenId)loadBookFor(o).then(render);
+function render(){
+ renderSports();renderContent();
+ $("matchCount").textContent=events.length+" events";
+ $("updatedAt").textContent=lastUpdated?"Updated "+lastUpdated.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"Waiting for feed";
+}
+async function getJson(url){
+ const r=await fetch(url,{cache:"no-store",headers:{"Accept":"application/json"}});
+ if(!r.ok)throw new Error("HTTP "+r.status);
+ return r.json();
+}
+async function loadPolymarket(){
+ const requests=[0,1,2,3].map(i=>getJson("https://gamma-api.polymarket.com/events?active=true&closed=false&limit=100&offset="+(i*100)+"&order=volume24hr&ascending=false"));
+ const results=await Promise.allSettled(requests),merged=[];
+ results.forEach(r=>{if(r.status==="fulfilled"&&Array.isArray(r.value))merged.push(...r.value)});
+ if(!merged.length)throw new Error("Public markets feed unavailable");
+ const unique=new Map();
+ merged.forEach(e=>{if(isActive(e)&&sportOf(e)!=="other")unique.set(eventId(e),e)});
+ events=[...unique.values()].sort((a,b)=>Number(b.volume24hr||b.volume||0)-Number(a.volume24hr||a.volume||0));
+ if(selectedId&&!events.some(e=>eventId(e)===selectedId))selectedId="";
+ lastUpdated=new Date();
+}
+async function loadBackend(){
+ quotes=[];
+ if(!apiBase)return;
+ const r=await getJson(apiBase.replace(/\/+$/,"")+"/report?limit=1000");
+ const rows=Array.isArray(r)?r:(r.observations||r.rows||r.data||[]);
+ if(Array.isArray(rows))quotes=rows;
+}
+async function refresh(){
+ if(busy)return;
+ busy=true;$("refreshBtn").disabled=true;$("refreshBtn").textContent="Loading…";
+ try{
+  await loadPolymarket();
+  try{await loadBackend()}catch(err){console.warn("Backend feed:",err.message)}
+  $("statusDot").className="dot ok";
+  $("statusText").textContent=apiBase?(quotes.length?"Markets connected":"Markets connected · backend quotes unavailable"):"Public feed connected";
+  render();
+ }catch(err){
+  $("statusDot").className="dot err";$("statusText").textContent="Feed unavailable";
+  if(!events.length)$("content").innerHTML=`<div class="card empty"><strong>Markets could not load.</strong><br>Check your internet connection and try Refresh again.<div class="note">${esc(err.message)}</div></div>`;
+ }finally{
+  busy=false;$("refreshBtn").disabled=false;$("refreshBtn").textContent="↻ Refresh";
  }
- render();
+}
+function resetTimer(){
+ if(timer)clearInterval(timer);
+ const seconds=Number($("refreshInterval").value)||30;
+ timer=setInterval(refresh,seconds*1000);
+}
+$("sportsBar").addEventListener("click",ev=>{
+ const sb=ev.target.closest("[data-sport]"),eb=ev.target.closest("[data-event]");
+ if(eb){
+  selectedId=eb.dataset.event;
+  const e=events.find(x=>eventId(x)===selectedId);
+  if(e)selectedSport=sportOf(e);
+  openMenu="";render();return;
+ }
+ if(sb){
+  selectedSport=sb.dataset.sport;
+  openMenu=openMenu===selectedSport?"":selectedSport;
+  renderSports();
+ }
 });
-$('refresh').addEventListener('click',refreshAll);
-$('saveKey').addEventListener('click',saveKey);
-$('search').addEventListener('input',render);
-$('oddsFormat').addEventListener('change',render);
-$('tabs').addEventListener('click',e=>{
- const b=e.target.closest('[data-sport]');
- if(!b)return;
- selectedSport=b.dataset.sport;
- $('tabs').querySelectorAll('[data-sport]').forEach(x=>x.classList.toggle('active',x===b));
- refreshAll();
+$("content").addEventListener("click",ev=>{
+ const open=ev.target.closest("[data-open-event]");
+ if(open){selectedId=open.dataset.openEvent;openMenu="";render();window.scrollTo({top:0,behavior:"smooth"});return}
+ if(ev.target.closest("#backToMatches")){selectedId="";render();window.scrollTo({top:0,behavior:"smooth"})}
 });
-$('apiKey').value=getKey();
-refreshAll();
-setInterval(()=>{if(!document.hidden)refreshAll()},60000);
+$("content").addEventListener("toggle",ev=>{
+ if(ev.target.tagName==="DETAILS"){
+  const card=ev.target.closest(".marketblock");
+  if(!card)return;
+  // Open/close state is local to the current render.
+ }
+},true);
+$("searchInput").addEventListener("input",()=>{selectedId="";renderContent()});
+$("marketFilter").addEventListener("change",()=>{selectedId="";renderContent()});
+$("refreshBtn").addEventListener("click",refresh);
+$("settingsBtn").addEventListener("click",()=>$("settingsPanel").classList.toggle("open"));
+$("saveBtn").addEventListener("click",()=>{
+ const value=$("apiBase").value.trim();
+ if(value){
+  try{const u=new URL(value);if(u.protocol!=="https:")throw Error();apiBase=u.origin+u.pathname.replace(/\/+$/,"");localStorage.setItem("crystalOddsApiBase",apiBase);$("settingsMsg").textContent="Backend URL saved on this device.";refresh()}
+  catch(e){$("settingsMsg").textContent="Enter a valid HTTPS backend URL."}
+ }else{$("settingsMsg").textContent="Enter a backend URL first."}
+ resetTimer();
+});
+$("testBtn").addEventListener("click",async()=>{
+ const value=$("apiBase").value.trim();
+ if(!value){$("settingsMsg").textContent="Enter your backend URL first.";return}
+ try{const u=new URL(value);const r=await getJson(u.origin+u.pathname.replace(/\/+$/,"")+"/health");$("settingsMsg").textContent="Backend responded: "+JSON.stringify(r).slice(0,160)}
+ catch(e){$("settingsMsg").textContent="Backend test failed. Check URL, endpoint and CORS settings."}
+});
+$("clearBtn").addEventListener("click",()=>{
+ apiBase="";quotes=[];$("apiBase").value="";
+ try{localStorage.removeItem("crystalOddsApiBase")}catch(e){}
+ $("settingsMsg").textContent="Backend URL cleared.";renderContent();
+});
+$("refreshInterval").addEventListener("change",resetTimer);
+document.addEventListener("click",ev=>{
+ if(!ev.target.closest(".sportwrap")&&openMenu){openMenu="";renderSports()}
+});
+try{apiBase=localStorage.getItem("crystalOddsApiBase")||"";$("apiBase").value=apiBase}catch(e){}
+renderSports();refresh();resetTimer();
 </script>
 </body>
 </html>
