@@ -393,7 +393,9 @@ function marketIsUseful(market){
   const outcomes = getMarketOutcomes(market);
   if(outcomes.length < 2) return false;
   // Hide Yes/No prop markets from the match-winner list.
-  const names = outcomes.map(o => o.name.trim().toLowerCase());
+  const names = (Array.isArray(outcomes) ? outcomes : []).map(o =>
+  String(typeof o === "object" ? (o?.name || "") : o).trim()
+)
   const yesNo = names.every(n =>
     ["yes","no","true","false"].includes(n)
   );
