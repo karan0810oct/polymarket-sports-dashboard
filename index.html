@@ -1,921 +1,253 @@
-<!DOCTYPE html>
+
+
+<!doctype html>
 
 <html lang="en">
 
 <head>
 
-<meta charset="UTF-8">
+<meta charset="utf-8">
 
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 
-<meta name="theme-color" content="#f4f8ff">
+<meta name="theme-color" content="#080d19">
 
-<title>Poly Dash | Live Sports Odds</title>
+<title>Crystal Odds | Live Sports Dashboard</title>
 
 <style>
 
-:root{--bg:#f3f7ff;--card:#fff;--text:#263654;--muted:#8592a8;--blue:#5478ed;--line:#e5ecf8;--green:#2b9a7b}
+:root{color-scheme:dark;--bg:#080d19;--panel:rgba(18,29,49,.78);--line:rgba(164,190,226,.18);--text:#eef5ff;--muted:#98a9c3;--blue:#67b7ff;--bluebg:rgba(54,153,255,.16);--red:#ff788e;--redbg:rgba(255,76,112,.15);--mint:#65e6c0;--gold:#ffd58a;--shadow:0 18px 55px rgba(0,0,0,.24)}
 
-*{box-sizing:border-box}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 8% -10%,rgba(50,117,213,.22),transparent 42%),radial-gradient(ellipse at 100% 5%,rgba(139,71,204,.16),transparent 35%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}button:disabled{opacity:.55;cursor:wait}header,main{width:min(1240px,100%);margin:auto}header{padding:25px 17px 10px}.brand{display:flex;align-items:center;gap:12px}.logo{display:grid;place-items:center;width:45px;height:45px;border-radius:15px;background:linear-gradient(135deg,#74d5ff,#8a8bff 55%,#e08cff);box-shadow:0 7px 30px #6f8cff45;font-size:23px}.eyebrow{color:#92b8f4;text-transform:uppercase;letter-spacing:.18em;font-size:10px;font-weight:800}h1{font-size:clamp(24px,4vw,36px);line-height:1.1;margin:3px 0 0;letter-spacing:-.045em}.subtitle{margin:12px 0 0;color:var(--muted);font-size:13px;line-height:1.55}.live-dot{display:inline-block;width:7px;height:7px;background:var(--mint);border-radius:50%;box-shadow:0 0 12px #65e6c0;margin-right:6px}main{padding:13px 15px 34px}.glass{background:linear-gradient(135deg,rgba(255,255,255,.075),rgba(255,255,255,.025));border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-radius:19px}.toolbar{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0}.control{min-height:44px;border-radius:12px;border:1px solid var(--line);background:rgba(11,19,33,.88);color:var(--text);padding:11px 12px;outline:none}.control:focus{border-color:#6eb6ff;box-shadow:0 0 0 3px #4f9cff20}.search{flex:1 1 220px;min-width:130px}.btn{min-height:44px;padding:10px 15px;border:1px solid var(--line);border-radius:12px;color:var(--text);background:rgba(24,39,62,.9);font-weight:750}.btn-primary{background:linear-gradient(135deg,#357ee9,#775be9);border-color:#7ca9ff70;box-shadow:0 8px 24px #4c75e633}.btn:active{transform:translateY(1px)}.tabs{display:flex;gap:7px;overflow:auto;padding:3px 0 12px;scrollbar-width:thin}.tab{flex-shrink:0;padding:9px 13px;min-height:39px;border:1px solid var(--line);border-radius:999px;background:rgba(15,25,42,.85);color:#b5c4da;font-size:12px;font-weight:750}.tab.active{color:#fff;background:linear-gradient(135deg,#1b5792,#543d9b);border-color:#8ebfff80}.settings{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px;margin:4px 0 13px}.settings label{font-size:11px;color:var(--muted)}.key-input{flex:1 1 230px;min-width:130px}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:12px 0}.stat{padding:12px 13px;min-width:0}.stat strong{display:block;font-size:21px;letter-spacing:-.03em}.stat span{display:block;color:var(--muted);font-size:10px;margin-top:3px}.status{padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:rgba(13,22,37,.65);font-size:12px;color:#bac9df;line-height:1.5;overflow-wrap:anywhere}.status.error{border-color:#ff788e60;color:#ffc1ca}.status.ok{border-color:#65e6c04a}.section-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:22px 2px 11px}.section-head h2{font-size:16px;margin:0;letter-spacing:-.02em}.section-head p{font-size:11px;color:var(--muted);margin:4px 0 0}.count-pill{font-size:10px;color:#b9d7ff;background:#233c5b;border:1px solid #5178a34d;border-radius:99px;padding:5px 8px;white-space:nowrap}.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,350px),1fr));gap:12px}.match-card{min-width:0;padding:14px;overflow:hidden;position:relative}.match-card:before{content:"";position:absolute;inset:0 auto auto 12%;width:76%;height:1px;background:linear-gradient(90deg,transparent,#b4d8ff65,transparent)}.card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}.sport-tag,.source-tag{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#b9d6ff;background:#243851a8;border:1px solid #88b8ee24;padding:5px 8px;border-radius:999px}.source-tag{color:#c6baff;background:#493a6d55}.match-name{font-size:17px;font-weight:850;letter-spacing:-.025em;line-height:1.35;margin:12px 0 5px;overflow-wrap:anywhere}.match-meta{display:flex;gap:6px;flex-wrap:wrap;margin:7px 0 12px}.meta{font-size:10px;color:#aabbd2;background:#111d30;border:1px solid var(--line);padding:5px 7px;border-radius:7px}.compare-head{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}.compare-label{font-size:10px;font-weight:850;letter-spacing:.06em;padding:7px 9px;border-radius:9px;text-align:center}.compare-label.pm{color:#91ceff;background:var(--bluebg);border:1px solid #65baff30}.compare-label.bk{color:#ffabb9;background:var(--redbg);border:1px solid #ff829830}.outcome-row{padding:10px 0;border-top:1px solid rgba(164,190,226,.12)}.outcome-name{font-size:12px;font-weight:800;margin:0 0 8px;overflow-wrap:anywhere}.parallel{display:grid;grid-template-columns:1fr 1fr;gap:8px}.source-box{border-radius:11px;padding:8px;min-width:0;border:1px solid transparent}.source-box.pm{background:linear-gradient(145deg,rgba(42,144,241,.19),rgba(22,55,91,.26));border-color:#65baff35}.source-box.bk{background:linear-gradient(145deg,rgba(246,65,101,.17),rgba(91,28,49,.25));border-color:#ff829835}.source-mini{font-size:9px;text-transform:uppercase;letter-spacing:.07em;font-weight:800;margin-bottom:7px}.source-box.pm .source-mini{color:#8fceff}.source-box.bk .source-mini{color:#ffadbb}.price-pair{display:grid;grid-template-columns:1fr 1fr;gap:5px}.price-cell{border-radius:8px;padding:7px 5px;background:rgba(2,8,17,.3);min-width:0}.price-cell .side{font-size:9px;color:#9aacc4;display:block}.price-cell strong{display:block;font-size:15px;line-height:1.25;margin-top:3px;overflow-wrap:anywhere}.source-box.pm .price-cell strong{color:#a9dcff}.source-box.bk .price-cell strong{color:#ffb2bf}.price-note{font-size:9px;color:#94a6be;line-height:1.35;margin-top:6px;overflow-wrap:anywhere}.details-toggle{display:flex;justify-content:center;align-items:center;gap:6px;width:100%;margin-top:10px;padding:9px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.035);color:#c7d9f1;font-size:11px;font-weight:750;min-height:38px}.details{display:none;border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.details.open{display:block}.detail-title{font-size:10px;color:var(--muted);letter-spacing:.08em;font-weight:850;margin-bottom:9px}.detail-market{padding:9px 0;border-bottom:1px solid rgba(164,190,226,.12)}.detail-market:last-child{border-bottom:0}.detail-market h4{font-size:12px;margin:0 0 8px}.detail-line{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:5px 0;color:#b8c8dd}.detail-line strong{color:#edf5ff;text-align:right}.market-link{display:inline-block;margin-top:10px;color:#9acbff;font-size:11px;text-decoration:none}.market-link:hover{text-decoration:underline}.empty{grid-column:1/-1;padding:26px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6}.footnote{margin:18px 2px 0;color:#8193ac;font-size:10px;line-height:1.6}.hidden{display:none!important}@media(max-width:430px){header{padding-top:20px}.stats{gap:6px}.stat{padding:10px}.stat strong{font-size:18px}.match-card{padding:11px}.source-box{padding:6px}.price-cell{padding:6px 4px}.price-cell strong{font-size:13px}.compare-label{font-size:9px}}@media(prefers-reduced-motion:no-preference){.match-card{animation:rise .25s ease both}@keyframes rise{from{opacity:.6;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}}
 
-body{margin:0;background:linear-gradient(135deg,#f5f8ff,#edf5ff,#f9fbff);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text)}
+/* Crystal light theme and compact exchange odds */
 
-button,input,select{font:inherit}
+:root{color-scheme:light;--bg:#f2f7fc;--panel:rgba(255,255,255,.78);--line:rgba(103,137,177,.22);--text:#172b45;--muted:#657b96;--blue:#287bd2;--bluebg:rgba(61,153,255,.12);--red:#d94c5d;--redbg:rgba(255,91,112,.12);--mint:#159b7a;--gold:#9b6a13;--shadow:0 10px 30px rgba(49,88,132,.09)}
 
-header{padding:17px 16px 7px}
+body{background:radial-gradient(ellipse at 8% -10%,rgba(93,174,255,.17),transparent 42%),radial-gradient(ellipse at 100% 5%,rgba(157,151,255,.13),transparent 35%),var(--bg);color:var(--text)}
 
-.head{max-width:1200px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.control{background:rgba(255,255,255,.9);color:var(--text);border-color:#d4e1ef}.btn{background:rgba(255,255,255,.92);color:#23405f;border-color:#d2dfed}.btn-primary{background:linear-gradient(135deg,#d9edff,#e9e5ff);color:#174c88;border-color:#b7d7f5;box-shadow:0 5px 16px #85b9ee20}
 
-.brand{display:flex;align-items:center;gap:11px}
+.tab{background:rgba(255,255,255,.88);color:#48627f;border-color:#d4e0ed}.tab.active{color:#174b86;background:linear-gradient(135deg,#d8edff,#e9e5ff);border-color:#9bc9f1}
 
-.logo{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(140deg,#7797ff,#a4c7ff);color:white;font-size:22px;font-weight:900;box-shadow:0 5px 16px #8aa8ee45}
+.status{background:rgba(255,255,255,.7);color:#526a85;border-color:#d5e2ef}.status.error{color:#a82f41}.status.ok{color:#167a63}
 
-h1{font-size:21px;margin:0;font-weight:850;letter-spacing:-.6px}
+.stat{background:rgba(255,255,255,.76)}.stat span{color:#687f99}.section-head p{color:#687f99}.count-pill{color:#245b91;background:#e3f1ff;border-color:#c1ddf7}
 
-.subtitle{font-size:11px;color:var(--muted);margin-top:4px}
+.match-card.glass,.glass{background:linear-gradient(135deg,rgba(255,255,255,.91),rgba(247,251,255,.77));border-color:#d7e4f1;box-shadow:0 9px 26px rgba(52,88,132,.08)}
 
-.connection{font-size:10px;font-weight:750;padding:8px 10px;border-radius:20px;background:#e8f8f1;color:#238568}
+.sport-tag,.source-tag{color:#315c88;background:#eaf4ff;border-color:#d2e6f8}.source-tag{color:#6655a1;background:#f0edff;border-color:#e0d9ff}
 
-main{max-width:1200px;margin:auto;padding:8px 16px 30px}
+.meta{color:#5f7691;background:#f6faff;border-color:#dce7f2}.compare-label.pm{color:#1768b0;background:#e4f2ff;border-color:#c4e2ff}.compare-label.bk{color:#b62f45;background:#fff0f2;border-color:#ffd0d7}
 
-.sports{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:13px 0;position:relative;z-index:5}
+.outcome-row{border-top-color:#e3ebf4}.outcome-name{color:#243c58}.source-box.pm{background:linear-gradient(145deg,rgba(103,183,255,.19),rgba(221,240,255,.72));border-color:#acd5fb}.source-box.bk{background:linear-gradient(145deg,rgba(255,125,143,.16),rgba(255,235,238,.78));border-color:#ffc1cb}.source-mini{color:#315879}.source-box.pm .source-mini{color:#1768b0}.source-box.bk .source-mini{color:#b62f45}.price-cell{background:rgba(255,255,255,.66);border:1px solid rgba(160,190,220,.24)}.price-cell .side{color:#627a95}.source-box.pm .price-cell strong{color:#155b9d}.source-box.bk .price-cell strong{color:#b62f45}.price-note{color:#637b96}.details-toggle{background:rgba(255,255,255,.78);color:#31516f;border-color:#d8e4f0}.details{border-top-color:#dce7f2}.detail-market{border-bottom-color:#e2ebf4}.detail-line{color:#536b86}.detail-line strong{color:#213d5b}.market-link{color:#176db8}.empty{color:#647b95}.footnote{color:#70849c}
 
-.sportwrap{position:relative}
+.bookmaker-list{display:grid;gap:5px}.bookmaker-line{display:flex;justify-content:space-between;align-items:center;gap:7px;padding:5px 6px;border-radius:7px;background:rgba(255,255,255,.64);border:1px solid rgba(226,154,165,.25);font-size:10px;min-width:0}.bookmaker-line span{overflow-wrap:anywhere;color:#7a4650}.bookmaker-line strong{color:#a92d42;font-size:12px;white-space:nowrap}.feed-state{margin:8px 0 0;padding:8px 10px;border:1px solid #d5e3f1;border-radius:10px;background:rgba(255,255,255,.65);color:#58718d;font-size:11px;display:flex;align-items:center;gap:7px}.feed-led{width:7px;height:7px;border-radius:50%;background:#9aa9ba;flex:none}.feed-state.connected .feed-led{background:#13a57c;box-shadow:0 0 0 3px #13a57c1b}.feed-state.disconnected .feed-led{background:#d58a24}
 
-.sportbtn{border:1px solid #e3eafa;background:#fff;color:#536580;padding:10px 11px;border-radius:12px;font-size:11px;font-weight:750;box-shadow:0 3px 10px #aabce90c}
-
-.sportbtn.active{background:#eaf0ff;border-color:#b9caff;color:#4265d3}
-
-.count{display:inline-block;background:#edf2fc;padding:3px 5px;border-radius:6px;margin-left:3px}
-
-.menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:165px;padding:6px;background:white;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px #627ba522;z-index:20}
-
-.menu.open{display:block}
-
-.menu button{display:block;width:100%;text-align:left;background:white;border:0;border-radius:8px;padding:10px;color:#536580;font-size:12px}
-
-.menu button:active{background:#edf2ff}
-
-.heroGrid{display:grid;grid-template-columns:1.5fr 1fr;gap:13px}
-
-.panel,.card{background:#ffffffdc;border:1px solid #e5ecf8;border-radius:18px;padding:17px;box-shadow:0 5px 20px #8fa9d20b}
-
-.eyebrow{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.3px;color:#7790ce}
-
-.heroTitle{font-size:26px;font-weight:850;letter-spacing:-1px;margin:8px 0}
-
-.muted{font-size:11px;line-height:1.65;color:var(--muted)}
-
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:19px}
-
-.stat{padding:11px;background:#f6f8ff;border:1px solid #edf1fb;border-radius:12px;min-width:0}
-
-.stat span{display:block;color:#8996ab;font-size:10px;margin-bottom:6px}
-
-.stat strong{font-size:20px;font-weight:850;color:#405caa;overflow-wrap:anywhere}
-
-.overviewTitle{font-size:14px;font-weight:800;margin:0 0 12px}
-
-.overviewRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #eef2fa;font-size:12px}
-
-.overviewRow:last-child{border:0}
-
-.sportIcon{font-size:17px}
-
-.overviewRow strong{flex:1}
-
-.number{color:#4e6fda;font-weight:850}
-
-.toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:15px 0}
-
-.search{flex:1;min-width:180px;border:1px solid var(--line);background:white;border-radius:12px;padding:12px 14px;font-size:12px;outline:none;color:var(--text)}
-
-.search:focus,input:focus,select:focus{border-color:#9bb3ff;outline:none}
-
-.btn{border:1px solid #e3eafa;background:white;color:#536580;border-radius:11px;padding:11px 13px;font-size:11px;font-weight:750}
-
-.btn.primary{background:#587cf0;border-color:#587cf0;color:white}
-
-.toggle{display:flex;align-items:center;gap:5px;font-size:11px;color:#71819a}
-
-input[type=checkbox]{accent-color:#587cf0}
-
-.settings{display:none;margin:10px 0}
-
-.settings.open{display:block}
-
-.settings input{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;margin:7px 0}
-
-.filters{display:flex;gap:7px;flex-wrap:wrap;margin:13px 0 18px}
-
-.chip{border:1px solid #e5ebf7;background:#fff;border-radius:20px;padding:8px 12px;font-size:10px;color:#6c7d97;font-weight:750}
-
-.chip.active{background:#eaf0ff;color:#4c6ddd;border-color:#c5d3ff}
-
-.sectionHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0}
-
-.sectionHead h2{font-size:17px;margin:0 0 5px}
-
-.sectionHead p{font-size:10px;color:var(--muted);margin:0}
-
-.sort{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px;font-size:10px;color:#60718c;max-width:145px}
-
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-
-.card{padding:14px;min-width:0}
-
-.cardTop{display:flex;justify-content:space-between;gap:5px;align-items:center}
-
-.tag{font-size:9px;padding:6px 8px;border-radius:8px;background:#eef3ff;color:#6177c7}
-
-.tag.live{background:#e8faf1;color:#16876a}
-
-.matchTitle{font-size:14px;font-weight:800;line-height:1.5;margin:12px 0 5px;overflow-wrap:anywhere}
-
-.matchMeta{font-size:10px;color:#8593a8;display:flex;justify-content:space-between;gap:8px;margin-bottom:13px}
-
-.oddsHead,.oddsRow{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-
-.provider{background:#f0f4ff;border-radius:8px;padding:9px 4px;font-size:9px;font-weight:850;color:#6175b8;text-align:center}
-
-.provider.book{background:#edf8f3;color:#4b9279}
-
-.pricebox{border:1px solid #e9eff9;background:#fafdff;border-radius:10px;padding:9px 4px;text-align:center;min-width:0}
-
-.outcome{font-size:10px;color:#77869c;margin-bottom:6px;overflow-wrap:anywhere}
-
-.price{font-size:19px;font-weight:850;color:#314d9d;letter-spacing:-.4px;overflow-wrap:anywhere}
-
-.price.bookprice{color:#25846b}
-
-.tiny{font-size:9px;color:#8c9ab0;line-height:1.5;margin-top:5px}
-
-.cardFoot{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-top:12px;padding-top:10px;border-top:1px solid #edf2f9}
-
-.smallbtn{border:0;background:#edf2ff;color:#4f6ee0;border-radius:9px;padding:8px 10px;font-size:10px;font-weight:750}
-
-.details{display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--line)}
-
-.details.open{display:block}
-
-.detailrow{display:flex;justify-content:space-between;gap:12px;padding:7px 0;font-size:10px;overflow-wrap:anywhere}
-
-.detailrow span{color:#8290a4}
-
-.empty{grid-column:1/-1;background:#fff;border:1px dashed #dce5f2;border-radius:16px;text-align:center;padding:35px 15px;color:#8090a6;line-height:1.8;font-size:12px}
-
-.status{margin-top:14px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:12px;color:#7d8da4;font-size:11px;line-height:1.7;overflow-wrap:anywhere}
-
-.status strong{color:#4e6281}
-
-footer{text-align:center;padding:25px 10px;color:#99a6b8;font-size:10px}
-
-@media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.heroGrid{grid-template-columns:1fr}}
-
-@media(max-width:560px){header{padding:14px 12px 5px}main{padding:5px 12px 22px}.cards{grid-template-columns:1fr}h1{font-size:19px}.heroTitle{font-size:23px}.panel{padding:14px}.stats{gap:6px}.stat strong{font-size:18px}}
+@media(max-width:430px){.bookmaker-line{font-size:9px}.bookmaker-line strong{font-size:11px}.feed-state{font-size:10px}}
 
 </style>
 
 </head>
 
- <body>
+<body>
 
 <header>
 
-  <div class="head">
+  <div class="brand"><div class="logo">✦</div><div><div class="eyebrow">Crystal markets · live comparison</div><h1>Sports Odds <span style="color:#8ecbff">Studio</span></h1></div></div>
 
-    <div class="brand">
-
-      <div class="logo">P</div>
-
-      <div><h1>Poly Dash</h1><div class="subtitle">Live Sports Markets &amp; Odds</div></div>
-
-    </div>
-
-    <div class="connection" id="connection">● Connecting…</div>
-
-  </div>
+  <p class="subtitle"><span class="live-dot"></span>Polymarket exchange prices and available UK bookmaker odds, aligned in one view.</p>
 
 </header>
 
 <main>
 
-  <nav class="sports" id="sports">
+  <div class="toolbar">
 
-    <div class="sportwrap">
+    <input class="control search" id="search" placeholder="Search a team, player, league or match…" autocomplete="off" aria-label="Search matches">
 
-      <button class="sportbtn active" data-sport="all">All Sports <span class="count" id="allCount">—</span> ▾</button>
+    <button class="btn btn-primary" id="refresh" type="button">↻ Refresh odds</button>
 
-      <div class="menu"><button data-filter="all">All sports</button></div>
+    <select class="control" id="sort" aria-label="Sort matches"><option value="default">Best match first</option><option value="az">Names A–Z</option><option value="volume">Highest volume</option></select>
 
-    </div>
+  </div>
 
-    <div class="sportwrap">
+  <nav class="tabs" id="tabs" aria-label="Sport filters">
 
-      <button class="sportbtn" data-sport="Cricket">🏏 Cricket <span class="count" id="cricketCount">—</span> ▾</button>
+    <button class="tab active" data-sport="all" type="button">✦ All sports</button>
 
-      <div class="menu"><button data-filter="Cricket">All cricket</button><button data-filter="Cricket" data-search="player">Player markets</button></div>
+    <button class="tab" data-sport="cricket" type="button">🏏 Cricket</button>
 
-    </div>
+    <button class="tab" data-sport="tennis" type="button">🎾 Tennis</button>
 
-    <div class="sportwrap">
+    <button class="tab" data-sport="soccer" type="button">⚽ Football</button>
 
-      <button class="sportbtn" data-sport="Football">⚽ Football <span class="count" id="footballCount">—</span> ▾</button>
-
-      <div class="menu"><button data-filter="Football">All football</button><button data-filter="Football" data-search="goal">Goal markets</button></div>
-
-    </div>
-
-    <div class="sportwrap">
-
-      <button class="sportbtn" data-sport="Tennis">🎾 Tennis <span class="count" id="tennisCount">—</span> ▾</button>
-
-      <div class="menu"><button data-filter="Tennis">All tennis</button></div>
-
-    </div>
-
-    <div class="sportwrap">
-
-      <button class="sportbtn" data-sport="Basketball">🏀 Basketball <span class="count" id="basketballCount">—</span> ▾</button>
-
-      <div class="menu"><button data-filter="Basketball">All basketball</button></div>
-
-    </div>
-
-    <div class="sportwrap">
-
-      <button class="sportbtn" data-sport="MMA">🥊 MMA <span class="count" id="mmaCount">—</span> ▾</button>
-
-      <div class="menu"><button data-filter="MMA">All MMA</button></div>
-
-    </div>
+    <button class="tab" data-sport="mma" type="button">🥊 MMA / UFC</button>
 
   </nav>
 
-  <section class="heroGrid">
+  <div class="settings glass">
 
-    <div class="panel">
+<label for="oddsFormat">ODDS FORMAT</label>
+<select class="control" id="oddsFormat">
+  <option value="decimal" selected>Decimal Odds</option>
+</select>
+    <label for="apiKey">THE ODDS API KEY</label>
 
-      <div class="eyebrow">Sports markets dashboard</div>
+    <input class="control key-input" id="apiKey" type="password" placeholder="Paste API key on this device" autocomplete="off" autocapitalize="off" spellcheck="false">
 
-      <div class="heroTitle">Live odds. Clear view.</div>
-
-      <div class="muted">Browse available Polymarket sports markets. UK bookmaker and exchange prices appear only when their genuine data feed is connected.</div>
-
-      <div class="stats">
-
-        <div class="stat"><span>Events loaded</span><strong id="totalStat">—</strong></div>
-
-        <div class="stat"><span>Sports found</span><strong id="sportsStat">—</strong></div>
-
-        <div class="stat"><span>Last updated</span><strong id="updatedStat" style="font-size:13px">Waiting</strong></div>
-
-      </div>
-
-    </div>
-
-    <div class="panel">
-
-      <h3 class="overviewTitle">Live Overview</h3>
-
-      <div class="overviewRow"><span class="sportIcon">🏏</span><strong>Cricket</strong><span class="number" id="overviewCricket">—</span></div>
-
-      <div class="overviewRow"><span class="sportIcon">⚽</span><strong>Football</strong><span class="number" id="overviewFootball">—</span></div>
-
-      <div class="overviewRow"><span class="sportIcon">🎾</span><strong>Tennis</strong><span class="number" id="overviewTennis">—</span></div>
-
-      <div class="overviewRow"><span class="sportIcon">🏀</span><strong>Other sports</strong><span class="number" id="overviewOther">—</span></div>
-
-    </div>
-
-  </section>
-
-  <div class="toolbar">
-
-    <input class="search" id="search" placeholder="Search teams, players, leagues, matches…">
-
-    <button class="btn primary" id="refreshBtn">↻ Refresh</button>
-
-    <label class="toggle"><input id="autoRefresh" type="checkbox" checked> Auto refresh</label>
-
-    <button class="btn" id="settingsBtn">⚙ Settings</button>
+    <button class="btn" id="saveKey" type="button">Save key</button>
 
   </div>
 
-  <section class="panel settings" id="settingsPanel">
+  <div class="stats">
 
-    <h3 class="overviewTitle">Backend connection</h3>
+    <div class="stat glass"><strong id="pmCount">—</strong><span>Polymarket markets</span></div>
 
-    <label class="muted" for="backendUrl">Backend base URL (optional)</label>
+    <div class="stat glass"><strong id="bookCount">—</strong><span>Bookmaker events</span></div>
 
-    <input id="backendUrl" placeholder="https://your-backend.example.com">
-
-    <div class="muted">Use your own backend for bookmaker and Betfair Exchange feeds. Never put secret API keys in this public HTML.</div>
-
-    <div class="toolbar">
-
-      <button class="btn primary" id="saveSettings">Save URL</button>
-
-      <button class="btn" id="testBackend">Test connection</button>
-
-    </div>
-
-    <div class="muted" id="backendStatus">No backend configured.</div>
-
-  </section>
-
-  <div class="filters" id="filters">
-
-    <button class="chip active" data-kind="all">All markets</button>
-
-    <button class="chip" data-kind="live">Live only</button>
-
-    <button class="chip" data-kind="cricket">Cricket</button>
-
-    <button class="chip" data-kind="football">Football</button>
-
-    <button class="chip" data-kind="tennis">Tennis</button>
-
-    <button class="chip" data-kind="player">Player markets</button>
+    <div class="stat glass"><strong id="updated">—</strong><span>Last successful refresh</span></div>
 
   </div>
 
-  <div class="sectionHead">
+  <div class="status" id="status" role="status" aria-live="polite">Connecting to live data sources…</div>
 
-    <div><h2 id="resultsTitle">Sports Markets</h2><p id="resultsSub">Loading markets…</p></div>
+  <div class="feed-state disconnected" id="feedState" aria-live="polite"><span class="feed-led"></span><span id="feedText">Polymarket live feed connecting…</span></div>
 
-    <select class="sort" id="sort">
+  <div class="section-head"><div><h2>Parallel odds board</h2><p>One card per match/market · blue = Polymarket · red = UK bookmaker</p></div><span class="count-pill" id="visibleCount">0 matches</span></div>
 
-      <option value="relevance">Sort: Relevant</option>
+  <section class="cards" id="cards" aria-label="Unified live odds"><div class="empty">Loading available markets…</div></section>
 
-      <option value="name">Sort: Name A–Z</option>
-
-      <option value="volume">Sort: Volume</option>
-
-    </select>
-
-  </div>
-
-  <section class="cards" id="cards">
-
-    <div class="empty">Connecting to public market data…</div>
-
-  </section>
-
-  <div class="status" id="statusBox"><strong>Data status:</strong> Connecting to Polymarket.</div>
-
-  <footer>Poly Dash · Market probabilities are not guaranteed bookmaker odds or betting advice.</footer>
+  <p class="footnote">Live data availability depends on each provider, sport coverage, API quota and network access. Polymarket bid/ask are exchange order-book prices. The Odds API normally provides bookmaker BACK prices, not bookmaker LAY prices; missing prices are shown as “—”, never fabricated. This page runs on your device: a key entered here is stored in this browser and sent to The Odds API from the browser, so use a backend proxy if you need to keep the key confidential. Keep this page open for WebSocket-first live updates. If the live connection drops, REST order-book fallback runs every 15 seconds for visible markets; event catalogue refreshes every 3 minutes. Use ↻ Refresh odds any time.</p>
 
 </main>
 
+
 <script>
 
-(function(){
+'use strict';
 
-"use strict";
-
-const API="https://gamma-api.polymarket.com/events";
+const GAMMA='https://gamma-api.polymarket.com',CLOB='https://clob.polymarket.com',ODDS='https://api.the-odds-api.com/v4',WS_URL='wss://ws-subscriptions-clob.polymarket.com/ws/market';
 
 const $=id=>document.getElementById(id);
 
-let events=[],activeSport="all",activeKind="all",loading=false,timer=null;
+let selectedSport='all',pmMarkets=[],bookEvents=[],loading=false,lastSuccess=null,marketWS=null,wsRetryTimer=null,wsPingTimer=null,wsRetryDelay=1000,wsConnectedAt=0,wsStopped=false,restFallbackBusy=false;
 
-let backendUrl="";
+const expanded=new Set(),bookCache=new Map(),orderBookCache=new Map(),wsSubscribed=new Set();
 
-const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const MAX_WS_TOKENS=1200;
 
-const low=s=>String(s||"").toLowerCase();
+const SPORTS=['cricket','tennis','soccer','mma'];
 
-const arr=v=>{
+const candidateKeys={cricket:['cricket_test_match','cricket_one_day_international','cricket_international_t20','cricket_t20_blast','cricket_big_bash','cricket_ipl'],tennis:['tennis_atp_french_open','tennis_atp_wimbledon','tennis_atp_us_open','tennis_atp_australian_open'],soccer:['soccer_epl','soccer_uefa_champs_league','soccer_spain_la_liga','soccer_italy_serie_a','soccer_germany_bundesliga','soccer_france_ligue_one'],mma:['mma_mixed_martial_arts']};
 
- if(Array.isArray(v))return v;
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 
- if(typeof v==="string"){try{const a=JSON.parse(v);return Array.isArray(a)?a:[]}catch(e){}}
+function arr(v){if(Array.isArray(v))return v;if(typeof v==='string'){try{const p=JSON.parse(v);return Array.isArray(p)?p:[]}catch{return[]}}return[];}
 
- return [];
+function norm(v){return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\b(fc|afc|sc|club|team|women|womens|men|mens)\b/g,' ').replace(/[^a-z0-9]+/g,' ').trim();}
 
-};
+function classify(text){const t=String(text||'').toLowerCase();if(/\b(cricket|ipl|t20|odi|test match|ashes|ranji|wpl|big bash|county championship)\b/.test(t))return'cricket';if(/\b(tennis|atp|wta|wimbledon|roland garros|french open|us open|australian open)\b/.test(t))return'tennis';if(/\b(soccer|football|ballon d.?or|fifa|uefa|premier league|champions league|la liga|serie a|bundesliga|ligue 1|world cup|europa league|fa cup|epl)\b/.test(t))return'soccer';if(/\b(mma|ufc|mixed martial arts|ultimate fighting championship)\b/.test(t))return'mma';return'other';}
 
-const num=n=>Number.isFinite(Number(n))?Number(n).toLocaleString("en-US",{maximumFractionDigits:2}):"—";
-
-const probability=p=>{
-
- const n=Number(p);
-
- return Number.isFinite(n)&&n>=0&&n<=1?(n*100).toFixed(1)+"%":"—";
-
-};
-
-const title=e=>e.title||e.question||e.name||"Untitled market";
-
-const textOf=e=>low([e.title,e.question,e.description,e.slug,e.category,
-
- ...(Array.isArray(e.tags)?e.tags.map(t=>typeof t==="string"?t:(t.label||t.slug||"")):[])
-
- ].join(" "));
-
-const markets=e=>Array.isArray(e.markets)?e.markets:[];
-
-const mainMarket=e=>markets(e).find(m=>m.active!==false&&m.closed!==true)||markets(e)[0]||null;
-
-function sportOf(e){
-
- const t=textOf(e);
-
- if(/\b(cricket|ipl|t20|test match|odi|ashes|wicket|innings|run scorer)\b/.test(t))return "Cricket";
-
- if(/\b(football|soccer|premier league|champions league|la liga|serie a|bundesliga|fifa|goal scorer)\b/.test(t))return "Football";
-
- if(/\b(tennis|atp|wta|wimbledon|roland garros)\b/.test(t))return "Tennis";
-
- if(/\b(basketball|nba|wnba|euroleague)\b/.test(t))return "Basketball";
-
- if(/\b(mma|ufc|boxing|fight night)\b/.test(t))return "MMA";
-
- if(/\b(baseball|mlb)\b/.test(t))return "Baseball";
-
- if(/\b(hockey|nhl)\b/.test(t))return "Hockey";
-
- return "Other";
-
+ function fmt(decimal) {
+  if (!Number.isFinite(decimal) || decimal < 1.001) return '—';
+  return decimal.toFixed(2);
 }
+function probOdds(p){p=Number(p);return Number.isFinite(p)&&p>0&&p<=1?fmt(1/p):'—'}
 
-function outcomesOf(e){
+function setStatus(msg,type=''){const el=$('status');el.className='status'+(type?' '+type:'');el.textContent=msg;}
 
- const m=mainMarket(e);
+async function json(url){const r=await fetch(url,{headers:{Accept:'application/json'}});if(!r.ok)throw new Error('HTTP '+r.status+' from '+new URL(url).hostname);return r.json()}
 
- if(!m)return [];
+function getKey(){try{return localStorage.getItem('crystalOddsApiKey')||''}catch{return''}}
 
- const names=arr(m.outcomes),prices=arr(m.outcomePrices);
+function saveKey(){const k=$('apiKey').value.trim();try{if(k)localStorage.setItem('crystalOddsApiKey',k);else localStorage.removeItem('crystalOddsApiKey')}catch{}if(!k){setStatus('API key cleared. Polymarket remains available without it.');bookEvents=[];render();return}setStatus('Key saved on this device. Checking available bookmaker markets…');refreshAll()}
 
- return names.map((name,i)=>({name:String(name),price:Number(prices[i])}));
+function getEventTitle(e){return e?.title||e?.name||''}
 
-}
+function sportText(e){return [e.title,e.name,e.slug,e.description,arr(e.tags).map(t=>typeof t==='string'?t:[t.label,t.name,t.slug].filter(Boolean).join(' ')).join(' ')].join(' ')}
 
-function live(e){
+function outcomesOf(m){const names=arr(m.outcomes),prices=arr(m.outcomePrices||m.outcome_prices),tokens=arr(m.clobTokenIds||m.clob_token_ids);return names.map((x,i)=>({name:String(typeof x==='object'?(x.name||x.label||''):x),prob:Number(prices[i]),tokenId:tokens[i]?String(tokens[i]):''})).filter(x=>x.name.trim())}
 
- return e.live===true||e.isLive===true||/\b(live|in progress|currently playing)\b/.test(textOf(e));
+function volume(m,e){for(const x of [m.volumeNum,m.volume,m.volume24hr,m.liquidityNum,e?.volumeNum,e?.volume]){const n=Number(x);if(x!==''&&x!=null&&Number.isFinite(n)&&n>=0)return new Intl.NumberFormat('en',{notation:n>=1000?'compact':'standard',maximumFractionDigits:1}).format(n)}return'—'}
 
-}
+function makePMMarket(m,e={},hint='other'){if(m.closed===true||m.active===false)return null;const outs=outcomesOf(m);if(outs.length<2)return null;const titleEvent=getEventTitle(e)||m.eventTitle||'';const sport=classify([sportText(e),m.question,m.slug,m.description,titleEvent].join(' '));const actualSport=sport==='other'?hint:sport;if(actualSport==='other')return null;const title=titleEvent&&/\b(vs?\.?|versus)\b/i.test(titleEvent)?titleEvent:(m.question||titleEvent||outs.map(o=>o.name).slice(0,2).join(' vs '));const eventSlug=e.slug||m.eventSlug||m.slug||'';return{id:String(m.id||m.conditionId||m.slug||m.question),sport:actualSport,title,question:m.question||'',eventTitle:titleEvent,outcomes:outs,volume:volume(m,e),url:eventSlug?'https://polymarket.com/event/'+encodeURIComponent(eventSlug):'https://polymarket.com',source:'Polymarket'};}
 
-function playerMarket(e){
+async function loadPM(){const map=new Map(),errors=[];try{const evs=await json(GAMMA+'/events?active=true&closed=false&limit=100&order=volume24hr&ascending=false');if(Array.isArray(evs))for(const e of evs){const s=classify(sportText(e));for(const m of arr(e.markets)){const item=makePMMarket(m,e,s);if(item)map.set(item.id,item)}}}catch(e){errors.push(e.message)}
 
- return /\b(player|top scorer|runs scored|wickets|assists|rebounds|player props|first goal scorer|to score)\b/.test(textOf(e));
+try{const pages=await Promise.allSettled([0,100,200].map(o=>json(GAMMA+'/markets?active=true&closed=false&limit=100&offset='+o+'&order=volume24hr&ascending=false')));for(const p of pages){if(p.status!=='fulfilled'||!Array.isArray(p.value))continue;for(const m of p.value){const ev=arr(m.events)[0]||{};const item=makePMMarket(m,ev,'other');if(item&&!map.has(item.id))map.set(item.id,item)}}}catch(e){errors.push(e.message)}
 
-}
+if(!map.size&&pmMarkets.length)throw new Error('No markets returned this refresh; keeping the last successful market list. '+(errors[0]||''));pmMarkets=[...map.values()];if(!pmMarkets.length&&errors.length)throw new Error(errors[0]);}
 
-function volume(e){
+function parseBookEvent(e,sport){return{...e,sport:sport||classify(e.sport_title||e.sport_key||'other')}}
 
- const n=Number(e.volumeNum??e.volume??e.liquidityNum??e.liquidity??0);
+async function loadBooks(){const key=$('apiKey').value.trim()||getKey();if(!key){bookEvents=[];return}const sports=await json(ODDS+'/sports/?apiKey='+encodeURIComponent(key));const active=Array.isArray(sports)?sports.filter(s=>s.active):[];let chosen=[];const wanted=selectedSport==='all'?SPORTS:[selectedSport];for(const cat of wanted){let found=active.filter(s=>{const title=[s.key,s.title,s.group].join(' ').toLowerCase();if(cat==='soccer')return title.includes('soccer');if(cat==='cricket')return title.includes('cricket');if(cat==='tennis')return title.includes('tennis');if(cat==='mma')return title.includes('mma')||title.includes('ufc');return false});const exact=candidateKeys[cat]||[];found.sort((a,b)=>{const ai=exact.indexOf(a.key),bi=exact.indexOf(b.key);return(ai<0?999:ai)-(bi<0?999:bi)});chosen.push(...found.slice(0,cat==='soccer'?5:3))}chosen=[...new Map(chosen.map(s=>[s.key,s])).values()];const settled=await Promise.allSettled(chosen.map(s=>json(ODDS+'/sports/'+encodeURIComponent(s.key)+'/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey='+encodeURIComponent(key)).then(events=>({s,events}))));const map=new Map();for(const r of settled){if(r.status!=='fulfilled'||!Array.isArray(r.value.events))continue;for(const e of r.value.events){const item=parseBookEvent(e,classify([r.value.s.key,r.value.s.title,r.value.s.group].join(' ')));const id=e.id||[e.home_team,e.away_team,e.commence_time].join('|');map.set(id,item)}}bookEvents=[...map.values()];const bad=settled.filter(x=>x.status==='rejected');if(!bookEvents.length&&bad.length)throw bad[0].reason;}
 
- return Number.isFinite(n)?n:0;
+function marketBest(outcome){if(!outcome.tokenId)return{bid:null,ask:null,error:'Token ID unavailable'};return orderBookCache.get(outcome.tokenId)||{bid:null,ask:null,pending:true}}
 
-}
+function setFeedState(text,state){const box=$('feedState');if(!box)return;box.className='feed-state '+(state||'disconnected');$('feedText').textContent=text}
 
-function icon(s){
+function bestFromLevels(levels,side){const prices=arr(levels).map(x=>Number(x.price)).filter(x=>Number.isFinite(x)&&x>0&&x<=1);if(!prices.length)return null;return side==='bid'?Math.max(...prices):Math.min(...prices)}
 
- return ({Cricket:"🏏",Football:"⚽",Tennis:"🎾",Basketball:"🏀",MMA:"🥊",Baseball:"⚾",Hockey:"🏒",Other:"🏆"})[s]||"🏆";
+function priceLabel(o){const ob=marketBest(o);const vals=[ob.bid,ob.ask].filter(x=>Number.isFinite(x)&&x>0&&x<=1);const p=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:Number(o.prob);return Number.isFinite(p)&&p>=0&&p<=1?(p*100).toFixed(1)+'%':'—'}
 
-}
+function paintToken(tokenId){const ob=orderBookCache.get(String(tokenId));if(!ob)return;document.querySelectorAll('.source-box.pm[data-token-id="'+CSS.escape(String(tokenId))+'"]').forEach(box=>{const cells=box.querySelectorAll('.price-cell strong');if(cells[0])cells[0].textContent=ob.ask!=null?fmt(1/ob.ask):'—';if(cells[1])cells[1].textContent=ob.bid!=null?fmt(1/ob.bid):'—';const note=box.querySelector('.price-note');if(note)note.textContent=(ob.bid!=null?'Bid '+ob.bid.toFixed(3):'Bid unavailable')+' · '+(ob.ask!=null?'Ask '+ob.ask.toFixed(3):'Ask unavailable')+(ob.at?' · '+new Date(ob.at).toLocaleTimeString():'')});document.querySelectorAll('.outcome-prob[data-prob-token="'+CSS.escape(String(tokenId))+'"]').forEach(el=>el.textContent='· '+priceLabel({tokenId,prob:NaN}))}
 
-function linkOf(e){
+function applyBookUpdate(tokenId,bid,ask,source='ws'){if(!tokenId)return;tokenId=String(tokenId);const old=orderBookCache.get(tokenId)||{};const next={...old,bid:bid!==undefined?validPrice(bid):old.bid,ask:ask!==undefined?validPrice(ask):old.ask,at:Date.now(),source,loading:false};orderBookCache.set(tokenId,next);paintToken(tokenId)}
 
- return e.slug?"https://polymarket.com/event/"+encodeURIComponent(e.slug):"https://polymarket.com";
+function validPrice(v){if(v===null||v===''||v===undefined)return null;const n=Number(v);return Number.isFinite(n)&&n>0&&n<=1?n:null}
 
-}
+async function loadBookFor(outcome,force=false){if(!outcome.tokenId)return;const id=String(outcome.tokenId),old=orderBookCache.get(id);if(marketWS&&marketWS.readyState===WebSocket.OPEN&&!force&&old&&old.at)return;if(old?.loading)return;if(!force&&old?.at&&Date.now()-old.at<12000)return;const startedAt=Date.now();orderBookCache.set(id,{...(old||{}),loading:true});try{const d=await json(CLOB+'/book?token_id='+encodeURIComponent(id));const current=orderBookCache.get(id);if(!(current?.source==='ws'&&current.at>startedAt))applyBookUpdate(id,bestFromLevels(d.bids,'bid'),bestFromLevels(d.asks,'ask'),'rest')}catch(e){orderBookCache.set(id,{...(orderBookCache.get(id)||{}),loading:false,error:e.message})}}
 
-function updateStats(){
+function collectTokenIds(){const q=norm($('search').value);const filtered=pmMarkets.filter(m=>(selectedSport==='all'||m.sport===selectedSport)&&(!q||norm([m.title,m.question,m.eventTitle,m.sport,...m.outcomes.map(o=>o.name)].join(' ')).includes(q)));const ordered=[...filtered,...pmMarkets.filter(m=>!filtered.includes(m))];const ids=[];const seen=new Set();for(const m of ordered)for(const o of m.outcomes){if(o.tokenId&&!seen.has(o.tokenId)){seen.add(o.tokenId);ids.push(String(o.tokenId));if(ids.length>=MAX_WS_TOKENS)return ids}}return ids}
 
- const counts={};
+function sendWs(message){if(marketWS&&marketWS.readyState===WebSocket.OPEN)marketWS.send(JSON.stringify(message))}
 
- events.forEach(e=>{const s=sportOf(e);counts[s]=(counts[s]||0)+1});
+function subscribeTokens(ids){const add=ids.filter(id=>!wsSubscribed.has(id));for(let i=0;i<add.length;i+=150){const batch=add.slice(i,i+150);if(!wsSubscribed.size)sendWs({type:'market',assets_ids:batch});else sendWs({operation:'subscribe',assets_ids:batch});batch.forEach(id=>wsSubscribed.add(id))}}
 
- $("totalStat").textContent=num(events.length);
+function updateWsSubscriptions(){const ids=collectTokenIds();if(!marketWS||marketWS.readyState!==WebSocket.OPEN)return;const next=new Set(ids);const remove=[...wsSubscribed].filter(id=>!next.has(id));for(let i=0;i<remove.length;i+=150){const batch=remove.slice(i,i+150);sendWs({operation:'unsubscribe',assets_ids:batch});batch.forEach(id=>wsSubscribed.delete(id))}subscribeTokens(ids)}
 
- $("sportsStat").textContent=new Set(events.map(sportOf).filter(s=>s!=="Other")).size;
+function handleWsMessage(raw){let data;try{data=typeof raw==='string'?JSON.parse(raw):raw}catch{return}if(Array.isArray(data)){data.forEach(handleWsMessage);return}if(!data||typeof data!=='object')return;const type=String(data.event_type||data.type||'').toLowerCase();if(type==='book'||(Array.isArray(data.bids)&&Array.isArray(data.asks))){const id=data.asset_id||data.assetId;if(id)applyBookUpdate(id,bestFromLevels(data.bids,'bid'),bestFromLevels(data.asks,'ask'),'ws');return}if(type==='best_bid_ask'||data.best_bid!==undefined||data.best_ask!==undefined){const id=data.asset_id||data.assetId;if(id)applyBookUpdate(id,data.best_bid!==undefined?data.best_bid:undefined,data.best_ask!==undefined?data.best_ask:undefined,'ws');return}if(type==='price_change'||Array.isArray(data.price_changes)){for(const change of arr(data.price_changes)){const id=change.asset_id||change.assetId;if(id&&(change.best_bid!==undefined||change.best_ask!==undefined))applyBookUpdate(id,change.best_bid,change.best_ask,'ws')}return}if(type==='market'){const id=data.asset_id||data.assetId;if(id&&(data.best_bid!==undefined||data.best_ask!==undefined))applyBookUpdate(id,data.best_bid,data.best_ask,'ws')}}
 
- $("allCount").textContent=events.length;
+function connectMarketWS(){if(wsStopped||marketWS&&(marketWS.readyState===WebSocket.OPEN||marketWS.readyState===WebSocket.CONNECTING))return;clearTimeout(wsRetryTimer);try{setFeedState('Connecting to Polymarket live order book…','disconnected');marketWS=new WebSocket(WS_URL);marketWS.onopen=()=>{wsRetryDelay=1000;wsConnectedAt=Date.now();wsSubscribed.clear();const ids=collectTokenIds();if(ids.length){const first=ids.slice(0,150);sendWs({type:'market',assets_ids:first});first.forEach(id=>wsSubscribed.add(id));for(let i=150;i<ids.length;i+=150){const batch=ids.slice(i,i+150);sendWs({operation:'subscribe',assets_ids:batch});batch.forEach(id=>wsSubscribed.add(id))}}setFeedState('Polymarket WebSocket connected · live order-book updates active for '+wsSubscribed.size+' tokens','connected');if(wsPingTimer)clearInterval(wsPingTimer);wsPingTimer=setInterval(()=>{if(marketWS&&marketWS.readyState===WebSocket.OPEN){try{marketWS.send('PING')}catch{}}},10000);const visible=collectVisibleOutcomes(20);Promise.allSettled(visible.map(o=>loadBookFor(o,true))).then(()=>setFeedState('Polymarket live feed connected · '+wsSubscribed.size+' tokens subscribed','connected'))};marketWS.onmessage=e=>{if(e.data==='PONG')return;handleWsMessage(e.data)};marketWS.onerror=()=>setFeedState('Polymarket live feed hiccup · reconnecting automatically','disconnected');marketWS.onclose=()=>{if(wsPingTimer){clearInterval(wsPingTimer);wsPingTimer=null}wsSubscribed.clear();if(!wsStopped){setFeedState('Live feed disconnected · reconnecting in '+Math.round(wsRetryDelay/1000)+'s; REST fallback remains active','disconnected');wsRetryTimer=setTimeout(connectMarketWS,wsRetryDelay);wsRetryDelay=Math.min(wsRetryDelay*2,30000)}}}catch(e){setFeedState('WebSocket unavailable · REST fallback active','disconnected');wsRetryTimer=setTimeout(connectMarketWS,wsRetryDelay);wsRetryDelay=Math.min(wsRetryDelay*2,30000)}}
 
- $("cricketCount").textContent=counts.Cricket||0;
+function collectVisibleOutcomes(limit=40){const q=norm($('search').value);const list=pmMarkets.filter(m=>(selectedSport==='all'||m.sport===selectedSport)&&(!q||norm([m.title,m.question,m.eventTitle,m.sport,...m.outcomes.map(o=>o.name)].join(' ')).includes(q)));const out=[];for(const m of list)for(const o of m.outcomes){if(o.tokenId)out.push(o);if(out.length>=limit)return out}return out}
 
- $("footballCount").textContent=counts.Football||0;
+async function fallbackPoll(){if(restFallbackBusy||document.hidden||marketWS&&marketWS.readyState===WebSocket.OPEN)return;restFallbackBusy=true;try{const batch=collectVisibleOutcomes(30);for(let i=0;i<batch.length;i+=6)await Promise.allSettled(batch.slice(i,i+6).map(o=>loadBookFor(o,true)));setFeedState('REST fallback active · refreshed '+batch.length+' token books · WebSocket reconnecting','disconnected')}finally{restFallbackBusy=false}}
 
- $("tennisCount").textContent=counts.Tennis||0;
+</script>
 
- $("basketballCount").textContent=counts.Basketball||0;
+<script>
 
- $("mmaCount").textContent=counts.MMA||0;
+function isGenericOutcome(name){return['yes','no','true','false','over','under'].includes(norm(name))}
 
- $("overviewCricket").textContent=counts.Cricket||0;
+function getMarketPair(m){const nonGeneric=m.outcomes.filter(o=>!isGenericOutcome(o.name));if(nonGeneric.length>=2)return nonGeneric.slice(0,2).map(o=>o.name);const txt=m.eventTitle+' '+m.title;const vs=txt.split(/\s+(?:vs?\.?|versus)\s+/i);return vs.length>=2?vs.slice(0,2).map(x=>x.trim()):[]}
 
- $("overviewFootball").textContent=counts.Football||0;
+function eventTeams(e){return[e.home_team||'',e.away_team||'']}
 
- $("overviewTennis").textContent=counts.Tennis||0;
+function sameName(a,b){const x=norm(a),y=norm(b);return!!x&&!!y&&(x===y||x.includes(y)||y.includes(x))}
 
- $("overviewOther").textContent=(counts.Basketball||0)+(counts.MMA||0)+(counts.Other||0)+(counts.Baseball||0)+(counts.Hockey||0);
+function findBookForMarket(m){const pair=getMarketPair(m);if(pair.length<2)return null;let best=null,bestScore=0;for(const e of bookEvents){if(selectedSport!=='all'&&e.sport!==selectedSport)continue;const teams=eventTeams(e);if(!teams[0]||!teams[1])continue;const direct=sameName(pair[0],teams[0])&&sameName(pair[1],teams[1]);const reverse=sameName(pair[0],teams[1])&&sameName(pair[1],teams[0]);let score=direct||reverse?3:0;if(score>bestScore){best=e;bestScore=score}}return bestScore>=3?best:null}
 
-}
+function bookPrices(event,outcomeName){if(!event)return[];const want=norm(outcomeName),out=[];for(const b of arr(event.bookmakers)){const m=arr(b.markets).find(x=>x.key==='h2h');if(!m)continue;const o=arr(m.outcomes).find(x=>norm(x.name)===want||sameName(x.name,outcomeName));if(o&&Number.isFinite(Number(o.price)))out.push({price:Number(o.price),book:b.title})}return out.sort((a,b)=>b.price-a.price)}
 
-function filtered(){
+function renderPriceBox(side,marketOutcome,bookEvent,bookOutcomeName){if(side==='pm'){const ob=marketBest(marketOutcome),bid=ob.bid,ask=ob.ask;return'<div class="source-box pm" data-token-id="'+esc(marketOutcome.tokenId||'')+'"><div class="source-mini">Polymarket Exchange</div><div class="price-pair"><div class="price-cell"><span class="side">BUY / BACK</span><strong>'+(ask!=null?esc(fmt(1/ask)):'—')+'</strong></div><div class="price-cell"><span class="side">SELL / LAY</span><strong>'+(bid!=null?esc(fmt(1/bid)):'—')+'</strong></div></div><div class="price-note">'+(bid!=null?'Bid '+bid.toFixed(3):'Bid unavailable')+' · '+(ask!=null?'Ask '+ask.toFixed(3):'Ask unavailable')+'</div></div>'}
 
- const q=low($("search").value.trim());
+const prices=bookPrices(bookEvent,bookOutcomeName);return'<div class="source-box bk"><div class="source-mini">UK Bookmakers · Back odds</div><div class="bookmaker-list">'+(prices.length?prices.slice(0,6).map(p=>'<div class="bookmaker-line"><span>'+esc(p.book)+'</span><strong>'+esc(fmt(p.price))+'</strong></div>').join(''):'<div class="price-note">No matching UK odds available</div>')+'</div><div class="price-note">Back prices only · bookmaker lay prices are not supplied by this feed</div></div>'}
 
- let list=events.filter(e=>{
+function renderCard(m){const be=findBookForMarket(m),isOpen=expanded.has(m.id);const nonGeneric=m.outcomes.filter(o=>!isGenericOutcome(o.name));const shown=nonGeneric.length?nonGeneric.slice(0,4):m.outcomes.slice(0,2);const rows=shown.map(o=>{let matchedName=o.name;if(be){const teams=eventTeams(be);if(sameName(o.name,teams[0]))matchedName=teams[0];else if(sameName(o.name,teams[1]))matchedName=teams[1]}const pct=priceLabel(o);return'<div class="outcome-row"><div class="outcome-name">'+esc(o.name)+' <span class="outcome-prob" data-prob-token="'+esc(o.tokenId||'')+'" style="font-weight:500;color:#7088a3">· '+esc(pct)+'</span></div><div class="parallel">'+renderPriceBox('pm',o,null,null)+renderPriceBox('bk',null,be,matchedName)+'</div></div>'}).join('');const bTitle=be?be.home_team+' vs '+be.away_team:'No exact bookmaker match found';const bTime=be?.commence_time?new Date(be.commence_time).toLocaleString():'Bookmaker event not matched';return'<article class="match-card glass"><div class="card-top"><span class="sport-tag">'+esc(m.sport)+'</span><span class="source-tag">POLYMARKET'+(be?' + UK MATCH':'')+'</span></div><div class="match-name">'+esc(m.title)+'</div><div class="match-meta"><span class="meta">Volume '+esc(m.volume)+'</span><span class="meta">'+esc(be?bTime:'UK odds: unmatched')+'</span></div><div class="compare-head"><div class="compare-label pm">🔵 POLYMARKET</div><div class="compare-label bk">🔴 UK BOOKMAKER</div></div>'+(rows||'<div class="empty">No outcomes returned for this market.</div>')+'<button class="details-toggle" type="button" data-toggle="'+esc(m.id)+'" aria-expanded="'+isOpen+'">'+(isOpen?'Hide market details ↑':'View full market details ↓')+'</button><div class="details '+(isOpen?'open':'')+'"><div class="detail-title">MARKET DETAILS</div><div class="detail-market"><h4>Polymarket question</h4><div class="detail-line"><span>'+esc(m.question||m.title)+'</span><strong>'+esc(m.outcomes.length)+' outcomes</strong></div><div class="detail-line"><span>UK bookmaker match</span><strong>'+esc(be?bTitle:'Not matched')+'</strong></div>'+(be?'<div class="detail-line"><span>Start time</span><strong>'+esc(bTime)+'</strong></div>':'')+'<a class="market-link" href="'+esc(m.url)+'" target="_blank" rel="noopener noreferrer">Open Polymarket market ↗</a></div>'+(m.outcomes.length>shown.length?'<div class="detail-market"><h4>Other outcomes</h4>'+m.outcomes.slice(shown.length).map(o=>'<div class="detail-line"><span>'+esc(o.name)+'</span><strong>'+esc(Number.isFinite(o.prob)?(o.prob*100).toFixed(1)+'%':'—')+'</strong></div>').join('')+'</div>':'')+'</div></article>'}
 
-  const s=sportOf(e),t=textOf(e);
+function volumeNumber(v){const m=String(v||'').trim().match(/^([0-9,.]+)\s*([KMB])?$/i);if(!m)return 0;const n=Number(m[1].replace(/,/g,''));return n*(m[2]?({k:1e3,m:1e6,b:1e9}[m[2].toLowerCase()]||1):1)}
 
-  if(activeSport!=="all"&&s!==activeSport)return false;
+function render(){const q=norm($('search').value);let list=pmMarkets.filter(m=>(selectedSport==='all'||m.sport===selectedSport)&&(!q||norm([m.title,m.question,m.eventTitle,m.sport,...m.outcomes.map(o=>o.name)].join(' ')).includes(q)));const sort=$('sort')?.value||'default';if(sort==='az')list.sort((a,b)=>a.title.localeCompare(b.title));else if(sort==='volume')list.sort((a,b)=>volumeNumber(b.volume)-volumeNumber(a.volume));else list.sort((a,b)=>{const am=findBookForMarket(a)?1:0,bm=findBookForMarket(b)?1:0;return bm-am});$('pmCount').textContent=String(pmMarkets.length);$('bookCount').textContent=String(bookEvents.length);$('visibleCount').textContent=list.length+' matches';if(!list.length){$('cards').innerHTML='<div class="empty glass">No matching markets found for this filter. Try All sports, clear your search, or tap Refresh odds.</div>';updateWsSubscriptions();return}$('cards').innerHTML=list.slice(0,250).map(renderCard).join('');updateWsSubscriptions()}
 
-  if(activeKind==="live"&&!live(e))return false;
+async function refreshAll(){if(loading)return;loading=true;$('refresh').disabled=true;$('refresh').textContent='↻ Updating…';setStatus('Refreshing event catalogue and available UK bookmaker prices…');const results=await Promise.allSettled([loadPM(),loadBooks()]);const pmOk=results[0].status==='fulfilled',bookOk=results[1].status==='fulfilled';if(pmOk||bookOk){lastSuccess=new Date();$('updated').textContent=lastSuccess.toLocaleTimeString();setStatus('Catalogue refresh complete · '+pmMarkets.length+' Polymarket markets · '+bookEvents.length+' UK bookmaker events. Individual prices update live when the exchange feed is connected.','ok')}else{setStatus('Could not refresh event data. Check network access, bookmaker API key/quota, and tap Refresh again. '+(results[0].reason?.message||results[1].reason?.message||''),'error')};render();loading=false;$('refresh').disabled=false;$('refresh').textContent='↻ Refresh odds';if(!marketWS||marketWS.readyState===WebSocket.CLOSED)connectMarketWS();updateWsSubscriptions();const initial=collectVisibleOutcomes(40);for(let i=0;i<initial.length;i+=8)await Promise.allSettled(initial.slice(i,i+8).map(o=>loadBookFor(o,true)));render()}
 
-  if(["cricket","football","tennis"].includes(activeKind)&&s!==activeKind[0].toUpperCase()+activeKind.slice(1))return false;
+$('cards').addEventListener('click',e=>{const b=e.target.closest('button[data-toggle]');if(!b)return;const id=b.getAttribute('data-toggle');if(expanded.has(id))expanded.delete(id);else{expanded.add(id);const m=pmMarkets.find(x=>x.id===id);if(m)for(const o of m.outcomes.slice(0,4))if(o.tokenId)loadBookFor(o,true)}render()});
 
-  if(activeKind==="player"&&!playerMarket(e))return false;
+$('refresh').addEventListener('click',refreshAll);$('saveKey').addEventListener('click',saveKey);$('search').addEventListener('input',()=>{render();updateWsSubscriptions()});$('oddsFormat').addEventListener('change',render);$('sort').addEventListener('change',render);$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-sport]');if(!b)return;selectedSport=b.dataset.sport;$('tabs').querySelectorAll('[data-sport]').forEach(x=>x.classList.toggle('active',x===b));render();updateWsSubscriptions();loadBooks().then(render).catch(e=>setStatus('Bookmaker refresh issue: '+e.message,'error'))});
 
-  return !q||t.includes(q);
-
- });
-
- if($("sort").value==="name")list.sort((a,b)=>title(a).localeCompare(title(b)));
-
- else if($("sort").value==="volume")list.sort((a,b)=>volume(b)-volume(a));
-
- else list.sort((a,b)=>Number(live(b))-Number(live(a))||volume(b)-volume(a));
-
- return list;
-
-}
-  function renderCard(e,i){
-
- const s=sportOf(e),m=mainMarket(e),out=outcomesOf(e);
-
- const vol=volume(e),end=e.endDate||e.end_date||"";
-
- const id="details"+i;
-
- const two=out.slice(0,2);
-
- let poly=two.length?two.map(o=>`
-
-  <div class="pricebox">
-
-   <div class="outcome">${esc(o.name)}</div>
-
-   <div class="price">${probability(o.price)}</div>
-
-   <div class="tiny">Polymarket probability</div>
-
-  </div>`).join(""):`
-
-  <div class="pricebox"><div class="outcome">Outcome</div><div class="price">—</div></div>
-
-  <div class="pricebox"><div class="outcome">Outcome</div><div class="price">—</div></div>`;
-
- return `<article class="card">
-
-  <div class="cardTop">
-
-   <span class="tag">${icon(s)} ${esc(s)}</span>
-
-   <span class="tag ${live(e)?"live":""}">${live(e)?"● LIVE":"Market"}</span>
-
-  </div>
-
-  <div class="matchTitle">${esc(title(e))}</div>
-
-  <div class="matchMeta"><span>${esc(e.league||e.series||e.category||"Sports market")}</span><span>Vol. $${num(vol)}</span></div>
-
-  <div class="oddsHead"><div class="provider">POLYMARKET</div><div class="provider book">UK BOOKMAKERS</div></div>
-
-  <div class="oddsRow">${poly}</div>
-
-  <div class="oddsRow" style="margin-top:8px">
-
-   <div class="pricebox">
-
-    <div class="outcome">Exchange BACK</div>
-
-    <div class="price">—</div>
-
-    <div class="tiny">Real exchange feed required</div>
-
-   </div>
-
-   <div class="pricebox">
-
-    <div class="outcome">Exchange LAY</div>
-
-    <div class="price">—</div>
-
-    <div class="tiny">Real exchange feed required</div>
-
-   </div>
-
-  </div>
-
-  <div class="cardFoot">
-
-   <span class="muted">${end?"Ends "+esc(end.slice(0,10)):"Market details"}</span>
-
-   <button class="smallbtn" data-details="${id}">Details ↗</button>
-
-  </div>
-
-  <div class="details" id="${id}">
-
-   <div class="detailrow"><span>Sport</span><strong>${esc(s)}</strong></div>
-
-   <div class="detailrow"><span>Market</span><strong>${esc(m?.question||m?.groupItemTitle||"Main market")}</strong></div>
-
-   <div class="detailrow"><span>Volume</span><strong>$${num(vol)}</strong></div>
-
-   <div class="detailrow"><span>Outcomes</span><strong>${esc(out.map(o=>o.name).join(", ")||"Unavailable")}</strong></div>
-
-   <div class="detailrow"><span>UK bookmaker odds</span><strong>Feed not connected</strong></div>
-
-   <div class="detailrow"><span>Back / Lay</span><strong>Exchange feed required</strong></div>
-
-   <a href="${esc(linkOf(e))}" target="_blank" rel="noopener noreferrer" class="smallbtn" style="display:inline-block;text-decoration:none;margin-top:8px">Open Polymarket ↗</a>
-
-  </div>
-
- </article>`;
-
-}
-
-function render(){
-
- const list=filtered();
-
- $("resultsTitle").textContent=activeSport==="all"?"Sports Markets":activeSport+" Markets";
-
- $("resultsSub").textContent=list.length+" matching events · Public market feed";
-
- if(!list.length){
-
-  $("cards").innerHTML='<div class="empty">No matching markets found.<br>Try another sport or search term.<br><button class="btn" id="clearFilters" style="margin-top:12px">Clear filters</button></div>';
-
-  $("clearFilters").onclick=()=>{
-
-   $("search").value="";
-
-   activeSport="all";activeKind="all";
-
-   setSports();setChips();render();
-
-  };
-
-  return;
-
- }
-
- $("cards").innerHTML=list.slice(0,90).map(renderCard).join("");
-
- $("cards").querySelectorAll("[data-details]").forEach(b=>{
-
-  b.addEventListener("click",()=>{
-
-   const el=$(b.dataset.details);
-
-   if(el)el.classList.toggle("open");
-
-  });
-
- });
-
-}
-
-function setSports(){
-
- document.querySelectorAll(".sportbtn").forEach(b=>b.classList.toggle("active",b.dataset.sport===activeSport));
-
-}
-
-function setChips(){
-
- document.querySelectorAll(".chip").forEach(b=>b.classList.toggle("active",b.dataset.kind===activeKind));
-
-}
-
-async function loadMarkets(){
-
- if(loading)return;
-
- loading=true;
-
- $("refreshBtn").textContent="Loading…";
-
- $("connection").textContent="● Connecting";
-
- try{
-
-  let all=[];
-
-  for(let offset=0;offset<200;offset+=100){
-
-   const url=API+"?active=true&closed=false&limit=100&offset="+offset+"&order=volume24hr&ascending=false";
-
-   const controller=new AbortController();
-
-   const timeout=setTimeout(()=>controller.abort(),15000);
-
-   let response;
-
-   try{response=await fetch(url,{signal:controller.signal,headers:{Accept:"application/json"}})}
-
-   finally{clearTimeout(timeout)}
-
-   if(!response.ok)throw new Error("API HTTP "+response.status);
-
-   const data=await response.json();
-
-   if(!Array.isArray(data))throw new Error("Unexpected API response");
-
-   all=all.concat(data);
-
-   if(data.length<100)break;
-
-  }
-
-  events=all;
-
-  updateStats();
-
-  render();
-
-  $("updatedStat").textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
-
-  $("connection").textContent="● Feed connected";
-
-  $("connection").style.background="#e8f8f1";
-
-  $("connection").style.color="#238568";
-
-  $("statusBox").innerHTML="<strong>Data status:</strong> Loaded "+events.length+" events from Polymarket's public API. Bookmaker and exchange feeds are not connected yet.";
-
- }catch(err){
-
-  $("connection").textContent="● Feed unavailable";
-
-  $("connection").style.background="#fff1ed";
-
-  $("connection").style.color="#b86b50";
-
-  $("statusBox").innerHTML="<strong>Data status:</strong> Could not load markets. "+esc(err.message||"Network error")+". Check internet and retry. A backend proxy may be needed if the browser blocks the API.";
-
-  if(!events.length){
-
-   $("cards").innerHTML='<div class="empty">Live markets could not be loaded.<br>Check your connection and tap Refresh.<br><button class="btn primary" id="retryBtn" style="margin-top:12px">Try again</button></div>';
-
-   $("retryBtn").onclick=loadMarkets;
-
-  }
-
- }finally{
-
-  loading=false;
-
-  $("refreshBtn").textContent="↻ Refresh";
-
- }
-
-}
-
-async function testBackend(){
-
- const raw=$("backendUrl").value.trim();
-
- if(!raw){$("backendStatus").textContent="Enter your backend URL first.";return}
-
- const base=raw.replace(/\/+$/,"");
-
- $("backendStatus").textContent="Testing /health…";
-
- try{
-
-  const r=await fetch(base+"/health",{headers:{Accept:"application/json"}});
-
-  if(!r.ok)throw new Error("HTTP "+r.status);
-
-  const data=await r.json().catch(()=>({}));
-
-  $("backendStatus").textContent="Backend responded: "+JSON.stringify(data).slice(0,200);
-
- }catch(e){
-
-  $("backendStatus").textContent="Test failed: "+e.message+". Check URL, CORS and /health endpoint.";
-
- }
-
-}
-
-$("sports").addEventListener("click",e=>{
-
- const sportBtn=e.target.closest("[data-sport]");
-
- const filterBtn=e.target.closest("[data-filter]");
-
- if(sportBtn){
-
-  const menu=sportBtn.parentElement.querySelector(".menu");
-
-  const wasOpen=menu.classList.contains("open");
-
-  document.querySelectorAll(".menu").forEach(m=>m.classList.remove("open"));
-
-  if(!wasOpen)menu.classList.add("open");
-
-  activeSport=sportBtn.dataset.sport;
-
-  activeKind="all";
-
-  setSports();setChips();render();
-
- }else if(filterBtn){
-
-  activeSport=filterBtn.dataset.filter;
-
-  activeKind="all";
-
-  if(filterBtn.dataset.search)$("search").value=filterBtn.dataset.search;
-
-  document.querySelectorAll(".menu").forEach(m=>m.classList.remove("open"));
-
-  setSports();setChips();render();
-
- }
-
-});
-
-document.addEventListener("click",e=>{
-
- if(!e.target.closest(".sportwrap"))
-
-  document.querySelectorAll(".menu").forEach(m=>m.classList.remove("open"));
-
-});
-
-$("filters").addEventListener("click",e=>{
-
- const b=e.target.closest("[data-kind]");
-
- if(!b)return;
-
- activeKind=b.dataset.kind;
-
- if(["cricket","football","tennis"].includes(activeKind))
-
-  activeSport=activeKind[0].toUpperCase()+activeKind.slice(1);
-
- else activeSport="all";
-
- setSports();setChips();render();
-
-});
-
-$("search").addEventListener("input",render);
-
-$("sort").addEventListener("change",render);
-
-$("refreshBtn").addEventListener("click",loadMarkets);
-
-$("settingsBtn").addEventListener("click",()=>$("settingsPanel").classList.toggle("open"));
-
-$("saveSettings").addEventListener("click",()=>{
-
- backendUrl=$("backendUrl").value.trim().replace(/\/+$/,"");
-
- try{localStorage.setItem("polydash_backend",backendUrl)}catch(e){}
-
- $("backendStatus").textContent=backendUrl?"URL saved on this device.":"Backend URL cleared.";
-
-});
-
-$("testBackend").addEventListener("click",testBackend);
-
-$("autoRefresh").addEventListener("change",()=>{
-
- if(timer)clearInterval(timer);
-
- timer=null;
-
- if($("autoRefresh").checked)timer=setInterval(loadMarkets,30000);
-
-});
-
-try{
-
- backendUrl=localStorage.getItem("polydash_backend")||"";
-
- $("backendUrl").value=backendUrl;
-
-}catch(e){}
-
-if($("autoRefresh").checked)timer=setInterval(loadMarkets,30000);
-
-loadMarkets();
-
-})();
+$('apiKey').value=getKey();connectMarketWS();refreshAll();setInterval(()=>{if(!document.hidden)refreshAll()},180000);setInterval(()=>{if(!document.hidden)fallbackPoll()},15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(!marketWS||marketWS.readyState===WebSocket.CLOSED)connectMarketWS();updateWsSubscriptions();if(!marketWS||marketWS.readyState!==WebSocket.OPEN)fallbackPoll()}});window.addEventListener('beforeunload',()=>{wsStopped=true;clearTimeout(wsRetryTimer);if(wsPingTimer)clearInterval(wsPingTimer);if(marketWS)marketWS.close()});
 
 </script>
 
