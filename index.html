@@ -747,118 +747,89 @@ const sportKeyCandidates = {
 };
 
 async function loadBookmakers(){
-
   const key = $("apiKey").value.trim() || getSavedKey();
 
   if(!key){
-
     $("bookCards").innerHTML =
-
       `<div class="empty">Enter and save your The Odds API key to load bookmaker odds.</div>`;
-
     $("bookCount").textContent = "0";
-
     return;
-
   }
 
   if(loadingBook) return;
-
   loadingBook = true;
-
   $("status").textContent = "Loading UK bookmaker odds…";
 
   try{
-
-    const sports = await getJSON(ODDS + "/sports/?apiKey=" + encodeURIComponent(key));
-
-    const active = Array.isArray(sports) ? sports.filter(s=>s.active) : [];
-
+    const sports = await getJSON(
+      ODDS + "/sports/?apiKey=" + encodeURIComponent(key)
+    );
+    const active = Array.isArray(sports) ? sports.filter(s => s.active) : [];
     const chosen = [];
 
     for(const category of ["cricket","tennis","soccer","mma"]){
-
       if(selectedSport !== "all" && selectedSport !== category) continue;
 
       const candidates = sportKeyCandidates[category] || [];
-
       const available = active.filter(s =>
-
         candidates.includes(s.key) ||
-
         (category === "soccer" && s.key.startsWith("soccer_"))
-
       );
 
-      // Limit soccer calls to reduce API quota consumption.
-
-      const limited = category === "soccer" ? available.slice(0,4) : available.slice(0,1);
+      const limited = category === "soccer"
+        ? available.slice(0,4)
+        : available.slice(0,1);
 
       chosen.push(...limited);
-
     }
 
-    const responses = await Promise.allSettled(chosen.map(s =>
-
-      getJSON(ODDS + "/sports/" + encodeURIComponent(s.key) +
-
-        "/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey=" +
-
-        encodeURIComponent(key))
-
-    ));
+    const responses = await Promise.allSettled(
+      chosen.map(s =>
+        getJSON(
+          ODDS + "/sports/" + encodeURIComponent(s.key) +
+          "/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey=" +
+          encodeURIComponent(key)
+        )
+      )
+    );
 
     const events = [];
 
-    for(let i=0;i<responses.length;i++){
-
+    for(let i = 0; i < responses.length; i++){
       const result = responses[i];
-
       if(result.status !== "fulfilled") continue;
 
       for(const event of result.value){
-
-        events.push({...event,sport:classify(chosen[i].key)});
-
+        events.push({...event, sport: classify(chosen[i].key)});
       }
-
     }
 
     const unique = new Map();
 
     for(const event of events){
-
-      unique.set(event.id || [
-
-        event.home_team,event.away_team,event.commence_time
-
-      ].join("|"),event);
-
+      unique.set(
+        event.id || [
+          event.home_team, event.away_team, event.commence_time
+        ].join("|"),
+        event
+      );
     }
 
     bookEvents = [...unique.values()];
-
     $("bookCount").textContent = bookEvents.length;
-
     renderBookmakers();
 
-    $("status").textContent = "Bookmaker odds refreshed. " +
-
-      bookEvents.length + " events loaded.";
-
-  }catch(error){
-
     $("status").textContent =
-
+      "Bookmaker odds refreshed. " + bookEvents.length + " events loaded.";
+  }catch(error){
+    $("status").textContent =
       "Bookmaker API error: " + error.message +
-
       ". Check the API key, available sports and quota.";
-
   }finally{
-
     loadingBook = false;
+  }
+}
 
-  
 function bookmakerRows(event){
   const rows = [];
 
@@ -869,27 +840,26 @@ function bookmakerRows(event){
 
     if(!backMarket && !layMarket) continue;
 
-    const participants = [
+    const names = [
       event.home_team,
       event.away_team,
-      ...(backMarket?.outcomes || []).map(o => o.name)
+      ...(backMarket?.outcomes || []).map(o => o.name),
+      ...(layMarket?.outcomes || []).map(o => o.name)
     ].filter(Boolean);
 
-    const uniqueNames = [...new Set(participants)];
-
-    for(const name of uniqueNames){
-      const back = (backMarket?.outcomes || []).find(o =>
-        norm(o.name) === norm(name)
+    for(const name of [...new Set(names)]){
+      const back = (backMarket?.outcomes || []).find(
+        o => norm(o.name) === norm(name)
       );
-      const lay = (layMarket?.outcomes || []).find(o =>
-        norm(o.name) === norm(name)
+      const lay = (layMarket?.outcomes || []).find(
+        o => norm(o.name) === norm(name)
       );
 
       if(!back && !lay) continue;
 
       rows.push(`
         <div class="book-row">
-          <span>${esc(name)}</span>
+          <span>${esc(bookmaker.title)} · ${esc(name)}</span>
           <strong>
             BACK ${back ? Number(back.price).toFixed(2) : "—"}
             &nbsp; · &nbsp;
@@ -902,7 +872,6 @@ function bookmakerRows(event){
 
   return rows;
 }
-
 function renderBookmakers(){
 
   const items = bookEvents.filter(currentFilter).filter(event=>{
