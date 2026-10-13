@@ -14,75 +14,45 @@
 
 <style>
 
-:root{
-
-  color-scheme:dark;
-
-  --bg:#080d14;--panel:#101925;--line:#263548;
-
-  --text:#edf4ff;--muted:#91a4bb;--green:#39df9a;
-
-  --blue:#6ea8ff;--red:#ff7777;
-
-}
+:root{color-scheme:dark;--bg:#080d14;--panel:#101925;--line:#263548;--text:#edf4ff;--muted:#91a4bb;--green:#39df9a;--blue:#6ea8ff;--red:#ff7777}
 
 *{box-sizing:border-box}
 
-body{
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Arial,sans-serif}
 
-  margin:0;background:var(--bg);color:var(--text);
+header,main{max-width:1200px;margin:auto}
 
-  font-family:system-ui,-apple-system,Arial,sans-serif
-
-}
-
-header{padding:22px 16px 12px;max-width:1200px;margin:auto}
+header{padding:22px 16px 12px}
 
 h1{font-size:25px;margin:0 0 6px}
 
 p{margin:0;color:var(--muted);font-size:13px}
 
-main{max-width:1200px;margin:auto;padding:12px 14px 35px}
+main{padding:12px 14px 35px}
 
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
 
-input,select,button{
+input,select,button{background:#121d2a;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px;font-size:14px;min-height:44px}
 
-  background:#121d2a;border:1px solid var(--line);color:var(--text);
+input{flex:1;min-width:0;width:100%}
 
-  border-radius:10px;padding:11px;font-size:14px;min-height:42px
+button{cursor:pointer;touch-action:manipulation}
 
-}
-
-input{flex:1;min-width:170px}
-
-button{cursor:pointer}
+button:disabled{opacity:.5}
 
 button.primary{background:#1b3856;border-color:#315b83}
 
-button:active{opacity:.75}
+.tabs{display:flex;gap:7px;overflow-x:auto;padding:3px 0 12px}
 
-.tabs{display:flex;gap:7px;overflow:auto;padding:3px 0 12px}
-
-.tabs button{white-space:nowrap}
+.tabs button{white-space:nowrap;flex-shrink:0}
 
 .tabs button.active{background:#1c3b59;border-color:var(--blue)}
 
-.status{
-
-  padding:11px 12px;border:1px solid var(--line);
-
-  border-radius:10px;margin:10px 0 14px;color:var(--muted);
-
-  font-size:12px;overflow-wrap:anywhere
-
-}
+.status{padding:11px 12px;border:1px solid var(--line);border-radius:10px;margin:10px 0 14px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
 
 .stats{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px}
 
-.stat{background:var(--panel);border:1px solid var(--line);
-
-  border-radius:10px;padding:10px 13px;flex:1;min-width:110px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 13px;flex:1;min-width:100px}
 
 .stat strong{display:block;font-size:19px}
 
@@ -90,7 +60,7 @@ button:active{opacity:.75}
 
 .section-title{font-size:16px;font-weight:700;margin:18px 0 10px}
 
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:12px}
 
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;min-width:0}
 
@@ -118,19 +88,19 @@ button:active{opacity:.75}
 
 .book-title{font-size:11px;color:var(--muted);margin-bottom:7px}
 
-.book-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:5px 0}
+.book-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;padding:6px 0;overflow-wrap:anywhere}
 
-.book-row strong{color:var(--green)}
+.book-row strong{color:var(--green);text-align:right}
 
-.empty{border:1px dashed var(--line);padding:25px;text-align:center;border-radius:12px;color:var(--muted);grid-column:1/-1}
+.empty{border:1px dashed var(--line);padding:25px;text-align:center;border-radius:12px;color:var(--muted);grid-column:1/-1;overflow-wrap:anywhere}
 
 .small{font-size:11px;color:var(--muted);line-height:1.5}
 
 a{color:var(--blue)}
 
-footer{padding:22px 0;color:var(--muted);font-size:11px}
+footer{padding:22px 0;color:var(--muted);font-size:11px;line-height:1.6}
 
-.hidden{display:none!important}
+@media(max-width:480px){h1{font-size:22px}.toolbar>*{max-width:100%}.stat{min-width:85px}.stat strong{font-size:17px}}
 
 </style>
 
@@ -142,7 +112,7 @@ footer{padding:22px 0;color:var(--muted);font-size:11px}
 
   <h1>🏆 Live Sports Odds</h1>
 
-  <p>Polymarket markets + UK bookmaker odds</p>
+  <p>Polymarket live markets + optional bookmaker odds</p>
 
 </header>
 
@@ -150,33 +120,33 @@ footer{padding:22px 0;color:var(--muted);font-size:11px}
 
   <div class="toolbar">
 
-    <input id="search" placeholder="Search India, Australia, player name..." autocomplete="off">
+    <input id="search" placeholder="Search team, country or player..." autocomplete="off">
 
-    <button class="primary" id="refresh">↻ Refresh</button>
+    <button class="primary" id="refresh" type="button">↻ Refresh</button>
 
   </div>
 
   <div class="tabs" id="tabs">
 
-    <button class="active" data-sport="all">All sports</button>
+    <button class="active" data-sport="all" type="button">All sports</button>
 
-    <button data-sport="cricket">🏏 Cricket</button>
+    <button data-sport="cricket" type="button">🏏 Cricket</button>
 
-    <button data-sport="tennis">🎾 Tennis</button>
+    <button data-sport="tennis" type="button">🎾 Tennis</button>
 
-    <button data-sport="soccer">⚽ Soccer</button>
+    <button data-sport="soccer" type="button">⚽ Soccer</button>
 
-    <button data-sport="mma">🥊 MMA / UFC</button>
+    <button data-sport="mma" type="button">🥊 MMA / UFC</button>
 
   </div>
 
   <div class="toolbar">
 
-    <input id="apiKey" type="password" placeholder="The Odds API key (optional)">
+    <input id="apiKey" type="password" placeholder="The Odds API key (optional)" autocomplete="off">
 
-    <button id="saveKey">Save key</button>
+    <button id="saveKey" type="button">Save key</button>
 
-    <select id="sort">
+    <select id="sort" aria-label="Sort markets">
 
       <option value="new">Default order</option>
 
@@ -196,31 +166,31 @@ footer{padding:22px 0;color:var(--muted);font-size:11px}
 
   </div>
 
-  <div id="status" class="status">Starting dashboard…</div>
+  <div id="status" class="status" role="status" aria-live="polite">Starting dashboard…</div>
 
   <div class="section-title">Polymarket matches & players</div>
 
   <div id="pmCards" class="cards">
 
-    <div class="empty">Loading markets…</div>
+    <div class="empty">Connecting to Polymarket…</div>
 
   </div>
 
-  <div class="section-title">UK bookmaker odds</div>
+  <div class="section-title">Bookmaker odds</div>
 
-  <p class="small">Bookmaker odds appear when a matching event is available from The Odds API. A saved API key is required.</p>
+  <p class="small">Optional: save a valid The Odds API key to load available UK-region bookmaker odds. Coverage depends on the provider.</p>
 
   <div id="bookCards" class="cards" style="margin-top:10px">
 
-    <div class="empty">Save an API key to load bookmaker odds.</div>
+    <div class="empty">Bookmaker odds are optional. Polymarket does not require this key.</div>
 
   </div>
 
   <footer>
 
-    Data availability depends on each provider. Odds may be delayed or unavailable for some events.
+    Prices and market availability can change. Some sports or matches may not have active markets.
 
-    Compare odds carefully; this dashboard does not guarantee a match between providers.
+    Bookmaker odds require a valid API key and available API quota. Always verify prices with the provider.
 
   </footer>
 
@@ -252,47 +222,47 @@ let bookTimer = null;
 
 const sportWords = {
 
-  cricket:["cricket"],
+  cricket: ["cricket"],
 
-  tennis:["tennis"],
+  tennis: ["tennis"],
 
-  soccer:["soccer","football"],
+  soccer: ["soccer", "football"],
 
-  mma:["mma","ufc","mixed martial arts"]
+  mma: ["mma", "ufc", "mixed martial arts"]
 
 };
 
-function esc(value){
+function esc(value) {
 
   return String(value ?? "").replace(/[&<>"']/g, ch => ({
 
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
 
   }[ch]));
 
 }
 
-function norm(value){
+function norm(value) {
 
   return String(value || "")
 
     .toLowerCase()
 
-    .replace(/\b(fc|afc|sc|club|team)\b/g," ")
+    .replace(/\b(fc|afc|sc|club|team)\b/g, " ")
 
-    .replace(/[^a-z0-9]+/g," ")
+    .replace(/[^a-z0-9]+/g, " ")
 
     .trim();
 
 }
 
-function classify(text){
+function classify(text) {
 
   const t = String(text || "").toLowerCase();
 
-  for(const [sport,words] of Object.entries(sportWords)){
+  for (const [sport, words] of Object.entries(sportWords)) {
 
-    if(words.some(w => t.includes(w))) return sport;
+    if (words.some(word => t.includes(word))) return sport;
 
   }
 
@@ -300,51 +270,23 @@ function classify(text){
 
 }
 
-function currentFilter(item){
+function safeArray(value) {
 
-  return selectedSport === "all" || item.sport === selectedSport;
+  if (Array.isArray(value)) return value;
 
-}
+  if (typeof value === "string") {
 
-function searchMatches(item){
-
-  const q = norm($("search").value);
-
-  if(!q) return true;
-
-  return norm([
-
-    item.title,item.question,item.eventTitle,item.sport,
-
-    ...(item.outcomes || []).map(o=>o.name)
-
-  ].join(" ")).includes(q);
-
-}
-
-async function getJSON(url){
-
-  const response = await fetch(url);
-
-  if(!response.ok) throw new Error("HTTP " + response.status);
-
-  return response.json();
-
-}
-
-function safeArray(value){
-
-  if(Array.isArray(value)) return value;
-
-  if(typeof value === "string"){
-
-    try{
+    try {
 
       const parsed = JSON.parse(value);
 
       return Array.isArray(parsed) ? parsed : [];
 
-    }catch{}
+    } catch (_) {
+
+      return [];
+
+    }
 
   }
 
@@ -352,282 +294,415 @@ function safeArray(value){
 
 }
 
-function getMarketOutcomes(market){
+async function getJSON(url) {
 
-  const names = safeArray(market.outcomes);
+  const response = await fetch(url, {
 
-  const prices = safeArray(market.outcomePrices);
+    headers: { "Accept": "application/json" }
 
-  return names.map((name,i)=>({
+  });
 
-    name:String(name),
+  if (!response.ok) throw new Error("HTTP " + response.status);
 
-    price:Number(prices[i])
-
-  })).filter(o => o.name && Number.isFinite(o.price));
+  return response.json();
 
 }
 
-function getEventTitle(event){
+function getEventTitle(event) {
 
   return event.title || event.name || "";
 
 }
 
-function eventSports(event){
+function tagText(tags) {
+
+  return safeArray(tags).map(tag =>
+
+    typeof tag === "string"
+
+      ? tag
+
+      : [tag.label, tag.slug, tag.name, tag.id].filter(Boolean).join(" ")
+
+  ).join(" ");
+
+}
+
+function eventSport(event) {
 
   const text = [
 
-    event.title,event.slug,event.description,
+    event.title, event.name, event.slug, event.description,
 
-    ...(event.tags || []).map(t => typeof t === "string" ? t : t.label)
+    tagText(event.tags),
+
+    ...(safeArray(event.markets).map(m => [
+
+      m.question, m.slug, m.description
+
+    ].join(" ")))
 
   ].join(" ");
 
   return classify(text);
 
 }
-function marketIsUseful(market) {
-  if (market.closed || market.active === false) return false;
 
-  const outcomes = safeArray(market.outcomes);
-  if (outcomes.length < 2) return false;
+function marketSport(market, event, hint) {
 
-  const names = outcomes.map(o =>
-    String(typeof o === "object" ? (o?.name || "") : o).trim()
-  );
+  if (hint && hint !== "other") return hint;
 
-  const yesNo = names.every(n =>
-    ["yes", "no", "true", "false"].includes(n.toLowerCase())
-  );
+  const eventCategory = eventSport(event);
 
-  return !yesNo;
-}
-
-function marketSport(market) {
-  const tags = safeArray(market.tags).map(t =>
-    typeof t === "string" ? t : (t.label || t.slug || "")
-  ).join(" ");
+  if (eventCategory !== "other") return eventCategory;
 
   return classify([
-    market.sport,
-    market.eventTitle,
-    market.question,
-    market.slug,
-    market.description,
-    tags
+
+    market.sport, market.eventTitle, market.question,
+
+    market.slug, market.description, tagText(market.tags)
+
   ].join(" "));
+
+}
+
+function marketIsUseful(market) {
+
+  if (market.closed === true || market.active === false) return false;
+
+  const outcomes = safeArray(market.outcomes);
+
+  return outcomes.length >= 2;
+
+}
+
+function getMarketOutcomes(market) {
+
+  const names = safeArray(market.outcomes);
+
+  const prices = safeArray(market.outcomePrices);
+
+  return names.map((item, index) => {
+
+    const name = typeof item === "object"
+
+      ? (item.name || item.label || "")
+
+      : item;
+
+    return {
+
+      name: String(name),
+
+      price: Number(prices[index])
+
+    };
+
+  }).filter(item => item.name.trim() !== "");
+
 }
 
 function matchupTitle(market) {
+
   const question = String(market.question || "").trim();
+
   const eventTitle = String(market.eventTitle || "").trim();
-  const outcomes = safeArray(market.outcomes);
 
-  if (/\b(vs?\.?|versus)\b/i.test(eventTitle) &&
-      eventTitle.length < 120) {
+  const outcomes = safeArray(market.outcomes).map(item =>
+
+    String(typeof item === "object" ? (item.name || "") : item).trim()
+
+  ).filter(Boolean);
+
+  if (/\b(vs?\.?|versus)\b/i.test(eventTitle) && eventTitle.length < 120) {
+
     return eventTitle;
-  }
 
-  const names = outcomes
-    .map(o => String(typeof o === "object" ? (o?.name || "") : o).trim())
-    .filter(Boolean);
+  }
 
   const generic = ["yes", "no", "true", "false", "over", "under"];
 
-  if (names.length === 2 &&
-      names.every(n => !generic.includes(n.toLowerCase()))) {
-    return names[0] + " vs " + names[1];
+  if (outcomes.length === 2 &&
+
+      outcomes.every(name => !generic.includes(name.toLowerCase()))) {
+
+    return outcomes[0] + " vs " + outcomes[1];
+
   }
 
-  if (/\b(vs?\.?|versus)\b/i.test(question) &&
-      question.length < 120) {
+  if (/\b(vs?\.?|versus)\b/i.test(question) && question.length < 120) {
+
     return question;
+
   }
 
-  return eventTitle || question || "Matchup unavailable";
+  return eventTitle || question || "Matchup";
+
 }
-  // Do not use a prop question as the matchup title.
-  if (/\b(vs?\.?|versus)\b/i.test(question) &&
-      question.length < 120) {
-    return question;
+
+function currentFilter(item) {
+
+  return selectedSport === "all" || item.sport === selectedSport;
+
+}
+
+function searchMatches(item) {
+
+  const query = norm($("search").value);
+
+  if (!query) return true;
+
+  return norm([
+
+    item.title, item.question, item.eventTitle, item.sport,
+
+    ...(item.outcomes || []).map(outcome => outcome.name)
+
+  ].join(" ")).includes(query);
+
+}
+
+function setStatus(message) {
+
+  $("status").textContent = message;
+
+}
+
+function addEvent(map, event, hint) {
+
+  const id = String(event.id || event.slug || getEventTitle(event));
+
+  if (!id) return;
+
+  const previous = map.get(id);
+
+  if (!previous || (hint && hint !== "other" && !previous._sportHint)) {
+
+    map.set(id, { ...event, _sportHint: hint || event._sportHint || "other" });
+
   }
 
-  return eventTitle || question || "Matchup unavailable";
 }
-async function loadPolymarket(){
 
-  if(loadingPM) return;
+async function fetchSportsEvents() {
+
+  const eventsMap = new Map();
+
+  const sportsData = await getJSON(GAMMA + "/sports");
+
+  const sports = Array.isArray(sportsData) ? sportsData : [];
+
+  const requests = [];
+
+  const queried = new Set();
+
+  for (const sport of sports) {
+
+    const category = classify([
+
+      sport.sport, sport.name, sport.label, sport.slug
+
+    ].join(" "));
+
+    if (category === "other") continue;
+
+    let tags = sport.tags || sport.tag_id || sport.tagId || [];
+
+    if (typeof tags === "string") {
+
+      tags = tags.split(",").map(tag => tag.trim()).filter(Boolean);
+
+    }
+
+    if (!Array.isArray(tags)) tags = [tags];
+
+    for (const tag of tags) {
+
+      const id = typeof tag === "object"
+
+        ? (tag.id || tag.tag_id || tag.tagId)
+
+        : tag;
+
+      if (!id || queried.has(String(id))) continue;
+
+      queried.add(String(id));
+
+      requests.push({ id: String(id), category });
+
+    }
+
+  }
+
+  const tagResults = await Promise.allSettled(
+
+    requests.slice(0, 40).map(async request => {
+
+      const data = await getJSON(
+
+        GAMMA + "/events?active=true&closed=false&limit=100&tag_id=" +
+
+        encodeURIComponent(request.id)
+
+      );
+
+      return { data, category: request.category };
+
+    })
+
+  );
+
+  for (const result of tagResults) {
+
+    if (result.status !== "fulfilled" || !Array.isArray(result.value.data)) continue;
+
+    for (const event of result.value.data) {
+
+      addEvent(eventsMap, event, result.value.category);
+
+    }
+
+  }
+
+  // Always try the general events endpoint too, as sport tags can be incomplete.
+
+  const fallbackResults = await Promise.allSettled([
+
+    getJSON(GAMMA + "/events?active=true&closed=false&limit=100&offset=0"),
+
+    getJSON(GAMMA + "/events?active=true&closed=false&limit=100&offset=100")
+
+  ]);
+
+  for (const result of fallbackResults) {
+
+    if (result.status !== "fulfilled" || !Array.isArray(result.value)) continue;
+
+    for (const event of result.value) addEvent(eventsMap, event, "other");
+
+  }
+
+  if (!eventsMap.size) throw new Error("No events returned by the API");
+
+  return [...eventsMap.values()];
+
+}
+
+async function loadPolymarket() {
+
+  if (loadingPM) return;
 
   loadingPM = true;
 
-  $("status").textContent = "Refreshing Polymarket markets…";
+  $("refresh").disabled = true;
 
-  try{
+  setStatus("Loading live Polymarket events…");
 
-    const sports = await getJSON(GAMMA + "/sports");
+  try {
 
-    const sportTags = new Map();
+    const events = await fetchSportsEvents();
 
-    for(const sport of (Array.isArray(sports) ? sports : [])){
+    const found = new Map();
 
-      const category = classify([
-
-        sport.sport,sport.name,sport.label,sport.slug
-
-      ].join(" "));
-
-      if(category === "other") continue;
-
-      let tags = sport.tags || sport.tag_id || sport.tagId || [];
-
-      if(typeof tags === "string"){
-
-        tags = tags.split(",").map(t=>t.trim()).filter(Boolean);
-
-      }
-
-      if(!Array.isArray(tags)) tags = [tags];
-
-      for(const tag of tags){
-
-        const id = typeof tag === "object"
-
-          ? (tag.id || tag.tag_id || tag.tagId)
-
-          : tag;
-
-        if(id) sportTags.set(String(id),category);
-
-      }
-
-    }
-
-    let allEvents = [];
-
-    if(sportTags.size){
-
-      const tagIds = [...sportTags.keys()].slice(0,30);
-
-      const responses = await Promise.allSettled(
-
-        tagIds.map(id => getJSON(
-
-          GAMMA + "/events?active=true&closed=false&limit=100&tag_id=" +
-
-          encodeURIComponent(id)
-
-        ))
-
-      );
-
-      for(const result of responses){
-
-        if(result.status === "fulfilled" && Array.isArray(result.value)){
-
-          allEvents.push(...result.value);
-
-        }
-
-      }
-
-    }else{
-
-      allEvents = await getJSON(
-
-        GAMMA + "/events?active=true&closed=false&limit=100"
-
-      );
-
-    }
-
-    const seen = new Set();
-
-    const found = [];
-
-    for(const event of allEvents){
-
-      const eventId = String(event.id || event.slug || getEventTitle(event));
-
-      if(seen.has(eventId)) continue;
-
-      seen.add(eventId);
+    for (const event of events) {
 
       const eventTitle = getEventTitle(event);
 
-      let sport = eventSports(event);
+      const markets = safeArray(event.markets);
 
-      if(sport === "other"){
+      for (const market of markets) {
 
-        const eventTags = (event.tags || []).map(t =>
+        if (!marketIsUseful(market)) continue;
 
-          typeof t === "string" ? t : (t.label || t.slug || "")
+        const sport = marketSport(
 
-        ).join(" ");
+          { ...market, eventTitle },
 
-        sport = classify(eventTitle + " " + eventTags);
+          event,
 
-      }
+          event._sportHint
 
-      for(const market of (event.markets || [])){
+        );
 
-        if(!marketIsUseful(market)) continue;
+        if (sport === "other") continue;
 
         const outcomes = getMarketOutcomes(market);
 
-        const item = {
+        const marketId = String(
 
-          id:String(market.id || market.conditionId || market.slug || Math.random()),
+          market.id || market.conditionId || market.slug ||
 
-          sport: sport === "other" ? marketSport(market) : sport,
+          (event.id + "-" + (market.question || "market"))
 
-          title:matchupTitle({...market,eventTitle}),
+        );
 
-          question:market.question || "",
+        const eventSlug = event.slug || market.eventSlug || "";
+
+        const url = eventSlug
+
+          ? "https://polymarket.com/event/" + encodeURIComponent(eventSlug)
+
+          : market.slug
+
+            ? "https://polymarket.com/event/" + encodeURIComponent(market.slug)
+
+            : "https://polymarket.com";
+
+        found.set(marketId, {
+
+          id: marketId,
+
+          sport,
+
+          title: matchupTitle({ ...market, eventTitle }),
+
+          question: market.question || "",
 
           eventTitle,
 
           outcomes,
 
-          url:market.slug
+          url,
 
-            ? "https://polymarket.com/event/" + encodeURIComponent(event.slug || "")
+          source: "Polymarket"
 
-            : "https://polymarket.com",
-
-          source:"Polymarket"
-
-        };
-
-        if(item.sport !== "other") found.push(item);
+        });
 
       }
 
     }
 
-    pmMarkets = found;
+    pmMarkets = [...found.values()];
 
-    $("pmCount").textContent = pmMarkets.length;
+    $("pmCount").textContent = String(pmMarkets.length);
 
     renderPolymarket();
 
-    $("status").textContent =
+    setStatus(
 
-      "Polymarket refreshed. " + pmMarkets.length +
+      "Polymarket updated: " + pmMarkets.length +
 
-      " sports markets found. Some events may not include team/player winner markets.";
+      " sports markets found. If zero, active sports markets may be unavailable " +
 
-  }catch(error){
+      "or the API may not return enough sport tags."
 
-    $("status").textContent =
+    );
 
-      "Polymarket load failed: " + error.message +
+  } catch (error) {
 
-      ". Check your internet connection and try Refresh.";
+    setStatus("Polymarket error: " + error.message +
 
-  }finally{
+      ". Check the API test in Safari and try Refresh.");
+
+    $("pmCards").innerHTML =
+
+      '<div class="empty">Could not load markets. Tap Refresh to try again.</div>';
+
+  } finally {
 
     loadingPM = false;
+
+    $("refresh").disabled = false;
 
     $("updated").textContent = new Date().toLocaleTimeString();
 
@@ -635,31 +710,41 @@ async function loadPolymarket(){
 
 }
 
-function renderOutcomes(outcomes){
+function renderOutcomes(outcomes) {
 
-  if(!outcomes || !outcomes.length) return "";
+  if (!outcomes || !outcomes.length) {
 
-  return `<div class="outcomes">${outcomes.slice(0,4).map(o=>{
+    return '<div class="small">Prices unavailable for this market.</div>';
 
-    const pct = Number.isFinite(o.price) ? (o.price*100).toFixed(1)+"%" : "—";
+  }
 
-    const decimal = o.price > 0 ? (1/o.price).toFixed(2) : "—";
+  return '<div class="outcomes">' + outcomes.slice(0, 4).map(outcome => {
 
-    return `<div class="outcome">
+    const price = outcome.price;
 
-      <div class="name">${esc(o.name)}</div>
+    const pct = Number.isFinite(price) && price >= 0
 
-      <div class="price">${esc(pct)}</div>
+      ? (price * 100).toFixed(1) + "%" : "—";
 
-      <div class="pct">Decimal: ${esc(decimal)}</div>
+    const decimal = Number.isFinite(price) && price > 0
 
-    </div>`;
+      ? (1 / price).toFixed(2) : "—";
 
-  }).join("")}</div>`;
+    return '<div class="outcome">' +
+
+      '<div class="name">' + esc(outcome.name) + '</div>' +
+
+      '<div class="price">' + esc(pct) + '</div>' +
+
+      '<div class="pct">Decimal: ' + esc(decimal) + '</div>' +
+
+      '</div>';
+
+  }).join("") + '</div>';
 
 }
 
-function renderPolymarket(){
+function renderPolymarket() {
 
   const items = pmMarkets
 
@@ -667,77 +752,95 @@ function renderPolymarket(){
 
     .filter(searchMatches)
 
-    .sort((a,b)=>$("sort").value === "az"
+    .sort((a, b) => $("sort").value === "az"
 
       ? a.title.localeCompare(b.title) : 0);
 
-  if(!items.length){
+  if (!items.length) {
 
     $("pmCards").innerHTML =
 
-      `<div class="empty">No matching markets found. Try another sport or search term.</div>`;
+      '<div class="empty">No markets match this filter right now. Try All sports or clear search.</div>';
 
     return;
 
   }
 
-  $("pmCards").innerHTML = items.slice(0,300).map(item=>`
+  $("pmCards").innerHTML = items.slice(0, 300).map(item =>
 
-    <article class="card">
+    '<article class="card">' +
 
-      <div class="topline">
+      '<div class="topline">' +
 
-        <span class="pill">${esc(item.sport.toUpperCase())}</span>
+        '<span class="pill">' + esc(item.sport.toUpperCase()) + '</span>' +
 
-        <span class="source">POLYMARKET</span>
+        '<span class="source">POLYMARKET</span>' +
 
-      </div>
+      '</div>' +
 
-      <div class="match">${esc(item.title)}</div>
+      '<div class="match">' + esc(item.title) + '</div>' +
 
-      <div class="sub">${esc(item.eventTitle)}</div>
+      '<div class="sub">' + esc(item.eventTitle) + '</div>' +
 
-      ${renderOutcomes(item.outcomes)}
+      renderOutcomes(item.outcomes) +
 
-      <div class="book">
+      '<div class="book"><a href="' + esc(item.url) +
 
-        <a href="${esc(item.url)}" target="_blank" rel="noopener">Open market ↗</a>
+        '" target="_blank" rel="noopener noreferrer">Open market ↗</a></div>' +
 
-      </div>
+    '</article>'
 
-    </article>
-
-  `).join("");
+  ).join("");
 
 }
 
-function getSavedKey(){
+function getSavedKey() {
 
-  try{return localStorage.getItem("sportsOddsApiKey") || "";}
+  try {
 
-  catch{return "";}
+    return localStorage.getItem("sportsOddsApiKey") || "";
+
+  } catch (_) {
+
+    return "";
+
+  }
 
 }
 
-function saveKey(){
+const sportKeyCandidates = {
+
+  cricket: ["cricket"],
+
+  tennis: ["tennis"],
+
+  soccer: [
+
+    "soccer_epl", "soccer_uefa_champs_league", "soccer_spain_la_liga",
+
+    "soccer_italy_serie_a", "soccer_germany_bundesliga",
+
+    "soccer_france_ligue_one"
+
+  ],
+
+  mma: ["mma_mixed_martial_arts"]
+
+};
+
+function saveKey() {
 
   const key = $("apiKey").value.trim();
 
-  try{
+  try {
 
-    if(key) localStorage.setItem("sportsOddsApiKey",key);
+    if (key) localStorage.setItem("sportsOddsApiKey", key);
 
     else localStorage.removeItem("sportsOddsApiKey");
 
-    $("status").textContent = key
+  } catch (_) {
 
-      ? "API key saved in this browser. Loading bookmaker odds…"
-
-      : "API key removed.";
-
-  }catch{
-
-    $("status").textContent = "Could not save key in browser storage.";
+    setStatus("This browser could not save the API key. It may still work for this session.");
 
   }
 
@@ -745,205 +848,221 @@ function saveKey(){
 
 }
 
-const sportKeyCandidates = {
+async function loadBookmakers() {
 
-  cricket:["cricket"],
-
-  tennis:["tennis"],
-
-  soccer:["soccer_epl","soccer_uefa_champs_league","soccer_spain_la_liga",
-
-          "soccer_italy_serie_a","soccer_germany_bundesliga","soccer_france_ligue_one"],
-
-  mma:["mma_mixed_martial_arts"]
-
-};
-
-async function loadBookmakers(){
   const key = $("apiKey").value.trim() || getSavedKey();
 
-  if(!key){
+  if (!key) {
+
     $("bookCards").innerHTML =
-      `<div class="empty">Enter and save your The Odds API key to load bookmaker odds.</div>`;
+
+      '<div class="empty">Enter and save a The Odds API key to load bookmaker odds.</div>';
+
     $("bookCount").textContent = "0";
+
     return;
+
   }
 
-  if(loadingBook) return;
-  loadingBook = true;
-  $("status").textContent = "Loading UK bookmaker odds…";
+  if (loadingBook) return;
 
-  try{
+  loadingBook = true;
+
+  try {
+
     const sports = await getJSON(
+
       ODDS + "/sports/?apiKey=" + encodeURIComponent(key)
+
     );
-    const active = Array.isArray(sports) ? sports.filter(s => s.active) : [];
+
+    const active = Array.isArray(sports) ? sports.filter(sport => sport.active) : [];
+
     const chosen = [];
 
-    for(const category of ["cricket","tennis","soccer","mma"]){
-      if(selectedSport !== "all" && selectedSport !== category) continue;
+    for (const category of ["cricket", "tennis", "soccer", "mma"]) {
+
+      if (selectedSport !== "all" && selectedSport !== category) continue;
 
       const candidates = sportKeyCandidates[category] || [];
-      const available = active.filter(s =>
-        candidates.includes(s.key) ||
-        (category === "soccer" && s.key.startsWith("soccer_"))
+
+      const available = active.filter(sport =>
+
+        candidates.includes(sport.key) ||
+
+        (category === "soccer" && String(sport.key).startsWith("soccer_"))
+
       );
 
-      const limited = category === "soccer"
-        ? available.slice(0,4)
-        : available.slice(0,1);
+      chosen.push(...(category === "soccer" ? available.slice(0, 4) : available.slice(0, 1)));
 
-      chosen.push(...limited);
     }
 
-    const responses = await Promise.allSettled(
-      chosen.map(s =>
-        getJSON(
-          ODDS + "/sports/" + encodeURIComponent(s.key) +
-          "/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey=" +
-          encodeURIComponent(key)
-        )
-      )
-    );
+    const responses = await Promise.allSettled(chosen.map(sport =>
 
-    const events = [];
+      getJSON(
 
-    for(let i = 0; i < responses.length; i++){
-      const result = responses[i];
-      if(result.status !== "fulfilled") continue;
+        ODDS + "/sports/" + encodeURIComponent(sport.key) +
 
-      for(const event of result.value){
-        events.push({...event, sport: classify(chosen[i].key)});
-      }
-    }
+        "/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey=" +
+
+        encodeURIComponent(key)
+
+      ).then(data => ({ data, sport }))
+
+    ));
 
     const unique = new Map();
 
-    for(const event of events){
-      unique.set(
-        event.id || [
+    for (const result of responses) {
+
+      if (result.status !== "fulfilled" || !Array.isArray(result.value.data)) continue;
+
+      for (const event of result.value.data) {
+
+        const sport = classify(result.value.sport.key);
+
+        const id = event.id || [
+
           event.home_team, event.away_team, event.commence_time
-        ].join("|"),
-        event
-      );
+
+        ].join("|");
+
+        unique.set(id, { ...event, sport });
+
+      }
+
     }
 
     bookEvents = [...unique.values()];
-    $("bookCount").textContent = bookEvents.length;
+
+    $("bookCount").textContent = String(bookEvents.length);
+
     renderBookmakers();
 
-    $("status").textContent =
-      "Bookmaker odds refreshed. " + bookEvents.length + " events loaded.";
-  }catch(error){
-    $("status").textContent =
-      "Bookmaker API error: " + error.message +
-      ". Check the API key, available sports and quota.";
-  }finally{
-    loadingBook = false;
-  }
-}
+    if (!chosen.length) {
 
-function bookmakerRows(event){
-  const rows = [];
+      $("bookCards").innerHTML =
 
-  for(const bookmaker of (event.bookmakers || [])){
-    const markets = bookmaker.markets || [];
-    const backMarket = markets.find(m => m.key === "h2h");
-    const layMarket = markets.find(m => m.key === "h2h_lay");
+        '<div class="empty">No supported active sports were returned for this filter.</div>';
 
-    if(!backMarket && !layMarket) continue;
-
-    const names = [
-      event.home_team,
-      event.away_team,
-      ...(backMarket?.outcomes || []).map(o => o.name),
-      ...(layMarket?.outcomes || []).map(o => o.name)
-    ].filter(Boolean);
-
-    for(const name of [...new Set(names)]){
-      const back = (backMarket?.outcomes || []).find(
-        o => norm(o.name) === norm(name)
-      );
-      const lay = (layMarket?.outcomes || []).find(
-        o => norm(o.name) === norm(name)
-      );
-
-      if(!back && !lay) continue;
-
-      rows.push(`
-        <div class="book-row">
-          <span>${esc(bookmaker.title)} · ${esc(name)}</span>
-          <strong>
-            BACK ${back ? Number(back.price).toFixed(2) : "—"}
-            &nbsp; · &nbsp;
-            LAY ${lay ? Number(lay.price).toFixed(2) : "—"}
-          </strong>
-        </div>
-      `);
     }
-  }
 
-  return rows;
-}
-function renderBookmakers(){
-
-  const items = bookEvents.filter(currentFilter).filter(event=>{
-
-    const title = event.home_team + " vs " + event.away_team;
-
-    return norm(title + " " + event.sport).includes(norm($("search").value));
-
-  });
-
-  if(!items.length){
+  } catch (error) {
 
     $("bookCards").innerHTML =
 
-      `<div class="empty">No bookmaker events available for this filter right now.</div>`;
+      '<div class="empty">Bookmaker API error: ' + esc(error.message) +
+
+      '. Check your key and API quota.</div>';
+
+    $("bookCount").textContent = "0";
+
+  } finally {
+
+    loadingBook = false;
+
+  }
+
+}
+
+function bookmakerRows(event) {
+
+  const rows = [];
+
+  for (const bookmaker of safeArray(event.bookmakers)) {
+
+    const h2h = safeArray(bookmaker.markets).find(m => m.key === "h2h");
+
+    if (!h2h) continue;
+
+    for (const outcome of safeArray(h2h.outcomes)) {
+
+      rows.push(
+
+        '<div class="book-row"><span>' + esc(bookmaker.title) +
+
+        ' · ' + esc(outcome.name) + '</span><strong>' +
+
+        (Number.isFinite(Number(outcome.price))
+
+          ? Number(outcome.price).toFixed(2) : "—") +
+
+        '</strong></div>'
+
+      );
+
+    }
+
+  }
+
+  return rows;
+
+}
+
+function renderBookmakers() {
+
+  const query = norm($("search").value);
+
+  const items = bookEvents.filter(event => {
+
+    if (!currentFilter(event)) return false;
+
+    const title = (event.home_team || "") + " vs " + (event.away_team || "");
+
+    return !query || norm(title + " " + event.sport).includes(query);
+
+  });
+
+  if (!items.length) {
+
+    $("bookCards").innerHTML =
+
+      '<div class="empty">No bookmaker events available for this filter right now.</div>';
 
     return;
 
   }
 
-  $("bookCards").innerHTML = items.map(event=>{
+  $("bookCards").innerHTML = items.map(event => {
 
     const rows = bookmakerRows(event);
 
-    return `<article class="card">
+    const title = (event.home_team || "Team 1") + " vs " +
 
-      <div class="topline">
+      (event.away_team || "Team 2");
 
-        <span class="pill">${esc(event.sport.toUpperCase())}</span>
+    return '<article class="card">' +
 
-        <span class="source">UK BOOKMAKERS</span>
+      '<div class="topline"><span class="pill">' +
 
-      </div>
+      esc(event.sport.toUpperCase()) +
 
-      <div class="match">${esc(event.home_team)} vs ${esc(event.away_team)}</div>
+      '</span><span class="source">BOOKMAKERS</span></div>' +
 
-      <div class="sub">${event.commence_time
+      '<div class="match">' + esc(title) + '</div>' +
 
-        ? "Start: "+esc(new Date(event.commence_time).toLocaleString())
+      '<div class="sub">' +
 
-        : ""}</div>
+      (event.commence_time
 
-      <div class="book">
+        ? 'Start: ' + esc(new Date(event.commence_time).toLocaleString())
 
-        <div class="book-title">Match winner · Decimal odds</div>
+        : '') +
 
-        ${rows.length ? rows.join("") :
+      '</div><div class="book"><div class="book-title">Match winner · Decimal odds</div>' +
 
-          `<div class="small">No matching bookmaker prices returned for this event.</div>`}
+      (rows.length ? rows.join("") :
 
-      </div>
+        '<div class="small">No bookmaker prices returned.</div>') +
 
-    </article>`;
+      '</div></article>';
 
   }).join("");
 
 }
 
-$("refresh").addEventListener("click",()=>{
+$("refresh").addEventListener("click", () => {
 
   loadPolymarket();
 
@@ -951,9 +1070,9 @@ $("refresh").addEventListener("click",()=>{
 
 });
 
-$("saveKey").addEventListener("click",saveKey);
+$("saveKey").addEventListener("click", saveKey);
 
-$("search").addEventListener("input",()=>{
+$("search").addEventListener("input", () => {
 
   renderPolymarket();
 
@@ -961,23 +1080,25 @@ $("search").addEventListener("input",()=>{
 
 });
 
-$("sort").addEventListener("change",renderPolymarket);
+$("sort").addEventListener("change", renderPolymarket);
 
-$("tabs").addEventListener("click",event=>{
+$("tabs").addEventListener("click", event => {
 
   const button = event.target.closest("button[data-sport]");
 
-  if(!button) return;
+  if (!button) return;
 
   selectedSport = button.dataset.sport;
 
-  $("tabs").querySelectorAll("button").forEach(b=>
+  $("tabs").querySelectorAll("button[data-sport]").forEach(tab => {
 
-    b.classList.toggle("active",b===button)
+    tab.classList.toggle("active", tab === button);
 
-  );
+  });
 
   renderPolymarket();
+
+  renderBookmakers();
 
   loadBookmakers();
 
@@ -989,21 +1110,17 @@ loadPolymarket();
 
 loadBookmakers();
 
-// Polymarket refreshes every 15 seconds.
+pmTimer = setInterval(() => {
 
-// Bookmaker odds refresh every 60 seconds; API usage may apply.
+  if (!document.hidden) loadPolymarket();
 
-pmTimer = setInterval(()=>{
+}, 30000);
 
-  if(!document.hidden) loadPolymarket();
+bookTimer = setInterval(() => {
 
-},15000);
+  if (!document.hidden && getSavedKey()) loadBookmakers();
 
-bookTimer = setInterval(()=>{
-
-  if(!document.hidden && getSavedKey()) loadBookmakers();
-
-},60000);
+}, 60000);
 
 </script>
 
