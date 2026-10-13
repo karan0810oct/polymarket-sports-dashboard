@@ -1,5 +1,3 @@
-
-
 <!doctype html>
 
 <html lang="en">
@@ -389,49 +387,49 @@ function eventSports(event){
   return classify(text);
 
 }
-
 function marketIsUseful(market){
-
   if(market.closed || market.active === false) return false;
 
   const outcomes = getMarketOutcomes(market);
+  if(outcomes.length < 2) return false;
+  // Hide Yes/No prop markets from the match-winner list.
+  const names = outcomes.map(o => o.name.trim().toLowerCase());
+  const yesNo = names.every(n =>
+    ["yes","no","true","false"].includes(n)
+  );
 
-  return outcomes.length >= 2;
-
+  return !yesNo;
 }
 
 function matchupTitle(market){
-
   const question = String(market.question || "").trim();
-
   const eventTitle = String(market.eventTitle || "").trim();
-
   const outcomes = market.outcomes || [];
 
-  const generic = ["yes","no","over","under"];
-
-  const participantNames = outcomes
-
-    .map(o=>String(o.name || "").trim())
-
-    .filter(n=>n && !generic.includes(n.toLowerCase()));
-
-  if(participantNames.length >= 2 &&
-
-     norm(participantNames[0]) !== norm(participantNames[1])){
-
-    return participantNames[0] + " vs " + participantNames[1];
-
+  // Prefer an event title that already names both competitors.
+  if (/\b(vs?\.?|versus)\b/i.test(eventTitle) &&
+      eventTitle.length < 120) {
+    return eventTitle;
   }
 
-  if(question && question.length < 100) return question;
+  const names = outcomes
+    .map(o => String(o.name || "").trim())
+    .filter(Boolean);
 
-  if(eventTitle) return eventTitle;
+  const generic = ["yes","no","true","false","over","under"];
+  if (names.length === 2 &&
+      names.every(n => !generic.includes(n.toLowerCase()))) {
+    return names[0] + " vs " + names[1];
+  }
 
-  return question || "Sports market";
+  // Do not use a prop question as the matchup title.
+  if (/\b(vs?\.?|versus)\b/i.test(question) &&
+      question.length < 120) {
+    return question;
+  }
 
+  return eventTitle || question || "Matchup unavailable";
 }
-
 function marketSport(market){
 
   return classify([
@@ -860,48 +858,49 @@ async function loadBookmakers(){
 
     loadingBook = false;
 
-  }
-
-}
-
+  
 function bookmakerRows(event){
-
   const rows = [];
 
   for(const bookmaker of (event.bookmakers || [])){
+    const markets = bookmaker.markets || [];
+    const backMarket = markets.find(m => m.key === "h2h");
+    const layMarket = markets.find(m => m.key === "h2h_lay");
 
-    const market = (bookmaker.markets || []).find(m=>m.key==="h2h");
+    if(!backMarket && !layMarket) continue;
 
-    if(!market) continue;
+    const participants = [
+      event.home_team,
+      event.away_team,
+      ...(backMarket?.outcomes || []).map(o => o.name)
+    ].filter(Boolean);
 
-    const outcomes = market.outcomes || [];
+    const uniqueNames = [...new Set(participants)];
 
-    const relevant = outcomes.filter(o =>
+    for(const name of uniqueNames){
+      const back = (backMarket?.outcomes || []).find(o =>
+        norm(o.name) === norm(name)
+      );
+      const lay = (layMarket?.outcomes || []).find(o =>
+        norm(o.name) === norm(name)
+      );
 
-      norm(o.name) === norm(event.home_team) ||
+      if(!back && !lay) continue;
 
-      norm(o.name) === norm(event.away_team)
-
-    );
-
-    if(!relevant.length) continue;
-
-    rows.push(`<div class="book-row">
-
-      <span>${esc(bookmaker.title || bookmaker.key)}</span>
-
-      <strong>${relevant.map(o=>
-
-        esc(o.name)+": "+Number(o.price).toFixed(2)
-
-      ).join(" · ")}</strong>
-
-    </div>`);
-
+      rows.push(`
+        <div class="book-row">
+          <span>${esc(name)}</span>
+          <strong>
+            BACK ${back ? Number(back.price).toFixed(2) : "—"}
+            &nbsp; · &nbsp;
+            LAY ${lay ? Number(lay.price).toFixed(2) : "—"}
+          </strong>
+        </div>
+      `);
+    }
   }
 
   return rows;
-
 }
 
 function renderBookmakers(){
