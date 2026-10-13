@@ -3,7 +3,7 @@ name: Deploy Sports Dashboard
 ‘on’:
 push:
 branches:
-\- main
+- main
 workflow\_dispatch:
 
 permissions:
