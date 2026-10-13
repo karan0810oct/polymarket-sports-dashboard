@@ -525,6 +525,13 @@ if (oddsKeyInput && saveOddsButton && oddsStatus) {
   if (!response.ok) {
   throw new Error("HTTP " + response.status);
 }
+  } catch (error) {
+oddsStatus.textContent =
+“API error: “ + error.message;
+} finally {
+saveOddsButton.disabled = false;
+}
+});
 const sports = await response.json();
 const supported = sports.filter(s =>
   s.active &&
