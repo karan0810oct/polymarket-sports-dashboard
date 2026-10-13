@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -5,911 +6,272 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#080d14">
 <title>Polymarket Live Sports Odds</title>
-
 <style>
-:root{
-  color-scheme:dark;
-  --bg:#080d14;
-  --panel:#111a26;
-  --border:#243246;
-  --muted:#8b9bb0;
-  --green:#21d69a;
-  --red:#ff687d;
-  --blue:#6ca8ff
-}
+:root{color-scheme:dark;--bg:#080d14;--panel:#111a26;--border:#243246;--muted:#8b9bb0;--green:#21d69a;--blue:#6ca8ff}
 *{box-sizing:border-box}
-body{
-  margin:0;
-  background:var(--bg);
-  color:#edf3fb;
-  font:15px system-ui,-apple-system,sans-serif
-}
-header{
-  padding:24px 16px 20px;
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(135deg,#10251f,#0b1119 60%)
-}
+body{margin:0;background:var(--bg);color:#edf3fb;font:15px system-ui,-apple-system,sans-serif}
+header{padding:24px 16px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,#10251f,#0b1119 60%)}
 .wrap,main{max-width:1100px;margin:auto}
-.eyebrow{
-  color:var(--green);
-  font-size:11px;
-  font-weight:800;
-  letter-spacing:2px
-}
+.eyebrow{color:var(--green);font-size:11px;font-weight:800;letter-spacing:2px}
 h1{font-size:clamp(25px,5vw,39px);margin:8px 0}
 .sub{color:var(--muted);margin:0;line-height:1.5}
 main{padding:18px 14px 40px}
-.stats{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:10px;
-  margin-bottom:18px
-}
-.stat,.card,.toolbar,.api-key-box{
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px
-}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.stat,.card,.toolbar,.api-key-box{background:var(--panel);border:1px solid var(--border);border-radius:14px}
 .stat{padding:14px 10px;min-width:0}
 .stat small{display:block;color:var(--muted);font-size:11px}
-.stat strong{
-  display:block;
-  font-size:20px;
-  margin-top:7px;
-  overflow-wrap:anywhere
-}
-.toolbar{
-  padding:12px;
-  display:grid;
-  gap:10px;
-  margin-bottom:14px
-}
-input,select,button{
-  font:inherit;
-  color:#edf3fb;
-  background:#0b121d;
-  border:1px solid var(--border);
-  border-radius:9px;
-  padding:11px
-}
+.stat strong{display:block;font-size:20px;margin-top:7px;overflow-wrap:anywhere}
+.toolbar{padding:12px;display:grid;gap:10px;margin-bottom:14px}
+input,select,button{font:inherit;color:#edf3fb;background:#0b121d;border:1px solid var(--border);border-radius:9px;padding:11px}
 input{width:100%;min-width:0}
 button{cursor:pointer;font-weight:700}
 button:disabled{opacity:.55}
 .controls{display:flex;gap:8px;flex-wrap:wrap}
-.filters{
-  display:flex;
-  gap:7px;
-  overflow-x:auto;
-  padding:2px 0 8px;
-  margin-bottom:12px
-}
-.filters button{
-  white-space:nowrap;
-  font-size:12px;
-  padding:8px 12px
-}
-.filters button.active{
-  background:#164c3d;
-  border-color:var(--green)
-}
-.status{
-  color:var(--muted);
-  font-size:12px;
-  margin:12px 2px;
-  line-height:1.6;
-  overflow-wrap:anywhere
-}
-#list{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));
-  gap:12px
-}
+.filters{display:flex;gap:7px;overflow-x:auto;padding:2px 0 8px;margin-bottom:12px}
+.filters button{white-space:nowrap;font-size:12px;padding:8px 12px}
+.filters button.active{background:#164c3d;border-color:var(--green)}
+.status{color:var(--muted);font-size:12px;margin:12px 2px;line-height:1.6;overflow-wrap:anywhere}
+#list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
 .card{padding:15px;min-width:0}
-.cardtop{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px
-}
-.tag{
-  font-size:10px;
-  font-weight:800;
-  color:var(--green);
-  background:#12352c;
-  padding:5px 8px;
-  border-radius:20px
-}
+.cardtop{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tag{font-size:10px;font-weight:800;color:var(--green);background:#12352c;padding:5px 8px;border-radius:20px}
 .volume{font-size:11px;color:var(--muted);text-align:right}
-.question{
-  font-weight:750;
-  font-size:16px;
-  line-height:1.45;
-  margin:15px 0;
-  overflow-wrap:anywhere
-}
-.odds{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(105px,1fr));
-  gap:9px;
-  margin-top:10px
-}
-.odd{
-  padding:12px;
-  border-radius:10px;
-  background:#0b131d;
-  border:1px solid var(--border);
-  min-width:0
-}
-.odd small{
-  color:var(--muted);
-  display:block;
-  overflow-wrap:anywhere
-}
-.odd strong{
-  font-size:21px;
-  display:block;
-  margin-top:5px;
-  overflow-wrap:anywhere
-}
-.meta{
-  font-size:11px;
-  color:var(--muted);
-  margin-top:12px;
-  display:flex;
-  justify-content:space-between;
-  gap:8px
-}
-.link{
-  display:block;
-  color:var(--blue);
-  font-size:12px;
-  text-decoration:none;
-  margin-top:12px
-}
-.empty{
-  grid-column:1/-1;
-  padding:30px 15px;
-  text-align:center;
-  color:var(--muted);
-  background:var(--panel);
-  border:1px solid var(--border);
-  border-radius:14px;
-  line-height:1.7;
-  overflow-wrap:anywhere
-}
-.api-key-box{
-  padding:12px;
-  margin:0 0 14px;
-  display:grid;
-  gap:9px
-}
-.api-key-box label{font-size:12px;color:var(--muted)}
-#oddsStatus{
-  font-size:12px;
-  color:var(--muted);
-  margin:0;
-  line-height:1.5;
-  overflow-wrap:anywhere
-}
-.bookmaker-section{
-  border-top:1px solid var(--border);
-  margin-top:15px;
-  padding-top:5px
-}
+.question{font-weight:750;font-size:16px;line-height:1.45;margin:15px 0;overflow-wrap:anywhere}
+.odds{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:9px;margin-top:10px}
+.odd{padding:12px;border-radius:10px;background:#0b131d;border:1px solid var(--border);min-width:0}
+.odd small{color:var(--muted);display:block;overflow-wrap:anywhere}
+.odd strong{font-size:21px;display:block;margin-top:5px;overflow-wrap:anywhere}
+.meta{font-size:11px;color:var(--muted);margin-top:12px;display:flex;justify-content:space-between;gap:8px}
+.link{display:block;color:var(--blue);font-size:12px;text-decoration:none;margin-top:12px}
+.empty{grid-column:1/-1;padding:30px 15px;text-align:center;color:var(--muted);background:var(--panel);border:1px solid var(--border);border-radius:14px;line-height:1.7;overflow-wrap:anywhere}
+.api-key-box{padding:12px;margin:0 0 14px;display:grid;gap:9px}
+.api-key-box label,#oddsStatus{font-size:12px;color:var(--muted)}
+#oddsStatus{margin:0;line-height:1.5;overflow-wrap:anywhere}
+.bookmaker-section{border-top:1px solid var(--border);margin-top:15px;padding-top:5px}
 .bookmaker-section .question{font-size:14px;margin:10px 0}
 .bookmaker-section .sub{font-size:12px;margin-top:10px}
 .bookmaker-section .odd strong{font-size:17px}
-footer{
-  text-align:center;
-  color:var(--muted);
-  font-size:11px;
-  padding:24px 12px
-}
-@media(min-width:650px){
-  .toolbar{grid-template-columns:1fr auto;align-items:center}
-  .stats{gap:14px}
-  .stat{padding:18px}
-  .api-key-box{
-    grid-template-columns:1fr 2fr auto;
-    align-items:center
-  }
-  .api-key-box p{grid-column:1/-1}
-}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:24px 12px}
+@media(min-width:650px){.toolbar{grid-template-columns:1fr auto;align-items:center}.stat{padding:18px}.api-key-box{grid-template-columns:1fr 2fr auto;align-items:center}.api-key-box p{grid-column:1/-1}}
 </style>
 </head>
-
 <body>
-<header>
-  <div class="wrap">
-    <div class="eyebrow">● LIVE SPORTS MARKETS</div>
-    <h1>Polymarket Sports</h1>
-    <p class="sub">
-      Cricket, tennis, soccer and MMA market probabilities,
-      decimal odds and trading volume.
-    </p>
-  </div>
-</header>
-
+<header><div class="wrap">
+<div class="eyebrow">● LIVE SPORTS MARKETS</div>
+<h1>Polymarket Sports</h1>
+<p class="sub">Cricket, tennis, soccer and MMA market probabilities, decimal odds and trading volume.</p>
+</div></header>
 <main>
-  <section class="stats">
-    <div class="stat">
-      <small>SPORTS MARKETS</small>
-      <strong id="count">—</strong>
-    </div>
-    <div class="stat">
-      <small>24H VOLUME</small>
-      <strong id="volume">—</strong>
-    </div>
-    <div class="stat">
-      <small>LAST UPDATED</small>
-      <strong id="updated" style="font-size:15px">Waiting…</strong>
-    </div>
-  </section>
-
-  <section class="toolbar">
-    <input
-      id="search"
-      type="search"
-      placeholder="Search teams, leagues or matchups…"
-    >
-
-    <div class="controls">
-      <select id="sort" aria-label="Sort markets">
-        <option value="volume">Highest volume</option>
-        <option value="newest">Recently updated</option>
-        <option value="question">Alphabetical</option>
-      </select>
-
-      <button id="refresh">↻ Refresh</button>
-    </div>
-  </section>
-
-  <nav class="filters" id="filters">
-    <button class="active" data-filter="All">All sports</button>
-    <button data-filter="Cricket">Cricket</button>
-    <button data-filter="Tennis">Tennis</button>
-    <button data-filter="Soccer">Soccer / Football</button>
-    <button data-filter="MMA">MMA / UFC</button>
-  </nav>
-
-  <section class="api-key-box">
-    <label for="oddsApiKey">The Odds API Key</label>
-
-    <input
-      id="oddsApiKey"
-      type="password"
-      placeholder="Paste your API key"
-      autocomplete="off"
-    >
-
-    <button id="saveOddsKey" type="button">
-      Load UK Bookmaker Odds
-    </button>
-
-    <p id="oddsStatus">
-      API key not entered. Your key is saved only in this browser.
-    </p>
-  </section>
-
-  <div class="status" id="status" role="status">
-    Connecting to Polymarket…
-  </div>
-
-  <section id="list">
-    <div class="empty">Loading sports markets…</div>
-  </section>
+<section class="stats">
+<div class="stat"><small>SPORTS MARKETS</small><strong id="count">—</strong></div>
+<div class="stat"><small>24H VOLUME</small><strong id="volume">—</strong></div>
+<div class="stat"><small>LAST UPDATED</small><strong id="updated">Waiting…</strong></div>
+</section>
+<section class="toolbar">
+<input id="search" type="search" placeholder="Search teams, leagues or matchups…">
+<div class="controls">
+<select id="sort" aria-label="Sort markets">
+<option value="volume">Highest volume</option>
+<option value="newest">Recently updated</option>
+<option value="question">Alphabetical</option>
+</select>
+<button id="refresh">↻ Refresh</button>
+</div>
+</section>
+<nav class="filters" id="filters">
+<button class="active" data-filter="All">All sports</button>
+<button data-filter="Cricket">Cricket</button>
+<button data-filter="Tennis">Tennis</button>
+<button data-filter="Soccer">Soccer / Football</button>
+<button data-filter="MMA">MMA / UFC</button>
+</nav>
+<section class="api-key-box">
+<label for="oddsApiKey">The Odds API Key</label>
+<input id="oddsApiKey" type="password" placeholder="Paste your API key" autocomplete="off">
+<button id="saveOddsKey" type="button">Load UK Bookmaker Odds</button>
+<p id="oddsStatus">API key not entered. Your key is saved only in this browser.</p>
+</section>
+<div class="status" id="status">Connecting to Polymarket…</div>
+<section id="list"><div class="empty">Loading sports markets…</div></section>
 </main>
-
-<footer>
-  Market data from Polymarket's public API and The Odds API.
-  Probabilities are market prices, not guaranteed outcomes.
-  Bookmaker odds are shown only for matching events.
-</footer>
-
+<footer>Market data from Polymarket and The Odds API. Probabilities are market prices, not guaranteed outcomes.</footer>
 <script>
 "use strict";
+const API="https://gamma-api.polymarket.com";
+const ODDS_API="https://api.the-odds-api.com/v4";
+const $=id=>document.getElementById(id);
+let markets=[],filter="All",busy=false,oddsBusy=false;
+let savedKey=localStorage.getItem("oddsApiKey")||"";
+let bookmakerEvents=[];
+let lastBookmakerLoad=0;
 
-const API = "https://gamma-api.polymarket.com";
-const ODDS_API = "https://api.the-odds-api.com/v4";
-
-const $ = id => document.getElementById(id);
-
-let markets = [];
-let filter = "All";
-let busy = false;
-let oddsBusy = false;
-
-window.bookmakerEvents = [];
-
-function parse(v) {
-  if (Array.isArray(v)) return v;
-
-  try {
-    return JSON.parse(v || "[]");
-  } catch {
-    return [];
-  }
+function parse(v){if(Array.isArray(v))return v;try{return JSON.parse(v||"[]")}catch{return []}}
+function num(v){const n=Number(v);return Number.isFinite(n)?n:0}
+function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function money(v){v=num(v);if(v>=1e6)return "$"+(v/1e6).toFixed(2)+"M";if(v>=1000)return "$"+(v/1000).toFixed(1)+"K";return "$"+Math.round(v).toLocaleString()}
+function probability(v){let p=num(v);if(p>1&&p<=100)p/=100;return p>0&&p<=1?p:null}
+function odds(v){const p=probability(v);return p?(1/p).toFixed(2):"—"}
+function pct(v){const p=probability(v);return p?(p*100).toFixed(1)+"%":"—"}
+function active(x){return x&&x.active!==false&&x.active!=="false"&&x.closed!==true&&x.closed!=="true"&&x.archived!==true&&x.archived!=="true"}
+function tags(v){return parse(v).map(t=>typeof t==="string"?t:[t?.label,t?.name,t?.slug].filter(Boolean).join(" ")).join(" ")}
+function categoryOf(e,m){
+if(e._sportCategory)return e._sportCategory;
+const t=[e.title,e.slug,e.seriesTitle,m.question,m.title,m.slug,tags(e.tags),tags(m.tags)].filter(Boolean).join(" ").toLowerCase();
+if(/\b(cricket|ipl|t20|odi|ashes|wpl)\b/i.test(t))return "Cricket";
+if(/\b(tennis|atp|wta|wimbledon|roland garros)\b/i.test(t))return "Tennis";
+if(/\b(ufc|mma|mixed martial arts)\b/i.test(t))return "MMA";
+if(/\b(soccer|football|premier league|la liga|bundesliga|serie a|mls|uefa|fifa|epl|champions league)\b/i.test(t))return "Soccer";
+return null
 }
-
-function num(v) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
+function isMatchMarket(e,m){
+const t=[e.title,e.slug,m.question,m.title,m.slug].filter(Boolean).join(" ").toLowerCase();
+if(/\b(champion|championship winner|league winner|season winner|win the league|win the tournament|top scorer|relegated|qualify for the playoffs|regular season wins|outright winner)\b/i.test(t))return false;
+return /\b(vs\.?|versus)\b|head.to.head|match winner|win this match|winner of this match|moneyline|fight winner|bout winner/i.test(t)
 }
-
-function esc(v) {
-  return String(v ?? "").replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[c]);
+async function getJSON(url){
+const r=await fetch(url,{cache:"no-store"});
+if(!r.ok)throw Error("API HTTP "+r.status);
+return r.json()
 }
-
-function money(v) {
-  v = num(v);
-
-  if (v >= 1e6) return "$" + (v / 1e6).toFixed(2) + "M";
-  if (v >= 1000) return "$" + (v / 1000).toFixed(1) + "K";
-
-  return "$" + Math.round(v).toLocaleString();
+async function fetchSportsEvents(){
+const sports=await getJSON(API+"/sports");
+if(!Array.isArray(sports))throw Error("Invalid Polymarket sports list");
+const rules=[
+{re:/cricket|ipl|t20|odi|ashes|wpl/i,name:"Cricket"},
+{re:/tennis|atp|wta|wimbledon|roland garros/i,name:"Tennis"},
+{re:/ufc|mma|mixed martial/i,name:"MMA"},
+{re:/soccer|football|epl|premier league|la liga|bundesliga|serie a|mls|uefa|fifa/i,name:"Soccer"}];
+const jobs=[];
+for(const s of sports){
+const rule=rules.find(x=>x.re.test(String(s.sport||s.name||"")));
+if(rule&&s.tags)String(s.tags).split(",").map(x=>x.trim()).filter(Boolean).forEach(tagId=>jobs.push({tagId,category:rule.name}))
 }
-
-function probability(v) {
-  let p = num(v);
-
-  if (p > 1 && p <= 100) p /= 100;
-
-  return p > 0 && p <= 1 ? p : null;
+const unique=[...new Map(jobs.map(j=>[j.tagId,j])).values()];
+if(!unique.length)throw Error("No matching sport tags found");
+const responses=await Promise.allSettled(unique.map(async j=>{
+const data=await getJSON(API+"/events?active=true&closed=false&limit=100&tag_id="+encodeURIComponent(j.tagId));
+return Array.isArray(data)?data.map(e=>({...e,_sportCategory:j.category})):[]
+}));
+const events=responses.flatMap(r=>r.status==="fulfilled"?r.value:[]);
+const result=[...new Map(events.map(e=>[String(e.id||e.slug||e.title),e])).values()];
+if(!result.length)throw Error("No sports events returned; try Refresh");
+return result
 }
-
-function odds(v) {
-  const p = probability(v);
-
-  return p ? (1 / p).toFixed(2) : "—";
+function prepareMarkets(events){
+const result=[],seen=new Set();
+for(const e of events){
+for(const m of (Array.isArray(e.markets)?e.markets:[])){
+if(!active(m))continue;
+const category=categoryOf(e,m);
+if(!category||!isMatchMarket(e,m))continue;
+const outcomes=parse(m.outcomes),prices=parse(m.outcomePrices);
+if(!outcomes.length||outcomes.length!==prices.length)continue;
+const id=String(m.id||m.conditionId||m.slug||m.question);
+if(seen.has(id))continue;
+seen.add(id);
+result.push({id,category,question:String(m.question||m.title||""),eventTitle:String(e.title||m.question||"Match"),eventSlug:String(e.slug||m.eventSlug||""),volume:num(m.volume24hr??m.volume24h??m.volume),liquidity:num(m.liquidity),updated:String(m.updatedAt||e.updatedAt||""),outcomes:outcomes.map((name,i)=>({name:String(name),price:probability(prices[i])}))})
+}}
+return result
 }
-
-function pct(v) {
-  const p = probability(v);
-
-  return p ? (p * 100).toFixed(1) + "%" : "—";
+function norm(s){return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"")}
+function findBookmakerEvent(m){
+const text=norm((m.question||"")+" "+(m.eventTitle||"")+" "+m.outcomes.map(o=>o.name).join(" "));
+const sides=m.outcomes.map(o=>norm(o.name)).filter(n=>n.length>=3);
+let best=null,bestScore=0;
+for(const e of bookmakerEvents){
+const h=norm(e.home_team),a=norm(e.away_team);
+if(!h||!a)continue;
+const contains=(x,y)=>x===y||(x.length>=4&&y.includes(x))||(y.length>=4&&x.includes(y));
+let score=0;
+if(text.includes(h))score++;
+if(text.includes(a))score++;
+if(sides.some(n=>contains(n,h)))score++;
+if(sides.some(n=>contains(n,a)))score++;
+if(score>bestScore){bestScore=score;best=e}
 }
-
-function active(x) {
-  return x &&
-    x.active !== false &&
-    x.active !== "false" &&
-    x.closed !== true &&
-    x.closed !== "true" &&
-    x.archived !== true &&
-    x.archived !== "true";
+return bestScore>=2?best:null
 }
-
-function textOfTags(v) {
-  return parse(v).map(t =>
-    typeof t === "string"
-      ? t
-      : [t?.label, t?.name, t?.slug].filter(Boolean).join(" ")
-  ).join(" ");
+function renderBookmakerOdds(m){
+const e=findBookmakerEvent(m);
+if(!e||!e.bookmakers?.length)return "";
+const rows=e.bookmakers.map(b=>{
+const h=(b.markets||[]).find(x=>x.key==="h2h");
+if(!h)return "";
+const out=(h.outcomes||[]).map(o=>`<div class="odd"><small>${esc(o.name)}</small><strong>${Number(o.price).toFixed(2)}</strong><small>Decimal odds</small></div>`).join("");
+return out?`<div class="sub">${esc(b.title)}</div><div class="odds">${out}</div>`:""
+}).join("");
+return rows?`<div class="bookmaker-section"><div class="question">UK Bookmaker Odds (match winner)</div>${rows}</div>`:""
 }
-
-function categoryOf(event, market) {
-  if (event._sportCategory) return event._sportCategory;
-
-  const t = [
-    event.title,
-    event.slug,
-    event.seriesTitle,
-    market.question,
-    market.title,
-    market.slug,
-    textOfTags(event.tags),
-    textOfTags(market.tags)
-  ].filter(Boolean).join(" ").toLowerCase();
-
-  if (/\b(cricket|ipl|t20|odi|ashes|wpl)\b/i.test(t))
-    return "Cricket";
-
-  if (/\b(tennis|atp|wta|wimbledon|roland garros)\b/i.test(t))
-    return "Tennis";
-
-  if (/\b(ufc|mma|mixed martial arts)\b/i.test(t))
-    return "MMA";
-
-  if (/\b(soccer|football|premier league|la liga|bundesliga|serie a|mls|uefa|fifa|epl|champions league)\b/i.test(t))
-    return "Soccer";
-
-  return null;
+function render(){
+const q=$("search").value.trim().toLowerCase(),sort=$("sort").value;
+const list=markets.filter(m=>(filter==="All"||m.category===filter)&&(m.question+" "+m.eventTitle+" "+m.category).toLowerCase().includes(q));
+list.sort((a,b)=>sort==="question"?(a.question||a.eventTitle).localeCompare(b.question||b.eventTitle):sort==="newest"?String(b.updated).localeCompare(String(a.updated)):b.volume-a.volume);
+if(!list.length){$("list").innerHTML='<div class="empty">No matching active match markets found. Try another sport or refresh.</div>';return}
+$("list").innerHTML=list.map(m=>{
+const url=m.eventSlug?"https://polymarket.com/event/"+encodeURIComponent(m.eventSlug):"https://polymarket.com";
+const out=m.outcomes.map(o=>`<div class="odd"><small>${esc(o.name)}</small><strong>${pct(o.price)}</strong><small>Decimal odds: ${odds(o.price)}</small></div>`).join("");
+return `<article class="card"><div class="cardtop"><span class="tag">${esc(m.category)}</span><span class="volume">24H VOL ${money(m.volume)}</span></div>
+<div class="question">${esc(m.question||m.eventTitle)}</div>
+<div class="sub">${esc(m.eventTitle&&m.eventTitle!==m.question?m.eventTitle:m.category)}</div>
+<div class="odds">${out}</div>${renderBookmakerOdds(m)}
+<div class="meta"><span>Liquidity: ${money(m.liquidity)}</span><span>Polymarket</span></div>
+<a class="link" href="${esc(url)}" target="_blank" rel="noopener noreferrer">Open Polymarket ↗</a></article>`
+}).join("")
 }
-
-function isMatchMarket(event, market) {
-  const title = [
-    event.title,
-    event.slug,
-    market.question,
-    market.title,
-    market.slug
-  ].filter(Boolean).join(" ").toLowerCase();
-
-  if (/\b(champion|championship winner|league winner|season winner|win the league|win the tournament|top scorer|relegated|qualify for the playoffs|regular season wins|outright winner)\b/i.test(title)) {
-    return false;
-  }
-
-  return /\b(vs\.?|versus)\b|head.to.head|match winner|win this match|winner of this match|moneyline|fight winner|bout winner/i.test(title);
+async function load(){
+if(busy)return;
+busy=true;$("refresh").disabled=true;$("status").textContent="Loading Polymarket markets…";
+try{
+const events=await fetchSportsEvents();markets=prepareMarkets(events);
+$("count").textContent=markets.length.toLocaleString();
+$("volume").textContent=money(markets.reduce((s,m)=>s+m.volume,0));
+$("updated").textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+$("status").textContent=markets.length?"Connected · "+markets.length+" markets · Polymarket refresh every 15 seconds":"Connected, but no markets matched.";
+render()
+}catch(e){
+console.error(e);$("status").textContent="Polymarket error: "+e.message;
+if(!markets.length)$("list").innerHTML='<div class="empty">Could not load markets. Check connection and tap Refresh.</div>'
+}finally{busy=false;$("refresh").disabled=false}
 }
-
-async function getJSON(url) {
-  const r = await fetch(url, {
-    cache: "no-store"
-  });
-
-  if (!r.ok) {
-    throw new Error("API HTTP " + r.status);
-  }
-
-  return r.json();
+async function loadBookmakerOdds(){
+if(oddsBusy)return;
+const key=$("oddsApiKey").value.trim();
+if(!key){$("oddsStatus").textContent="Please enter your API key.";return}
+oddsBusy=true;$("saveOddsKey").disabled=true;
+$("oddsStatus").textContent="Loading UK bookmaker odds…";
+try{
+const sports=await getJSON(ODDS_API+"/sports/?apiKey="+encodeURIComponent(key));
+if(!Array.isArray(sports))throw Error("Unexpected sports response");
+const relevant=sports.filter(s=>s.active&&(s.key.startsWith("soccer_")||s.key.startsWith("tennis_")||s.key.toLowerCase().includes("cricket")||s.key==="mma_mixed_martial_arts"));
+const chosen=[];
+for(const prefix of ["cricket","tennis","soccer","mma"]){
+const found=relevant.find(s=>s.key.toLowerCase().includes(prefix)||(prefix==="mma"&&s.key==="mma_mixed_martial_arts"));
+if(found)chosen.push(found)
 }
-
-async function fetchSportsEvents() {
-  const sports = await getJSON(API + "/sports");
-
-  if (!Array.isArray(sports)) {
-    throw new Error("Invalid sports list from Polymarket.");
-  }
-
-  const rules = [
-    {
-      re: /cricket|ipl|t20|odi|ashes|wpl/i,
-      name: "Cricket"
-    },
-    {
-      re: /tennis|atp|wta|wimbledon|roland garros/i,
-      name: "Tennis"
-    },
-    {
-      re: /ufc|mma|mixed martial/i,
-      name: "MMA"
-    },
-    {
-      re: /soccer|football|epl|premier league|la liga|bundesliga|serie a|mls|uefa|fifa/i,
-      name: "Soccer"
-    }
-  ];
-
-  const jobs = [];
-
-  for (const sport of sports) {
-    const label = String(sport.sport || sport.name || "");
-    const rule = rules.find(x => x.re.test(label));
-
-    if (!rule || !sport.tags) continue;
-
-    String(sport.tags)
-      .split(",")
-      .map(x => x.trim())
-      .filter(Boolean)
-      .forEach(tagId => {
-        jobs.push({
-          tagId,
-          category: rule.name
-        });
-      });
-  }
-
-  const uniqueJobs = [
-    ...new Map(jobs.map(j => [j.tagId, j])).values()
-  ];
-
-  if (!uniqueJobs.length) {
-    throw new Error("No matching sport tags found in API metadata.");
-  }
-
-  const responses = await Promise.allSettled(
-    uniqueJobs.map(async job => {
-      const url = API +
-        "/events?active=true&closed=false&limit=100&tag_id=" +
-        encodeURIComponent(job.tagId);
-
-      const data = await getJSON(url);
-
-      return Array.isArray(data)
-        ? data.map(e => ({
-            ...e,
-            _sportCategory: job.category
-          }))
-        : [];
-    })
-  );
-
-  const events = responses.flatMap(r =>
-    r.status === "fulfilled" ? r.value : []
-  );
-
-  const uniqueEvents = [
-    ...new Map(
-      events.map(e => [
-        String(e.id || e.slug || e.title),
-        e
-      ])
-    ).values()
-  ];
-
-  if (!uniqueEvents.length) {
-    throw new Error("No sports events returned. Try Refresh again.");
-  }
-
-  return uniqueEvents;
+if(!chosen.length)throw Error("No supported active sports for this key");
+const results=await Promise.allSettled(chosen.map(s=>getJSON(ODDS_API+"/sports/"+encodeURIComponent(s.key)+"/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey="+encodeURIComponent(key))));
+bookmakerEvents=results.flatMap(r=>r.status==="fulfilled"&&Array.isArray(r.value)?r.value:[]);
+const failed=results.filter(r=>r.status==="rejected").length;
+if(!bookmakerEvents.length)throw Error("0 bookmaker events returned. Check sport availability, quota and API plan.");
+localStorage.setItem("oddsApiKey",key);savedKey=key;lastBookmakerLoad=Date.now();
+$("oddsStatus").textContent="Connected · "+bookmakerEvents.length+" events across "+chosen.length+" sports. UK odds refresh every 60 seconds."+(failed?" "+failed+" sport request(s) failed.":"");
+render()
+}catch(e){$("oddsStatus").textContent="Odds API error: "+e.message}
+finally{oddsBusy=false;$("saveOddsKey").disabled=false}
 }
-
-function prepareMarkets(events) {
-  const result = [];
-  const seen = new Set();
-
-  for (const event of events) {
-    const eventMarkets = Array.isArray(event.markets)
-      ? event.markets
-      : [];
-
-    for (const market of eventMarkets) {
-      if (!active(market)) continue;
-
-      const category = categoryOf(event, market);
-
-      if (!category || !isMatchMarket(event, market)) continue;
-
-      const outcomes = parse(market.outcomes);
-      const prices = parse(market.outcomePrices);
-
-      if (!outcomes.length || outcomes.length !== prices.length)
-        continue;
-
-      const id = String(
-        market.id ||
-        market.conditionId ||
-        market.slug ||
-        market.question
-      );
-
-      if (seen.has(id)) continue;
-
-      seen.add(id);
-
-      result.push({
-        id,
-        category,
-        question: String(market.question || market.title || ""),
-        eventTitle: String(event.title || market.question || "Match"),
-        eventSlug: String(event.slug || market.eventSlug || ""),
-        volume: num(
-          market.volume24hr ??
-          market.volume24h ??
-          market.volume
-        ),
-        liquidity: num(market.liquidity),
-        updated: String(market.updatedAt || event.updatedAt || ""),
-        outcomes: outcomes.map((name, i) => ({
-          name: String(name),
-          price: probability(prices[i])
-        }))
-      });
-    }
-  }
-
-  return result;
-}
-
-function normalizeTeamName(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
-}
-
-function findBookmakerEvent(market) {
-  const text = normalizeTeamName(
-    (market.eventTitle || "") + " " +
-    (market.question || "")
-  );
-
-  return window.bookmakerEvents.find(event => {
-    const home = normalizeTeamName(event.home_team);
-    const away = normalizeTeamName(event.away_team);
-
-    return home && away &&
-      text.includes(home) &&
-      text.includes(away);
-  });
-}
-
-function renderBookmakerOdds(market) {
-  const event = findBookmakerEvent(market);
-
-  if (!event || !event.bookmakers?.length) {
-    return "";
-  }
-
-  const rows = event.bookmakers.map(book => {
-    const h2h = (book.markets || [])
-      .find(item => item.key === "h2h");
-
-    if (!h2h) return "";
-
-    const outcomes = (h2h.outcomes || []).map(outcome => `
-      <div class="odd">
-        <small>${esc(outcome.name)}</small>
-        <strong>${Number(outcome.price).toFixed(2)}</strong>
-        <small>Decimal odds</small>
-      </div>
-    `).join("");
-
-    return outcomes
-      ? `<div class="sub">${esc(book.title)}</div>
-         <div class="odds">${outcomes}</div>`
-      : "";
-  }).join("");
-
-  if (!rows) return "";
-
-  return `
-    <div class="bookmaker-section">
-      <div class="question">UK Bookmaker Odds (match winner)</div>
-      ${rows}
-    </div>
-  `;
-}
-
-function render() {
-  const query = $("search").value.trim().toLowerCase();
-  const sort = $("sort").value;
-
-  const list = markets.filter(m =>
-    (filter === "All" || m.category === filter) &&
-    (m.question + " " + m.eventTitle + " " + m.category)
-      .toLowerCase()
-      .includes(query)
-  );
-
-  list.sort((a, b) => {
-    if (sort === "question") {
-      return a.eventTitle.localeCompare(b.eventTitle);
-    }
-
-    if (sort === "newest") {
-      return String(b.updated).localeCompare(String(a.updated));
-    }
-
-    return b.volume - a.volume;
-  });
-
-  if (!list.length) {
-    $("list").innerHTML =
-      '<div class="empty">No matching active match markets found in the retrieved events. Try another sport or refresh.</div>';
-    return;
-  }
-
-  $("list").innerHTML = list.map(m => {
-    const url = m.eventSlug
-      ? "https://polymarket.com/event/" +
-        encodeURIComponent(m.eventSlug)
-      : "https://polymarket.com";
-
-    const outcomesHTML = m.outcomes.map(o => `
-      <div class="odd">
-        <small>${esc(o.name)}</small>
-        <strong>${pct(o.price)}</strong>
-        <small>Decimal odds: ${odds(o.price)}</small>
-      </div>
-    `).join("");
-
-    return `
-      <article class="card">
-        <div class="cardtop">
-          <span class="tag">${esc(m.category)}</span>
-          <span class="volume">24H VOL ${money(m.volume)}</span>
-        </div>
-
-        <div class="question">${esc(m.eventTitle)}</div>
-        <div class="sub">${esc(m.question)}</div>
-
-        <div class="odds">${outcomesHTML}</div>
-
-        ${renderBookmakerOdds(m)}
-
-        <div class="meta">
-          <span>Liquidity: ${money(m.liquidity)}</span>
-          <span>Polymarket</span>
-        </div>
-
-        <a class="link"
-           href="${esc(url)}"
-           target="_blank"
-           rel="noopener noreferrer">
-          Open Polymarket ↗
-        </a>
-      </article>
-    `;
-  }).join("");
-}
-
-async function load() {
-  if (busy) return;
-
-  busy = true;
-  $("refresh").disabled = true;
-  $("status").textContent = "Loading Polymarket sports markets…";
-
-  try {
-    const events = await fetchSportsEvents();
-
-    markets = prepareMarkets(events);
-
-    $("count").textContent = markets.length.toLocaleString();
-
-    $("volume").textContent = money(
-      markets.reduce((sum, m) => sum + m.volume, 0)
-    );
-
-    $("updated").textContent = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-
-    $("status").textContent = markets.length
-      ? "Connected · " + markets.length +
-        " matching markets loaded · refreshes every 60 seconds"
-      : "API connected, but no markets matched the current match filters.";
-
-    render();
-
-  } catch (error) {
-    console.error(error);
-
-    $("status").textContent = "Loading failed: " + error.message;
-
-    $("list").innerHTML =
-      '<div class="empty">Could not load Polymarket markets. Check the API connection and tap Refresh to retry.</div>';
-
-  } finally {
-    busy = false;
-    $("refresh").disabled = false;
-  }
-}
-
-async function loadBookmakerOdds() {
-  if (oddsBusy) return;
-
-  const key = $("oddsApiKey").value.trim();
-
-  if (!key) {
-    $("oddsStatus").textContent = "Please enter your API key.";
-    return;
-  }
-
-  oddsBusy = true;
-  $("saveOddsKey").disabled = true;
-
-  $("oddsStatus").textContent =
-    "Testing Odds API and loading UK match odds…";
-
-  try {
-    const sports = await getJSON(
-      ODDS_API + "/sports/?apiKey=" + encodeURIComponent(key)
-    );
-
-    if (!Array.isArray(sports)) {
-      throw new Error("Unexpected sports list response.");
-    }
-
-    const relevant = sports.filter(s =>
-      s.active && (
-        s.key === "mma_mixed_martial_arts" ||
-        s.key.startsWith("soccer_") ||
-        s.key.startsWith("tennis_") ||
-        s.key.toLowerCase().includes("cricket")
-      )
-    );
-
-    // Limit requests to one active sport per category
-    // to help protect the API quota.
-    const chosen = [];
-
-    for (const prefix of ["cricket", "tennis", "soccer", "mma"]) {
-      const found = relevant.find(s =>
-        s.key.toLowerCase().includes(prefix) ||
-        (prefix === "mma" &&
-         s.key === "mma_mixed_martial_arts")
-      );
-
-      if (found) chosen.push(found);
-    }
-
-    if (!chosen.length) {
-      throw new Error(
-        "No supported active sports found for this API key."
-      );
-    }
-
-    const responses = await Promise.allSettled(
-      chosen.map(s =>
-        getJSON(
-          ODDS_API +
-          "/sports/" +
-          encodeURIComponent(s.key) +
-          "/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey=" +
-          encodeURIComponent(key)
-        )
-      )
-    );
-
-    const events = responses.flatMap(r =>
-      r.status === "fulfilled" && Array.isArray(r.value)
-        ? r.value
-        : []
-    );
-
-    window.bookmakerEvents = events;
-
-    localStorage.setItem("oddsApiKey", key);
-
-    const failed = responses.filter(
-      r => r.status === "rejected"
-    ).length;
-
-    $("oddsStatus").textContent =
-      "Odds API connected. Loaded " + events.length +
-      " event(s) across " + chosen.length +
-      " sport(s). " +
-      (failed ? failed + " sport request(s) failed. " : "") +
-      "UK bookmaker odds appear only where event names match.";
-
-    render();
-
-  } catch (error) {
-    $("oddsStatus").textContent =
-      "API error: " + error.message +
-      " (check key, quota and API access)";
-
-  } finally {
-    oddsBusy = false;
-    $("saveOddsKey").disabled = false;
-  }
-}
-
-$("refresh").addEventListener("click", load);
-
-$("search").addEventListener("input", render);
-
-$("sort").addEventListener("change", render);
-
-$("filters").addEventListener("click", event => {
-  const button = event.target.closest("button[data-filter]");
-
-  if (!button) return;
-
-  filter = button.dataset.filter;
-
-  $("filters").querySelectorAll("button").forEach(item => {
-    item.classList.toggle("active", item === button);
-  });
-
-  render();
+$("refresh").addEventListener("click",async()=>{await load();if(savedKey&&Date.now()-lastBookmakerLoad>=60000)await loadBookmakerOdds()});
+$("search").addEventListener("input",render);
+$("sort").addEventListener("change",render);
+$("filters").addEventListener("click",e=>{
+const b=e.target.closest("button[data-filter]");if(!b)return;
+filter=b.dataset.filter;
+$("filters").querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));render()
 });
-
-$("saveOddsKey").addEventListener(
-  "click",
-  loadBookmakerOdds
-);
-
-const savedKey = localStorage.getItem("oddsApiKey");
-
-if (savedKey) {
-  $("oddsApiKey").value = savedKey;
-}
-
+$("saveOddsKey").addEventListener("click",loadBookmakerOdds);
+if(savedKey){$("oddsApiKey").value=savedKey;loadBookmakerOdds()}
 load();
-
-setInterval(() => {
-  if (!document.hidden) load();
-}, 60000);
+setInterval(()=>{if(!document.hidden)load()},15000);
+setInterval(()=>{if(!document.hidden&&savedKey&&!oddsBusy)loadBookmakerOdds()},60000);
 </script>
 </body>
 </html>
