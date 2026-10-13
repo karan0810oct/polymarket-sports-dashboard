@@ -387,57 +387,66 @@ function eventSports(event){
   return classify(text);
 
 }
-
 function marketIsUseful(market) {
-if (market.closed || market.active === false) return false;
+  if (market.closed || market.active === false) return false;
 
-const outcomes = safeArray(market.outcomes);
-if (outcomes.length < 2) return false;
+  const outcomes = safeArray(market.outcomes);
+  if (outcomes.length < 2) return false;
 
-const names = outcomes.map(o =>
-String(typeof o === “object” ? (o?.name || “”) : o).trim()
-);
+  const names = outcomes.map(o =>
+    String(typeof o === "object" ? (o?.name || "") : o).trim()
+  );
 
-const yesNo = names.every(n =>
-[“yes”, “no”, “true”, “false”].includes(n.toLowerCase())
-);
+  const yesNo = names.every(n =>
+    ["yes", "no", "true", "false"].includes(n.toLowerCase())
+  );
 
-return !yesNo;
+  return !yesNo;
 }
+
 function marketSport(market) {
-const tags = safeArray(market.tags).map(t =>
-typeof t === “string” ? t : (t.label || t.slug || “”)
-).join(” “);
+  const tags = safeArray(market.tags).map(t =>
+    typeof t === "string" ? t : (t.label || t.slug || "")
+  ).join(" ");
+
+  return classify([
+    market.sport,
+    market.eventTitle,
+    market.question,
+    market.slug,
+    market.description,
+    tags
+  ].join(" "));
 }
-return classify([
-market.sport,
-market.eventTitle,
-market.question,
-market.slug,
-market.description,
-tags
-].join(” “));
-}
-function matchupTitle(market){
+
+function matchupTitle(market) {
   const question = String(market.question || "").trim();
   const eventTitle = String(market.eventTitle || "").trim();
-  const outcomes = market.outcomes || [];
+  const outcomes = safeArray(market.outcomes);
 
-  // Prefer an event title that already names both competitors.
   if (/\b(vs?\.?|versus)\b/i.test(eventTitle) &&
       eventTitle.length < 120) {
-      return eventTitle || question || "Matchup unavailable";
+    return eventTitle;
   }
+
   const names = outcomes
-    .map(o => String(o.name || "").trim())
+    .map(o => String(typeof o === "object" ? (o?.name || "") : o).trim())
     .filter(Boolean);
 
-  const generic = ["yes","no","true","false","over","under"];
+  const generic = ["yes", "no", "true", "false", "over", "under"];
+
   if (names.length === 2 &&
       names.every(n => !generic.includes(n.toLowerCase()))) {
     return names[0] + " vs " + names[1];
   }
 
+  if (/\b(vs?\.?|versus)\b/i.test(question) &&
+      question.length < 120) {
+    return question;
+  }
+
+  return eventTitle || question || "Matchup unavailable";
+}
   // Do not use a prop question as the matchup title.
   if (/\b(vs?\.?|versus)\b/i.test(question) &&
       question.length < 120) {
@@ -446,9 +455,6 @@ function matchupTitle(market){
 
   return eventTitle || question || "Matchup unavailable";
 }
-
-}
-
 async function loadPolymarket(){
 
   if(loadingPM) return;
