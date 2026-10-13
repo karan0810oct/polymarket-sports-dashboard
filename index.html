@@ -72,74 +72,63 @@ footer{padding:22px 0;color:var(--muted);font-size:11px;line-height:1.6}
 </head>
 <body>
 <header>
-<h1>🏆 Live Sports Odds</h1>
-<p>Polymarket best bid/ask + optional UK bookmaker odds · selectable odds format</p>
+  <h1>🏆 Live Sports Odds</h1>
+  <p>Polymarket best bid/ask + optional UK bookmaker odds · selectable odds format</p>
 </header>
 <main>
-<div class="toolbar">
-<input id="search" placeholder="Search team, country or player..." autocomplete="off">
-<button class="primary" id="refresh" type="button">↻ Refresh</button>
-</div>
-
-<div class="tabs" id="tabs">
-<button class="active" data-sport="all" type="button">All sports</button>
-<button data-sport="cricket" type="button">🏏 Cricket</button>
-<button data-sport="tennis" type="button">🎾 Tennis</button>
-<button data-sport="soccer" type="button">⚽ Soccer</button>
-<button data-sport="mma" type="button">🥊 MMA / UFC</button>
-</div>
-
-<div class="odds-controls">
-<label for="oddsFormat">Odds format</label>
-<select id="oddsFormat" aria-label="Odds format">
-<option value="decimal" selected>Decimal (2.50)</option>
-<option value="fractional">Fractional (3/2)</option>
-<option value="american">American (+150)</option>
-</select>
-<span class="small">Applies to Polymarket bid/ask and bookmaker prices</span>
-</div>
-
-<div class="toolbar">
-<input id="apiKey" type="password" placeholder="The Odds API key (optional)" autocomplete="off">
-<button id="saveKey" type="button">Save key</button>
-<select id="sort" aria-label="Sort markets">
-<option value="new">Default order</option>
-<option value="az">Names A–Z</option>
-</select>
-</div>
-
-<div class="stats">
-<div class="stat"><strong id="pmCount">0</strong><span>Polymarket markets</span></div>
-<div class="stat"><strong id="bookCount">0</strong><span>Bookmaker events</span></div>
-<div class="stat"><strong id="updated">—</strong><span>Last refresh</span></div>
-</div>
-
-<div id="status" class="status" role="status" aria-live="polite">Starting dashboard…</div>
-
-<div class="section-title">Polymarket matches & players</div>
-<div id="pmCards" class="cards">
-<div class="empty">Connecting to Polymarket…</div>
-</div>
-
-<div class="section-title">Bookmaker odds</div>
-<p class="small">Optional: save a valid The Odds API key to load available UK-region bookmaker odds. Coverage depends on the provider.</p>
-<div id="bookCards" class="cards" style="margin-top:10px">
-<div class="empty">Bookmaker odds are optional. Polymarket does not require this key.</div>
-</div>
-
-<footer>
-Prices and market availability can change. Some sports or matches may not have active markets.
-Polymarket best bid/ask comes from the public CLOB order book for expanded markets and refreshes periodically while this page is open. For reliable cross-origin API access, open the published GitHub Pages URL rather than the downloaded local HTML file. Bookmaker odds require a valid API key and available API quota. Traditional bookmakers generally provide Back prices only; Lay prices are not invented.
-</footer>
+  <div class="toolbar">
+    <input id="search" placeholder="Search team, country or player..." autocomplete="off">
+    <button class="primary" id="refresh" type="button">↻ Refresh</button>
+  </div>
+  <div class="tabs" id="tabs">
+    <button class="active" data-sport="all" type="button">All sports</button>
+    <button data-sport="cricket" type="button">🏏 Cricket</button>
+    <button data-sport="tennis" type="button">🎾 Tennis</button>
+    <button data-sport="soccer" type="button">⚽ Soccer</button>
+    <button data-sport="mma" type="button">🥊 MMA / UFC</button>
+  </div>
+  <div class="odds-controls">
+    <label for="oddsFormat">Odds format</label>
+    <select id="oddsFormat" aria-label="Odds format">
+      <option value="decimal" selected>Decimal (2.50)</option>
+      <option value="fractional">Fractional (3/2)</option>
+      <option value="american">American (+150)</option>
+    </select>
+    <span class="small">Applies to Polymarket bid/ask and bookmaker prices</span>
+  </div>
+  <div class="toolbar">
+    <input id="apiKey" type="password" placeholder="The Odds API key (optional)" autocomplete="off">
+    <button id="saveKey" type="button">Save key</button>
+    <select id="sort" aria-label="Sort markets">
+      <option value="new">Default order</option>
+      <option value="az">Names A–Z</option>
+    </select>
+  </div>
+  <div class="stats">
+    <div class="stat"><strong id="pmCount">0</strong><span>Polymarket markets</span></div>
+    <div class="stat"><strong id="bookCount">0</strong><span>Bookmaker events</span></div>
+    <div class="stat"><strong id="updated">—</strong><span>Last refresh</span></div>
+  </div>
+  <div id="status" class="status" role="status" aria-live="polite">Starting dashboard…</div>
+  <div class="section-title">Polymarket matches & players</div>
+  <div id="pmCards" class="cards">
+    <div class="empty">Connecting to Polymarket…</div>
+  </div>
+  <div class="section-title">Bookmaker odds</div>
+  <p class="small">Optional: save a valid The Odds API key to load available UK-region bookmaker odds. Coverage depends on the provider.</p>
+  <div id="bookCards" class="cards" style="margin-top:10px">
+    <div class="empty">Bookmaker odds are optional. Polymarket does not require this key.</div>
+  </div>
+  <footer>
+    Prices and market availability can change. Some sports or matches may not have active markets.
+    Polymarket best bid/ask comes from the public CLOB order book for expanded markets and refreshes periodically while this page is open. For reliable cross-origin API access, open the published GitHub Pages URL rather than the downloaded local HTML file. Bookmaker odds require a valid API key and available API quota. Traditional bookmakers generally provide Back prices only; Lay prices are not invented.
+  </footer>
 </main>
-
 <script>
 "use strict";
-
 const GAMMA = "https://gamma-api.polymarket.com";
 const ODDS = "https://api.the-odds-api.com/v4";
 const $ = id => document.getElementById(id);
-
 let selectedSport = "all";
 let pmMarkets = [];
 let bookEvents = [];
@@ -147,735 +136,655 @@ let loadingPM = false;
 let loadingBook = false;
 let pmTimer = null;
 let bookTimer = null;
-
 const expandedMarkets = new Set();
 const orderBooks = new Map();
 const orderBookLoading = new Set();
 const CLOB = "https://clob.polymarket.com";
-
 const sportWords = {
-cricket: ["cricket"],
-tennis: ["tennis"],
-soccer: ["soccer", "football"],
-mma: ["mma", "ufc", "mixed martial arts"]
+  cricket: ["cricket"],
+  tennis: ["tennis"],
+  soccer: ["soccer", "football"],
+  mma: ["mma", "ufc", "mixed martial arts"]
 };
-
 function esc(value) {
-return String(value ?? "").replace(/[&<>"']/g, ch => ({
-"&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
-}[ch]));
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  }[ch]));
 }
-
 function norm(value) {
-return String(value || "")
-.toLowerCase()
-.replace(/\b(fc|afc|sc|club|team)\b/g, " ")
-.replace(/[^a-z0-9]+/g, " ")
-.trim();
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\b(fc|afc|sc|club|team)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
-
 function classify(text) {
-const t = String(text || "").toLowerCase();
-for (const [sport, words] of Object.entries(sportWords)) {
-if (words.some(word => t.includes(word))) return sport;
+  const t = String(text || "").toLowerCase();
+  if (/\b(cricket|ipl|t20|odi|test match|ashes|ranji|wpl|big bash|county championship)\b/.test(t)) return "cricket";
+  if (/\b(tennis|atp|wta|grand slam|wimbledon|roland garros|french open|us open|australian open)\b/.test(t)) return "tennis";
+  if (/\b(soccer|football|ballon d.?or|fifa|uefa|premier league|champions league|la liga|serie a|bundesliga|ligue 1|world cup|europa league|fa cup|epl)\b/.test(t)) return "soccer";
+  if (/\b(mma|ufc|mixed martial arts|ultimate fighting championship)\b/.test(t)) return "mma";
+  for (const [sport, words] of Object.entries(sportWords)) {
+    if (words.some(word => t.includes(word))) return sport;
+  }
+  return "other";
 }
-return "other";
-}
-
 function safeArray(value) {
-if (Array.isArray(value)) return value;
-if (typeof value === "string") {
-try {
-const parsed = JSON.parse(value);
-return Array.isArray(parsed) ? parsed : [];
-} catch (_) {
-return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (_) {
+      return [];
+    }
+  }
+  return [];
 }
-}
-return [];
-}
-
 async function getJSON(url) {
-const response = await fetch(url, {
-headers: { "Accept": "application/json" }
-});
-if (!response.ok) throw new Error("HTTP " + response.status);
-return response.json();
+  const response = await fetch(url, {
+    headers: { "Accept": "application/json" }
+  });
+  if (!response.ok) throw new Error("HTTP " + response.status);
+  return response.json();
 }
-
 function oddsFormatLabel() {
-const value = $("oddsFormat")?.value || "decimal";
-return value === "fractional" ? "Fractional" : value === "american" ? "American" : "Decimal";
+  const value = $("oddsFormat")?.value || "decimal";
+  return value === "fractional" ? "Fractional" : value === "american" ? "American" : "Decimal";
 }
-
 function gcd(a, b) {
-a = Math.abs(a); b = Math.abs(b);
-while (b) { const t = b; b = a % b; a = t; }
-return a || 1;
+  a = Math.abs(a); b = Math.abs(b);
+  while (b) { const t = b; b = a % b; a = t; }
+  return a || 1;
 }
-
 function formatOddsFromDecimal(decimal) {
-if (!Number.isFinite(decimal) || decimal < 1.01) return "—";
-const mode = $("oddsFormat")?.value || "decimal";
-
-if (mode === "fractional") {
-const value = decimal - 1;
-const denominator = 1000;
-const numerator = Math.max(1, Math.round(value * denominator));
-const divisor = gcd(numerator, denominator);
-return (numerator / divisor) + "/" + (denominator / divisor);
+  if (!Number.isFinite(decimal) || decimal < 1.01) return "—";
+  const mode = $("oddsFormat")?.value || "decimal";
+  if (mode === "fractional") {
+    const value = decimal - 1;
+    const denominator = 1000;
+    const numerator = Math.max(1, Math.round(value * denominator));
+    const divisor = gcd(numerator, denominator);
+    return (numerator / divisor) + "/" + (denominator / divisor);
+  }
+  if (mode === "american") {
+    const american = decimal >= 2
+      ? Math.round((decimal - 1) * 100)
+      : -Math.round(100 / (decimal - 1));
+    return american > 0 ? "+" + american : String(american);
+  }
+  return decimal.toFixed(2);
 }
-
-if (mode === "american") {
-const american = decimal >= 2
-? Math.round((decimal - 1) * 100)
-: -Math.round(100 / (decimal - 1));
-return american > 0 ? "+" + american : String(american);
-}
-
-return decimal.toFixed(2);
-}
-
 function formatTokenOdds(probabilityPrice) {
-const price = Number(probabilityPrice);
-if (!Number.isFinite(price) || price <= 0 || price > 1) return "—";
-return formatOddsFromDecimal(1 / price);
+  const price = Number(probabilityPrice);
+  if (!Number.isFinite(price) || price <= 0 || price > 1) return "—";
+  return formatOddsFromDecimal(1 / price);
 }
-
 async function loadOrderBookForMarket(item) {
-if (!item || orderBookLoading.has(item.id)) return;
-
-const tokens = (item.outcomes || []).filter(outcome => outcome.tokenId);
-if (!tokens.length) {
-orderBooks.set(item.id, { error: "This market did not return CLOB token IDs." });
-renderPolymarket();
-return;
+  if (!item || orderBookLoading.has(item.id)) return;
+  const tokens = (item.outcomes || []).filter(outcome => outcome.tokenId);
+  if (!tokens.length) {
+    orderBooks.set(item.id, { error: "This market did not return CLOB token IDs." });
+    renderPolymarket();
+    return;
+  }
+  orderBookLoading.add(item.id);
+  try {
+    const results = await Promise.allSettled(tokens.map(async outcome => {
+      const data = await getJSON(CLOB + "/book?token_id=" + encodeURIComponent(outcome.tokenId));
+      const bids = safeArray(data.bids).map(level => Number(level.price)).filter(n => Number.isFinite(n) && n > 0 && n <= 1);
+      const asks = safeArray(data.asks).map(level => Number(level.price)).filter(n => Number.isFinite(n) && n > 0 && n <= 1);
+      return { tokenId: outcome.tokenId, bestBid: bids.length ? Math.max(...bids) : null, bestAsk: asks.length ? Math.min(...asks) : null, updatedAt: Date.now() };
+    }));
+    const existing = orderBooks.get(item.id) || {};
+    const byToken = { ...(existing.byToken || {}) };
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") byToken[result.value.tokenId] = result.value;
+      else byToken[tokens[index].tokenId] = { error: result.reason?.message || "Order book unavailable", updatedAt: Date.now() };
+    });
+    orderBooks.set(item.id, { byToken, updatedAt: Date.now() });
+  } catch (error) {
+    orderBooks.set(item.id, { error: error.message || "Order book unavailable", updatedAt: Date.now() });
+  } finally {
+    orderBookLoading.delete(item.id);
+    renderPolymarket();
+  }
 }
-
-orderBookLoading.add(item.id);
-
-try {
-const results = await Promise.allSettled(tokens.map(async outcome => {
-const data = await getJSON(CLOB + "/book?token_id=" + encodeURIComponent(outcome.tokenId));
-const bids = safeArray(data.bids).map(level => Number(level.price)).filter(n => Number.isFinite(n) && n > 0 && n <= 1);
-const asks = safeArray(data.asks).map(level => Number(level.price)).filter(n => Number.isFinite(n) && n > 0 && n <= 1);
-return {
-tokenId: outcome.tokenId,
-bestBid: bids.length ? Math.max(...bids) : null,
-bestAsk: asks.length ? Math.min(...asks) : null,
-updatedAt: Date.now()
-};
-}));
-
-const existing = orderBooks.get(item.id) || {};
-const byToken = { ...(existing.byToken || {}) };
-
-results.forEach((result, index) => {
-if (result.status === "fulfilled") {
-byToken[result.value.tokenId] = result.value;
-} else {
-byToken[tokens[index].tokenId] = {
-error: result.reason?.message || "Order book unavailable",
-updatedAt: Date.now()
-};
-}
-});
-
-orderBooks.set(item.id, { byToken, updatedAt: Date.now() });
-} catch (error) {
-orderBooks.set(item.id, { error: error.message || "Order book unavailable", updatedAt: Date.now() });
-} finally {
-orderBookLoading.delete(item.id);
-renderPolymarket();
-}
-}
-
 function refreshExpandedOrderBooks() {
-const expanded = pmMarkets.filter(item => expandedMarkets.has(item.id));
-expanded.slice(0, 8).forEach(item => loadOrderBookForMarket(item));
+  const expanded = pmMarkets.filter(item => expandedMarkets.has(item.id));
+  expanded.slice(0, 8).forEach(item => loadOrderBookForMarket(item));
 }
-
 function getEventTitle(event) {
-return event.title || event.name || "";
+  return event.title || event.name || "";
 }
-
 function getVolume(market, event) {
-const candidates = [
-market.volumeNum, market.volume, market.volume24hr,
-market.volume24h, market.liquidityNum, market.liquidity,
-event.volumeNum, event.volume, event.volume24hr
-];
-
-for (const value of candidates) {
-const n = Number(value);
-if (value !== null && value !== undefined && value !== "" && Number.isFinite(n) && n >= 0) return n;
+  const candidates = [
+    market.volumeNum, market.volume, market.volume24hr,
+    market.volume24h, market.liquidityNum, market.liquidity,
+    event.volumeNum, event.volume, event.volume24hr
+  ];
+  for (const value of candidates) {
+    const n = Number(value);
+    if (value !== null && value !== undefined && value !== "" && Number.isFinite(n) && n >= 0) {
+      return n;
+    }
+  }
+  return null;
 }
-return null;
-}
-
 function formatVolume(value) {
-if (!Number.isFinite(value)) return "Unavailable";
-return new Intl.NumberFormat("en", {
-notation: value >= 1000 ? "compact" : "standard",
-maximumFractionDigits: 2
-}).format(value);
+  if (!Number.isFinite(value)) return "Unavailable";
+  return new Intl.NumberFormat("en", {
+    notation: value >= 1000 ? "compact" : "standard",
+    maximumFractionDigits: 2
+  }).format(value);
 }
-
 function tagText(tags) {
-return safeArray(tags).map(tag =>
-typeof tag === "string"
-? tag
-: [tag.label, tag.slug, tag.name, tag.id].filter(Boolean).join(" ")
-).join(" ");
+  return safeArray(tags).map(tag =>
+    typeof tag === "string"
+      ? tag
+      : [tag.label, tag.slug, tag.name, tag.id].filter(Boolean).join(" ")
+  ).join(" ");
 }
-
 function eventSport(event) {
-const text = [
-event.title, event.name, event.slug, event.description,
-tagText(event.tags),
-...(safeArray(event.markets).map(m => [m.question, m.slug, m.description].join(" ")))
-].join(" ");
-return classify(text);
+  const text = [
+    event.title, event.name, event.slug, event.description,
+    tagText(event.tags),
+    ...(safeArray(event.markets).map(m => [
+      m.question, m.slug, m.description
+    ].join(" ")))
+  ].join(" ");
+  return classify(text);
 }
-
 function marketSport(market, event, hint) {
-if (hint && hint !== "other") return hint;
-const eventCategory = eventSport(event);
-if (eventCategory !== "other") return eventCategory;
-
-return classify([
-market.sport, market.eventTitle, market.question,
-market.slug, market.description, tagText(market.tags)
-].join(" "));
+  const textCategory = classify([
+    market.sport, market.eventTitle, market.question, market.slug,
+    market.description, tagText(market.tags), getEventTitle(event),
+    event.slug, event.description, tagText(event.tags)
+  ].join(" "));
+  if (textCategory !== "other") return textCategory;
+  const eventCategory = eventSport(event);
+  if (eventCategory !== "other") return eventCategory;
+  if (hint && hint !== "other") return hint;
+  return "other";
 }
-
 function marketIsUseful(market) {
-if (market.closed === true || market.active === false) return false;
-const outcomes = safeArray(market.outcomes);
-return outcomes.length >= 2;
+  if (market.closed === true || market.active === false) return false;
+  const outcomes = safeArray(market.outcomes);
+  return outcomes.length >= 2;
 }
-
 function getMarketOutcomes(market) {
-const names = safeArray(market.outcomes);
-const prices = safeArray(market.outcomePrices);
-const tokenIds = safeArray(market.clobTokenIds || market.clob_token_ids);
-
-return names.map((item, index) => {
-const name = typeof item === "object" ? (item.name || item.label || "") : item;
-return {
-name: String(name),
-price: Number(prices[index]),
-tokenId: tokenIds[index] ? String(tokenIds[index]) : ""
-};
-}).filter(item => item.name.trim() !== "");
+  const names = safeArray(market.outcomes);
+  const prices = safeArray(market.outcomePrices);
+  const tokenIds = safeArray(market.clobTokenIds || market.clob_token_ids);
+  return names.map((item, index) => {
+    const name = typeof item === "object"
+      ? (item.name || item.label || "")
+      : item;
+    return {
+      name: String(name),
+      price: Number(prices[index]),
+      tokenId: tokenIds[index] ? String(tokenIds[index]) : ""
+    };
+  }).filter(item => item.name.trim() !== "");
 }
-
 function matchupTitle(market) {
-const question = String(market.question || "").trim();
-const eventTitle = String(market.eventTitle || "").trim();
-
-const outcomes = safeArray(market.outcomes).map(item =>
-String(typeof item === "object" ? (item.name || "") : item).trim()
-).filter(Boolean);
-
-if (/\b(vs?\.?|versus)\b/i.test(eventTitle) && eventTitle.length < 120) return eventTitle;
-
-const generic = ["yes", "no", "true", "false", "over", "under"];
-
-if (outcomes.length === 2 && outcomes.every(name => !generic.includes(name.toLowerCase()))) {
-return outcomes[0] + " vs " + outcomes[1];
+  const question = String(market.question || "").trim();
+  const eventTitle = String(market.eventTitle || "").trim();
+  const outcomes = safeArray(market.outcomes).map(item =>
+    String(typeof item === "object" ? (item.name || "") : item).trim()
+  ).filter(Boolean);
+  const generic = ["yes", "no", "true", "false", "over", "under"];
+  if (/\b(vs?\.?|versus)\b/i.test(eventTitle) && eventTitle.length < 120) return eventTitle;
+  if (/\b(vs?\.?|versus)\b/i.test(question) && question.length < 120) return question;
+  if (question && question.length < 180 &&
+      (!eventTitle || question.toLowerCase() !== eventTitle.toLowerCase()) &&
+      (outcomes.length < 2 || outcomes.every(name => generic.includes(name.toLowerCase())))) {
+    return question;
+  }
+  if (outcomes.length >= 2 && outcomes.every(name => !generic.includes(name.toLowerCase()))) {
+    return outcomes.slice(0, 2).join(" vs ");
+  }
+  return question || eventTitle || "Market";
 }
-
-if (/\b(vs?\.?|versus)\b/i.test(question) && question.length < 120) return question;
-return eventTitle || question || "Matchup";
-}
-
 function currentFilter(item) {
-return selectedSport === "all" || item.sport === selectedSport;
+  return selectedSport === "all" || item.sport === selectedSport;
 }
-
 function searchMatches(item) {
-const query = norm($("search").value);
-if (!query) return true;
-
-return norm([
-item.title, item.question, item.eventTitle, item.sport,
-...(item.outcomes || []).map(outcome => outcome.name)
-].join(" ")).includes(query);
+  const query = norm($("search").value);
+  if (!query) return true;
+  return norm([
+    item.title, item.question, item.eventTitle, item.sport,
+    ...(item.outcomes || []).map(outcome => outcome.name)
+  ].join(" ")).includes(query);
 }
-
 function setStatus(message) {
-$("status").textContent = message;
+  $("status").textContent = message;
 }
-
 function addEvent(map, event, hint) {
-const id = String(event.id || event.slug || getEventTitle(event));
-if (!id) return;
-
-const previous = map.get(id);
-if (!previous || (hint && hint !== "other" && !previous._sportHint)) {
-map.set(id, { ...event, _sportHint: hint || event._sportHint || "other" });
+  const id = String(event.id || event.slug || getEventTitle(event));
+  if (!id) return;
+  const previous = map.get(id);
+  const incomingHint = hint || event._sportHint || "other";
+  if (!previous || (incomingHint !== "other" && (!previous._sportHint || previous._sportHint === "other"))) {
+    map.set(id, { ...event, _sportHint: incomingHint });
+  }
 }
-}
-
 async function fetchSportsEvents() {
-const eventsMap = new Map();
-const requests = [];
-const queried = new Set();
-let sportsEndpointError = "";
-
-// If the sports catalog fails, continue trying the general events endpoint.
-try {
-const sportsData = await getJSON(GAMMA + "/sports");
-const sports = Array.isArray(sportsData) ? sportsData : [];
-
-for (const sport of sports) {
-const category = classify([sport.sport, sport.name, sport.label, sport.slug].join(" "));
-if (category === "other") continue;
-
-let tags = sport.tags || sport.tag_id || sport.tagId || [];
-if (typeof tags === "string") tags = tags.split(",").map(tag => tag.trim()).filter(Boolean);
-if (!Array.isArray(tags)) tags = [tags];
-
-for (const tag of tags) {
-const id = typeof tag === "object" ? (tag.id || tag.tag_id || tag.tagId) : tag;
-if (!id || queried.has(String(id))) continue;
-queried.add(String(id));
-requests.push({ id: String(id), category });
+  const eventsMap = new Map();
+  const requests = [];
+  const queried = new Set();
+  let sportsEndpointError = "";
+  try {
+    const sportsData = await getJSON(GAMMA + "/sports");
+    const sports = Array.isArray(sportsData) ? sportsData : [];
+    for (const sport of sports) {
+      const category = classify([
+        sport.sport, sport.name, sport.label, sport.slug
+      ].join(" "));
+      if (category === "other") continue;
+      let tags = sport.tags || sport.tag_id || sport.tagId || [];
+      if (typeof tags === "string") {
+        tags = tags.split(",").map(tag => tag.trim()).filter(Boolean);
+      }
+      if (!Array.isArray(tags)) tags = [tags];
+      for (const tag of tags) {
+        const id = typeof tag === "object"
+          ? (tag.id || tag.tag_id || tag.tagId)
+          : tag;
+        if (!id || queried.has(String(id))) continue;
+        queried.add(String(id));
+        requests.push({ id: String(id), category });
+      }
+    }
+  } catch (error) {
+    sportsEndpointError = error && error.message ? error.message : "sports catalog unavailable";
+  }
+  const tagResults = await Promise.allSettled(
+    requests.slice(0, 40).map(async request => {
+      const data = await getJSON(
+        GAMMA + "/events?active=true&closed=false&limit=100&tag_id=" +
+        encodeURIComponent(request.id)
+      );
+      return { data, category: request.category };
+    })
+  );
+  for (const result of tagResults) {
+    if (result.status !== "fulfilled" || !Array.isArray(result.value.data)) continue;
+    for (const event of result.value.data) addEvent(eventsMap, event, result.value.category);
+  }
+  const fallbackUrls = [0, 100, 200, 300].map(offset =>
+    GAMMA + "/events?active=true&closed=false&limit=100&offset=" + offset +
+    "&order=volume24hr&ascending=false"
+  );
+  const fallbackResults = await Promise.allSettled(fallbackUrls.map(url => getJSON(url)));
+  for (const result of fallbackResults) {
+    if (result.status !== "fulfilled" || !Array.isArray(result.value)) continue;
+    for (const event of result.value) addEvent(eventsMap, event, "other");
+  }
+  if (!eventsMap.size) {
+    const detail = sportsEndpointError ? " Sports catalog error: " + sportsEndpointError + "." : "";
+    throw new Error("Polymarket returned no events from the sports catalog or general events endpoint." + detail + " Check that the page is hosted on GitHub Pages and that Safari/network access is available.");
+  }
+  return [...eventsMap.values()];
 }
-}
-} catch (error) {
-sportsEndpointError = error && error.message ? error.message : "sports catalog unavailable";
-}
-
-const tagResults = await Promise.allSettled(
-requests.slice(0, 40).map(async request => {
-const data = await getJSON(
-GAMMA + "/events?active=true&closed=false&limit=100&tag_id=" + encodeURIComponent(request.id)
-);
-return { data, category: request.category };
-})
-);
-
-for (const result of tagResults) {
-if (result.status !== "fulfilled" || !Array.isArray(result.value.data)) continue;
-for (const event of result.value.data) addEvent(eventsMap, event, result.value.category);
-}
-
-// Always query general active events even when the sports catalog fails.
-const fallbackUrls = [0, 100, 200, 300].map(offset =>
-GAMMA + "/events?active=true&closed=false&limit=100&offset=" + offset +
-"&order=volume24hr&ascending=false"
-);
-
-const fallbackResults = await Promise.allSettled(fallbackUrls.map(url => getJSON(url)));
-for (const result of fallbackResults) {
-if (result.status !== "fulfilled" || !Array.isArray(result.value)) continue;
-for (const event of result.value) addEvent(eventsMap, event, "other");
-}
-
-if (!eventsMap.size) {
-const detail = sportsEndpointError ? " Sports catalog error: " + sportsEndpointError + "." : "";
-throw new Error(
-"Polymarket returned no events from the sports catalog or general events endpoint." +
-detail +
-" Check that the page is hosted on GitHub Pages and that Safari/network access is available."
-);
-}
-
-return [...eventsMap.values()];
-}
-
 async function loadPolymarket() {
-if (loadingPM) return;
-
-loadingPM = true;
-$("refresh").disabled = true;
-setStatus("Loading live Polymarket events…");
-
-try {
-const events = await fetchSportsEvents();
-const found = new Map();
-
-for (const event of events) {
-const eventTitle = getEventTitle(event);
-const markets = safeArray(event.markets);
-
-for (const market of markets) {
-if (!marketIsUseful(market)) continue;
-
-const sport = marketSport({ ...market, eventTitle }, event, event._sportHint);
-if (sport === "other") continue;
-
-const outcomes = getMarketOutcomes(market);
-const marketId = String(
-market.id || market.conditionId || market.slug ||
-(event.id + "-" + (market.question || "market"))
-);
-
-const eventSlug = event.slug || market.eventSlug || "";
-const url = eventSlug
-? "https://polymarket.com/event/" + encodeURIComponent(eventSlug)
-: market.slug
-? "https://polymarket.com/event/" + encodeURIComponent(market.slug)
-: "https://polymarket.com";
-
-found.set(marketId, {
-id: marketId,
-sport,
-title: matchupTitle({ ...market, eventTitle }),
-question: market.question || "",
-eventTitle,
-outcomes,
-volume: getVolume(market, event),
-url,
-source: "Polymarket"
-});
+  if (loadingPM) return;
+  loadingPM = true;
+  $("refresh").disabled = true;
+  setStatus("Loading live Polymarket events…");
+  try {
+    const events = await fetchSportsEvents();
+    const found = new Map();
+    for (const event of events) {
+      const eventTitle = getEventTitle(event);
+      const markets = safeArray(event.markets);
+      for (const market of markets) {
+        if (!marketIsUseful(market)) continue;
+        const sport = marketSport(
+          { ...market, eventTitle },
+          event,
+          event._sportHint
+        );
+        if (sport === "other") continue;
+        const outcomes = getMarketOutcomes(market);
+        const marketId = String(
+          market.id || market.conditionId || market.slug ||
+          (event.id + "-" + (market.question || "market"))
+        );
+        const eventSlug = event.slug || market.eventSlug || "";
+        const url = eventSlug
+          ? "https://polymarket.com/event/" + encodeURIComponent(eventSlug)
+          : market.slug
+            ? "https://polymarket.com/event/" + encodeURIComponent(market.slug)
+            : "https://polymarket.com";
+        found.set(marketId, {
+          id: marketId,
+          sport,
+          title: matchupTitle({ ...market, eventTitle }),
+          question: market.question || "",
+          eventTitle,
+          outcomes,
+          volume: getVolume(market, event),
+          url,
+          source: "Polymarket"
+        });
+      }
+    }
+    const marketPages = [0, 100, 200, 300].map(offset =>
+      GAMMA + "/markets?active=true&closed=false&limit=100&offset=" + offset +
+      "&order=volume24hr&ascending=false"
+    );
+    const marketResults = await Promise.allSettled(marketPages.map(url => getJSON(url)));
+    for (const result of marketResults) {
+      if (result.status !== "fulfilled" || !Array.isArray(result.value)) continue;
+      for (const market of result.value) {
+        if (!marketIsUseful(market)) continue;
+        const eventData = safeArray(market.events)[0] || {};
+        const eventTitle = String(eventData.title || eventData.name || market.eventTitle || "").trim();
+        const sport = marketSport({ ...market, eventTitle }, eventData, "other");
+        if (sport === "other") continue;
+        const outcomes = getMarketOutcomes(market);
+        if (!outcomes.length) continue;
+        const marketId = String(market.id || market.conditionId || market.slug || market.question || "");
+        if (!marketId) continue;
+        const eventSlug = eventData.slug || market.eventSlug || "";
+        const url = eventSlug
+          ? "https://polymarket.com/event/" + encodeURIComponent(eventSlug)
+          : market.slug
+            ? "https://polymarket.com/event/" + encodeURIComponent(market.slug)
+            : "https://polymarket.com";
+        if (!found.has(marketId)) {
+          found.set(marketId, {
+            id: marketId,
+            sport,
+            title: matchupTitle({ ...market, eventTitle }),
+            question: market.question || "",
+            eventTitle: eventTitle || market.question || "",
+            outcomes,
+            volume: getVolume(market, eventData),
+            url,
+            source: "Polymarket"
+          });
+        }
+      }
+    }
+    pmMarkets = [...found.values()];
+    $("pmCount").textContent = String(pmMarkets.length);
+    renderPolymarket();
+    setStatus(
+      "Polymarket updated: " + pmMarkets.length +
+      " active sports markets found from event and market feeds. Prices refresh when you tap Refresh."
+    );
+  } catch (error) {
+    setStatus("Polymarket error: " + error.message +
+      ". Check the API test in Safari and try Refresh.");
+    $("pmCards").innerHTML =
+      '<div class="empty">Could not load Polymarket data. If this file was opened from Downloads/Files, upload it as index.html to GitHub Pages and open the published website. Then tap Refresh.</div>';
+  } finally {
+    loadingPM = false;
+    $("refresh").disabled = false;
+    $("updated").textContent = new Date().toLocaleTimeString();
+  }
 }
-}
-
-pmMarkets = [...found.values()];
-$("pmCount").textContent = String(pmMarkets.length);
-renderPolymarket();
-
-setStatus(
-"Polymarket updated: " + pmMarkets.length +
-" sports markets found. If zero, active sports markets may be unavailable " +
-"or the API may not return enough sport tags."
-);
-} catch (error) {
-setStatus("Polymarket error: " + error.message + ". Check the API test in Safari and try Refresh.");
-
-$("pmCards").innerHTML =
-'<div class="empty">Could not load Polymarket data. If this file was opened from Downloads/Files, upload it as index.html to GitHub Pages and open the published website. Then tap Refresh.</div>';
-} finally {
-loadingPM = false;
-$("refresh").disabled = false;
-$("updated").textContent = new Date().toLocaleTimeString();
-}
-}
-
 function renderOutcomes(outcomes, marketId) {
-if (!outcomes || !outcomes.length) {
-return '<div class="small">Prices unavailable for this market.</div>';
+  if (!outcomes || !outcomes.length) {
+    return '<div class="small">Prices unavailable for this market.</div>';
+  }
+  const book = orderBooks.get(marketId) || {};
+  const byToken = book.byToken || {};
+  return '<div class="outcomes">' + outcomes.slice(0, 4).map(outcome => {
+    const price = outcome.price;
+    const pct = Number.isFinite(price) && price >= 0 && price <= 1
+      ? (price * 100).toFixed(1) + "%" : "—";
+    const tokenBook = outcome.tokenId ? byToken[outcome.tokenId] : null;
+    const bid = tokenBook && Number.isFinite(tokenBook.bestBid) ? tokenBook.bestBid : null;
+    const ask = tokenBook && Number.isFinite(tokenBook.bestAsk) ? tokenBook.bestAsk : null;
+    const bidOdds = bid !== null ? formatTokenOdds(bid) : "—";
+    const askOdds = ask !== null ? formatTokenOdds(ask) : "—";
+    const bookText = tokenBook?.error || (!outcome.tokenId
+      ? "Order book token ID unavailable"
+      : (bid === null && ask === null ? "No open bid/ask currently available" : ""));
+    return '<div class="outcome">' +
+      '<div class="name">' + esc(outcome.name) + '</div>' +
+      '<div class="price">' + esc(pct) + '</div>' +
+      '<div class="pct">Odds equivalent · ' + esc(formatOddsFromDecimal(price > 0 ? 1 / price : NaN)) + ' ' + esc(oddsFormatLabel()) + '</div>' +
+      '<div class="orderbook-grid">' +
+        '<div class="order-price bid"><div class="label">Best Bid · odds equiv.</div><div class="value">' + esc(bidOdds) + '</div><div class="raw">' + (bid !== null ? 'Price ' + esc(bid.toFixed(3)) : 'Unavailable') + '</div></div>' +
+        '<div class="order-price ask"><div class="label">Best Ask · odds equiv.</div><div class="value">' + esc(askOdds) + '</div><div class="raw">' + (ask !== null ? 'Price ' + esc(ask.toFixed(3)) : 'Unavailable') + '</div></div>' +
+      '</div>' + (bookText ? '<div class="small" style="margin-top:6px">' + esc(bookText) + '</div>' : '') +
+      '</div>';
+  }).join("") + '</div>' +
+  '<div class="small" style="margin-top:8px">Bid/ask are actual CLOB token prices; odds equivalents are 1 ÷ price. Empty sides are shown as unavailable, never estimated.</div>';
 }
-
-const book = orderBooks.get(marketId) || {};
-const byToken = book.byToken || {};
-
-return '<div class="outcomes">' + outcomes.slice(0, 4).map(outcome => {
-const price = outcome.price;
-const pct = Number.isFinite(price) && price >= 0 && price <= 1
-? (price * 100).toFixed(1) + "%" : "—";
-
-const tokenBook = outcome.tokenId ? byToken[outcome.tokenId] : null;
-const bid = tokenBook && Number.isFinite(tokenBook.bestBid) ? tokenBook.bestBid : null;
-const ask = tokenBook && Number.isFinite(tokenBook.bestAsk) ? tokenBook.bestAsk : null;
-const bidOdds = bid !== null ? formatTokenOdds(bid) : "—";
-const askOdds = ask !== null ? formatTokenOdds(ask) : "—";
-
-const bookText = tokenBook?.error || (!outcome.tokenId
-? "Order book token ID unavailable"
-: (bid === null && ask === null ? "No open bid/ask currently available" : ""));
-
-return '<div class="outcome">' +
-'<div class="name">' + esc(outcome.name) + '</div>' +
-'<div class="price">' + esc(pct) + '</div>' +
-'<div class="pct">Odds equivalent · ' +
-esc(formatOddsFromDecimal(price > 0 ? 1 / price : NaN)) + ' ' +
-esc(oddsFormatLabel()) + '</div>' +
-'<div class="orderbook-grid">' +
-'<div class="order-price bid"><div class="label">Best Bid · odds equiv.</div><div class="value">' +
-esc(bidOdds) + '</div><div class="raw">' +
-(bid !== null ? 'Price ' + esc(bid.toFixed(3)) : 'Unavailable') +
-'</div></div>' +
-'<div class="order-price ask"><div class="label">Best Ask · odds equiv.</div><div class="value">' +
-esc(askOdds) + '</div><div class="raw">' +
-(ask !== null ? 'Price ' + esc(ask.toFixed(3)) : 'Unavailable') +
-'</div></div></div>' +
-(bookText ? '<div class="small" style="margin-top:6px">' + esc(bookText) + '</div>' : '') +
-'</div>';
-}).join("") + '</div>' +
-'<div class="small" style="margin-top:8px">Bid/ask are actual CLOB token prices; odds equivalents are 1 ÷ price. Empty sides are shown as unavailable, never estimated.</div>';
-}
-
 function renderPolymarket() {
-const items = pmMarkets
-.filter(currentFilter)
-.filter(searchMatches)
-.sort((a, b) => $("sort").value === "az" ? a.title.localeCompare(b.title) : 0);
-
-if (!items.length) {
-$("pmCards").innerHTML =
-'<div class="empty">No markets match this filter right now. Try All sports or clear search.</div>';
-return;
+  const items = pmMarkets
+    .filter(currentFilter)
+    .filter(searchMatches)
+    .sort((a, b) => $("sort").value === "az" ? a.title.localeCompare(b.title) : 0);
+  if (!items.length) {
+    $("pmCards").innerHTML =
+      '<div class="empty">No markets match this filter right now. Try All sports or clear search.</div>';
+    return;
+  }
+  $("pmCards").innerHTML = items.slice(0, 300).map(item => {
+    const isOpen = expandedMarkets.has(item.id);
+    const volumeText = item.volume === null || item.volume === undefined
+      ? "Volume unavailable" : "Volume: " + formatVolume(item.volume);
+    return '<article class="card">' +
+      '<div class="topline"><span class="pill">' + esc(item.sport.toUpperCase()) +
+      '</span><span class="source">POLYMARKET</span></div>' +
+      '<button class="match-toggle" type="button" data-expand-market="' + esc(item.id) +
+      '" aria-expanded="' + (isOpen ? "true" : "false") + '">' + esc(item.title) +
+      ' <span aria-hidden="true">' + (isOpen ? "▴" : "▾") + '</span></button>' +
+      '<div class="sub">' + esc(item.eventTitle && item.eventTitle !== item.title ? item.eventTitle : item.question || '') + '</div>' +
+      '<div class="match-meta"><span class="meta-chip">' + esc(volumeText) +
+      '</span><span class="meta-chip">Tap match to view odds</span></div>' +
+      '<div class="market-details' + (isOpen ? ' open' : '') + '">' +
+      '<div class="detail-heading">OUTCOME ODDS · BEST BID / BEST ASK · ' + esc(oddsFormatLabel().toUpperCase()) + '</div>' +
+      renderOutcomes(item.outcomes, item.id) +
+      '<div class="book"><a href="' + esc(item.url) +
+      '" target="_blank" rel="noopener noreferrer">Open market ↗</a></div></div></article>';
+  }).join("");
 }
-
-$("pmCards").innerHTML = items.slice(0, 300).map(item => {
-const isOpen = expandedMarkets.has(item.id);
-const volumeText = item.volume === null || item.volume === undefined
-? "Volume unavailable" : "Volume: " + formatVolume(item.volume);
-
-return '<article class="card">' +
-'<div class="topline"><span class="pill">' + esc(item.sport.toUpperCase()) +
-'</span><span class="source">POLYMARKET</span></div>' +
-'<button class="match-toggle" type="button" data-expand-market="' + esc(item.id) +
-'" aria-expanded="' + (isOpen ? "true" : "false") + '">' + esc(item.title) +
-' <span aria-hidden="true">' + (isOpen ? "▴" : "▾") + '</span></button>' +
-'<div class="sub">' + esc(item.eventTitle) + '</div>' +
-'<div class="match-meta"><span class="meta-chip">' + esc(volumeText) +
-'</span><span class="meta-chip">Tap match to view odds</span></div>' +
-'<div class="market-details' + (isOpen ? ' open' : '') + '">' +
-'<div class="detail-heading">OUTCOME ODDS · BEST BID / BEST ASK · ' +
-esc(oddsFormatLabel().toUpperCase()) + '</div>' +
-renderOutcomes(item.outcomes, item.id) +
-'<div class="book"><a href="' + esc(item.url) +
-'" target="_blank" rel="noopener noreferrer">Open market ↗</a></div></div></article>';
-}).join("");
-}
-
 function getSavedKey() {
-try {
-return localStorage.getItem("sportsOddsApiKey") || "";
-} catch (_) {
-return "";
+  try {
+    return localStorage.getItem("sportsOddsApiKey") || "";
+  } catch (_) {
+    return "";
+  }
 }
-
-}
-
 const sportKeyCandidates = {
-cricket: ["cricket"],
-tennis: ["tennis"],
-soccer: [
-"soccer_epl", "soccer_uefa_champs_league", "soccer_spain_la_liga",
-"soccer_italy_serie_a", "soccer_germany_bundesliga",
-"soccer_france_ligue_one"
-],
-mma: ["mma_mixed_martial_arts"]
+  cricket: ["cricket"],
+  tennis: ["tennis"],
+  soccer: [
+    "soccer_epl", "soccer_uefa_champs_league", "soccer_spain_la_liga",
+    "soccer_italy_serie_a", "soccer_germany_bundesliga",
+    "soccer_france_ligue_one"
+  ],
+  mma: ["mma_mixed_martial_arts"]
 };
-
 function saveKey() {
-const key = $("apiKey").value.trim();
-
-if (!key) {
-try { localStorage.removeItem("sportsOddsApiKey"); } catch (_) {}
-setStatus("API key cleared. Polymarket markets do not need an API key.");
-$("bookCards").innerHTML =
-'<div class="empty">Enter a The Odds API key to load bookmaker odds.</div>';
-$("bookCount").textContent = "0";
-return;
+  const key = $("apiKey").value.trim();
+  if (!key) {
+    try { localStorage.removeItem("sportsOddsApiKey"); } catch (_) {}
+    setStatus("API key cleared. Polymarket markets do not need an API key.");
+    $("bookCards").innerHTML =
+      '<div class="empty">Enter a The Odds API key to load bookmaker odds.</div>';
+    $("bookCount").textContent = "0";
+    return;
+  }
+  try {
+    localStorage.setItem("sportsOddsApiKey", key);
+    setStatus("API key saved on this device. Checking bookmaker access…");
+  } catch (_) {
+    setStatus("This browser blocked saving the key. It will be used for this session only.");
+  }
+  loadBookmakers();
 }
-
-try {
-localStorage.setItem("sportsOddsApiKey", key);
-setStatus("API key saved on this device. Checking bookmaker access…");
-} catch (_) {
-setStatus("This browser blocked saving the key. It will be used for this session only.");
-}
-
-loadBookmakers();
-}
-
 async function loadBookmakers() {
-const key = $("apiKey").value.trim() || getSavedKey();
-
-if (!key) {
-$("bookCards").innerHTML =
-'<div class="empty">Enter and save a The Odds API key to load bookmaker odds.</div>';
-$("bookCount").textContent = "0";
-return;
+  const key = $("apiKey").value.trim() || getSavedKey();
+  if (!key) {
+    $("bookCards").innerHTML =
+      '<div class="empty">Enter and save a The Odds API key to load bookmaker odds.</div>';
+    $("bookCount").textContent = "0";
+    return;
+  }
+  if (loadingBook) return;
+  loadingBook = true;
+  try {
+    const sports = await getJSON(
+      ODDS + "/sports/?apiKey=" + encodeURIComponent(key)
+    );
+    const active = Array.isArray(sports) ? sports.filter(sport => sport.active) : [];
+    const chosen = [];
+    for (const category of ["cricket", "tennis", "soccer", "mma"]) {
+      if (selectedSport !== "all" && selectedSport !== category) continue;
+      const candidates = sportKeyCandidates[category] || [];
+      const available = active.filter(sport =>
+        candidates.includes(sport.key) ||
+        (category === "soccer" && String(sport.key).startsWith("soccer_"))
+      );
+      chosen.push(...(category === "soccer" ? available.slice(0, 4) : available.slice(0, 1)));
+    }
+    const responses = await Promise.allSettled(chosen.map(sport =>
+      getJSON(
+        ODDS + "/sports/" + encodeURIComponent(sport.key) +
+        "/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey=" +
+        encodeURIComponent(key)
+      ).then(data => ({ data, sport }))
+    ));
+    const unique = new Map();
+    for (const result of responses) {
+      if (result.status !== "fulfilled" || !Array.isArray(result.value.data)) continue;
+      for (const event of result.value.data) {
+        const sport = classify(result.value.sport.key);
+        const id = event.id || [
+          event.home_team, event.away_team, event.commence_time
+        ].join("|");
+        unique.set(id, { ...event, sport });
+      }
+    }
+    bookEvents = [...unique.values()];
+    $("bookCount").textContent = String(bookEvents.length);
+    renderBookmakers();
+    if (!chosen.length) {
+      $("bookCards").innerHTML =
+        '<div class="empty">No supported active sports were returned for this filter.</div>';
+    }
+  } catch (error) {
+    $("bookCards").innerHTML =
+      '<div class="empty">Bookmaker API error: ' + esc(error.message) +
+      '. Check your key and API quota.</div>';
+    $("bookCount").textContent = "0";
+  } finally {
+    loadingBook = false;
+  }
 }
-
-if (loadingBook) return;
-loadingBook = true;
-
-try {
-const sports = await getJSON(ODDS + "/sports/?apiKey=" + encodeURIComponent(key));
-const active = Array.isArray(sports) ? sports.filter(sport => sport.active) : [];
-const chosen = [];
-
-for (const category of ["cricket", "tennis", "soccer", "mma"]) {
-if (selectedSport !== "all" && selectedSport !== category) continue;
-
-const candidates = sportKeyCandidates[category] || [];
-const available = active.filter(sport =>
-candidates.includes(sport.key) ||
-(category === "soccer" && String(sport.key).startsWith("soccer_"))
-);
-
-chosen.push(...(category === "soccer" ? available.slice(0, 4) : available.slice(0, 1)));
-}
-
-const responses = await Promise.allSettled(chosen.map(sport =>
-getJSON(
-ODDS + "/sports/" + encodeURIComponent(sport.key) +
-"/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey=" +
-encodeURIComponent(key)
-).then(data => ({ data, sport }))
-));
-
-const unique = new Map();
-
-for (const result of responses) {
-if (result.status !== "fulfilled" || !Array.isArray(result.value.data)) continue;
-
-for (const event of result.value.data) {
-const sport = classify(result.value.sport.key);
-const id = event.id || [
-event.home_team, event.away_team, event.commence_time
-].join("|");
-
-unique.set(id, { ...event, sport });
-}
-}
-
-bookEvents = [...unique.values()];
-$("bookCount").textContent = String(bookEvents.length);
-renderBookmakers();
-
-if (!chosen.length) {
-$("bookCards").innerHTML =
-'<div class="empty">No supported active sports were returned for this filter.</div>';
-}
-} catch (error) {
-$("bookCards").innerHTML =
-'<div class="empty">Bookmaker API error: ' + esc(error.message) +
-'. Check your key and API quota.</div>';
-$("bookCount").textContent = "0";
-} finally {
-loadingBook = false;
-}
-}
-
 function bookmakerRows(event) {
-const rows = [];
-
-for (const bookmaker of safeArray(event.bookmakers)) {
-const h2h = safeArray(bookmaker.markets).find(m => m.key === "h2h");
-if (!h2h) continue;
-
-for (const outcome of safeArray(h2h.outcomes)) {
-rows.push(
-'<div class="book-row"><span>' + esc(bookmaker.title) +
-' · ' + esc(outcome.name) + '</span><strong>' +
-(Number.isFinite(Number(outcome.price))
-? formatOddsFromDecimal(Number(outcome.price)) : "—") +
-'</strong></div>'
-);
+  const rows = [];
+  for (const bookmaker of safeArray(event.bookmakers)) {
+    const h2h = safeArray(bookmaker.markets).find(m => m.key === "h2h");
+    if (!h2h) continue;
+    for (const outcome of safeArray(h2h.outcomes)) {
+      rows.push(
+        '<div class="book-row"><span>' + esc(bookmaker.title) +
+        ' · ' + esc(outcome.name) + '</span><strong>' +
+        (Number.isFinite(Number(outcome.price))
+          ? formatOddsFromDecimal(Number(outcome.price)) : "—") +
+        '</strong></div>'
+      );
+    }
+  }
+  return rows;
 }
-}
-
-return rows;
-}
-
 function renderBookmakers() {
-const query = norm($("search").value);
-
-const items = bookEvents.filter(event => {
-if (!currentFilter(event)) return false;
-const title = (event.home_team || "") + " vs " + (event.away_team || "");
-return !query || norm(title + " " + event.sport).includes(query);
-});
-
-if (!items.length) {
-$("bookCards").innerHTML =
-'<div class="empty">No bookmaker events available for this filter right now.</div>';
-return;
+  const query = norm($("search").value);
+  const items = bookEvents.filter(event => {
+    if (!currentFilter(event)) return false;
+    const title = (event.home_team || "") + " vs " + (event.away_team || "");
+    return !query || norm(title + " " + event.sport).includes(query);
+  });
+  if (!items.length) {
+    $("bookCards").innerHTML =
+      '<div class="empty">No bookmaker events available for this filter right now.</div>';
+    return;
+  }
+  $("bookCards").innerHTML = items.map(event => {
+    const rows = bookmakerRows(event);
+    const title = (event.home_team || "Team 1") + " vs " +
+      (event.away_team || "Team 2");
+    return '<article class="card">' +
+      '<div class="topline"><span class="pill">' +
+      esc(event.sport.toUpperCase()) +
+      '</span><span class="source">BOOKMAKERS</span></div>' +
+      '<div class="match">' + esc(title) + '</div>' +
+      '<div class="sub">' +
+      (event.commence_time
+        ? 'Start: ' + esc(new Date(event.commence_time).toLocaleString())
+        : '') +
+      '</div><div class="book"><div class="book-title">Match winner · ' + esc(oddsFormatLabel()) + ' odds</div>' +
+      (rows.length ? rows.join("") :
+        '<div class="small">No bookmaker prices returned.</div>') +
+      '</div></article>';
+  }).join("");
 }
-
-$("bookCards").innerHTML = items.map(event => {
-const rows = bookmakerRows(event);
-const title = (event.home_team || "Team 1") + " vs " +
-(event.away_team || "Team 2");
-
-return '<article class="card">' +
-'<div class="topline"><span class="pill">' +
-esc(event.sport.toUpperCase()) +
-'</span><span class="source">BOOKMAKERS</span></div>' +
-'<div class="match">' + esc(title) + '</div>' +
-'<div class="sub">' +
-(event.commence_time
-? 'Start: ' + esc(new Date(event.commence_time).toLocaleString())
-: '') +
-'</div><div class="book"><div class="book-title">Match winner · ' +
-esc(oddsFormatLabel()) + ' odds</div>' +
-(rows.length ? rows.join("") :
-'<div class="small">No bookmaker prices returned.</div>') +
-'</div></article>';
-}).join("");
+function toggleMarketButton(button) {
+  if (!button) return;
+  const id = button.getAttribute("data-expand-market");
+  if (!id) return;
+  if (expandedMarkets.has(id)) {
+    expandedMarkets.delete(id);
+  } else {
+    expandedMarkets.add(id);
+    const item = pmMarkets.find(market => market.id === id);
+    if (item) loadOrderBookForMarket(item);
+  }
+  renderPolymarket();
 }
-
 $("pmCards").addEventListener("click", event => {
-const button = event.target.closest("button[data-expand-market]");
-if (!button) return;
-
-const id = button.getAttribute("data-expand-market");
-if (!id) return;
-
-if (expandedMarkets.has(id)) {
-expandedMarkets.delete(id);
-} else {
-expandedMarkets.add(id);
-const item = pmMarkets.find(market => market.id === id);
-if (item) loadOrderBookForMarket(item);
-}
-
-renderPolymarket();
+  const button = event.target.closest("button[data-expand-market]");
+  if (button) toggleMarketButton(button);
 });
-
 $("refresh").addEventListener("click", () => {
-loadPolymarket();
-loadBookmakers();
+  loadPolymarket();
+  loadBookmakers();
 });
-
 $("saveKey").addEventListener("click", event => {
-event.preventDefault();
-event.stopPropagation();
-saveKey();
+  event.preventDefault();
+  event.stopPropagation();
+  saveKey();
 });
-
 $("search").addEventListener("input", () => {
-renderPolymarket();
-renderBookmakers();
+  renderPolymarket();
+  renderBookmakers();
 });
-
 $("sort").addEventListener("change", renderPolymarket);
-
 $("oddsFormat").addEventListener("change", () => {
-renderPolymarket();
-renderBookmakers();
+  renderPolymarket();
+  renderBookmakers();
 });
-
 $("tabs").addEventListener("click", event => {
-const button = event.target.closest("button[data-sport]");
-if (!button) return;
-
-selectedSport = button.dataset.sport;
-
-$("tabs").querySelectorAll("button[data-sport]").forEach(tab => {
-tab.classList.toggle("active", tab === button);
+  const button = event.target.closest("button[data-sport]");
+  if (!button) return;
+  selectedSport = button.dataset.sport;
+  $("tabs").querySelectorAll("button[data-sport]").forEach(tab => {
+    tab.classList.toggle("active", tab === button);
+  });
+  renderPolymarket();
+  renderBookmakers();
+  loadBookmakers();
 });
-
-renderPolymarket();
-renderBookmakers();
-loadBookmakers();
-});
-
 $("apiKey").value = getSavedKey();
-
 loadPolymarket();
 loadBookmakers();
-
 pmTimer = setInterval(() => {
-if (!document.hidden) loadPolymarket();
+  if (!document.hidden) loadPolymarket();
 }, 30000);
-
 bookTimer = setInterval(() => {
-if (!document.hidden && getSavedKey()) loadBookmakers();
+  if (!document.hidden && getSavedKey()) loadBookmakers();
 }, 60000);
-
 setInterval(() => {
-if (!document.hidden) refreshExpandedOrderBooks();
+  if (!document.hidden) refreshExpandedOrderBooks();
 }, 12000);
 </script>
 </body>
