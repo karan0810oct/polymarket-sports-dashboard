@@ -389,8 +389,11 @@ function eventSports(event){
 }
 function marketIsUseful(market){
   if(market.closed || market.active === false) return false;
+const rawOutcomes = market.outcomes;
+const outcomes = Array.isArray(rawOutcomes) ? rawOutcomes : [];
 
-  const outcomes = getMarketOutcomes(market);
+  // Prefer an event title that already names both competitors.
+const outcomes = Array.isArray(rawOutcomes) ? rawOutcomes : [];
   if(outcomes.length < 2) return false;
   // Hide Yes/No prop markets from the match-winner list.
   const names = (Array.isArray(outcomes) ? outcomes : []).map(o =>
