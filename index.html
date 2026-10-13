@@ -389,29 +389,26 @@ function eventSports(event){
 }
 
 function marketIsUseful(market) {
-  if (market.closed || market.active === false) return false;
+if (market.closed || market.active === false) return false;
 
-  const rawOutcomes = market.outcomes;
-  const outcomes = Array.isArray(rawOutcomes) ? rawOutcomes : [];
+const outcomes = safeArray(market.outcomes);
+if (outcomes.length < 2) return false;
 
-  if (outcomes.length < 2) return false;
+const names = outcomes.map(o =>
+String(typeof o === “object” ? (o?.name || “”) : o).trim()
+);
 
-  const names = outcomes.map(o =>
-    String(typeof o === "object" ? (o?.name || "") : o).trim()
-  );
+const yesNo = names.every(n =>
+[“yes”, “no”, “true”, “false”].includes(n.toLowerCase())
+);
 
-  const yesNo = names.every(n =>
-    ["yes", "no", "true", "false"].includes(n.toLowerCase())
-  );
-
-  return !yesNo;
+return !yesNo;
 }
-function marketSport(market){
-
-const tags = (market.tags || []).map(t =>
+function marketSport(market) {
+const tags = safeArray(market.tags).map(t =>
 typeof t === “string” ? t : (t.label || t.slug || “”)
 ).join(” “);
-
+}
 return classify([
 market.sport,
 market.eventTitle,
@@ -429,9 +426,8 @@ function matchupTitle(market){
   // Prefer an event title that already names both competitors.
   if (/\b(vs?\.?|versus)\b/i.test(eventTitle) &&
       eventTitle.length < 120) {
-    return eventTitle;
+      return eventTitle || question || "Matchup unavailable";
   }
-
   const names = outcomes
     .map(o => String(o.name || "").trim())
     .filter(Boolean);
