@@ -406,7 +406,21 @@ function marketIsUseful(market) {
 
   return !yesNo;
 }
+function marketSport(market){
 
+const tags = (market.tags || []).map(t =>
+typeof t === “string” ? t : (t.label || t.slug || “”)
+).join(” “);
+
+return classify([
+market.sport,
+market.eventTitle,
+market.question,
+market.slug,
+market.description,
+tags
+].join(” “));
+}
 function matchupTitle(market){
   const question = String(market.question || "").trim();
   const eventTitle = String(market.eventTitle || "").trim();
@@ -436,15 +450,6 @@ function matchupTitle(market){
 
   return eventTitle || question || "Matchup unavailable";
 }
-function marketSport(market){
-
-  return classify([
-
-    market.sport,market.eventTitle,market.question,
-
-    market.slug,market.description
-
-  ].join(" "));
 
 }
 
