@@ -41,6 +41,23 @@ width: 100%;
 grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 }
+ 
+#sports {
+  position: relative;
+  z-index: 20;
+  pointer-events: auto;
+  touch-action: pan-x;
+}
+
+#sports .sport {
+  position: relative;
+  z-index: 21;
+  pointer-events: auto;
+  cursor: pointer;
+  min-height: 40px;
+  -webkit-appearance: none;
+  appearance: none;
+}
 </style>
 </head>
 <body><div class="app">
@@ -130,10 +147,14 @@ function chooseSport(b){
  $("matches").innerHTML='<div class="blank"><strong><span class="spin"></span>Loading '+esc(CONFIG[next].label)+' matches</strong>Fetching current odds…</div>';
  if(S.busy){S.refreshAgain=true;return;}
  refresh();
-}
-document.querySelectorAll(".sport").forEach(b=>{
- b.addEventListener("click",()=>chooseSport(b));
+ {
+$("sports").addEventListener("click", function(event) {
+  const button = event.target.closest("button[data-sport]");
+  if (!button || !this.contains(button)) return;
+  event.preventDefault();
+  chooseSport(button);
 });
+
 $("refresh").addEventListener("click",()=>{if(S.busy){S.refreshAgain=true;return;}refresh();});
 $("search").addEventListener("input",render);
 refresh();setInterval(()=>{if(!S.busy)refresh();},INTERVAL);
