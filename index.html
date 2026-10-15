@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,128 +8,100 @@
 <style>
 :root {
   color-scheme: dark;
-  --bg:#0b1020;
-  --panel:#121a2d;
-  --muted:#8996b5;
-  --blue:#46a7ff;
-  --red:#ff5278;
-  --line:#293550;
+  --bg: #0b1020;
+  --panel: #121a2d;
+  --muted: #9aa8c5;
+  --blue: #83caff;
+  --pink: #ff9bb0;
+  --line: #293550;
 }
-*{box-sizing:border-box}
-body{
-  margin:0;background:
-  radial-gradient(ellipse at 0% 0%,#19274a 0,transparent 42%),
-  radial-gradient(ellipse at 100% 30%,#301725 0,transparent 35%),
-  var(--bg);
-  color:#edf1ff;font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  min-height:100vh;padding-bottom:90px;
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding-bottom: 85px;
+  background:
+    radial-gradient(ellipse at 0 0,#19274a 0,transparent 42%),
+    radial-gradient(ellipse at 100% 25%,#301725 0,transparent 35%),
+    var(--bg);
+  color: #edf1ff;
+  font: 14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
-button,input,select{font:inherit}
-button{cursor:pointer;color:inherit}
-.app{max-width:760px;margin:auto;padding:18px 14px}
-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.brand{font-size:23px;font-weight:850;letter-spacing:1.2px}
-.sub{color:var(--muted);font-size:10px;letter-spacing:1px;margin-top:5px}
-.live{border:1px solid #23684f;background:#102c27;color:#6bf0bb;
-  border-radius:20px;padding:8px 10px;font-size:11px;white-space:nowrap}
-.dot{display:inline-block;width:7px;height:7px;background:#49e6a7;
-  border-radius:50%;margin-right:5px;box-shadow:0 0 12px #49e6a7}
-.toolbar{display:flex;gap:8px;margin:18px 0 12px}
-.search{flex:1;min-width:0;background:#151d30;border:1px solid var(--line);
-  border-radius:12px;padding:12px;color:white;outline:none}
-.smallbtn,.select{
-  background:#19233a;border:1px solid #354361;border-radius:11px;padding:11px;
-  color:#dce5ff
+button,input { font: inherit; }
+button { cursor: pointer; color: inherit; }
+.app { max-width: 800px; margin: auto; padding: 17px 13px; }
+header { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.brand { font-size:23px; font-weight:850; letter-spacing:1px; }
+.sub { font-size:10px; color:var(--muted); letter-spacing:.8px; margin-top:5px; }
+.live {
+  border:1px solid #23684f; background:#102c27; color:#6bf0bb;
+  border-radius:20px; padding:8px 10px; font-size:10px; white-space:nowrap;
 }
-.status{display:flex;justify-content:space-between;gap:10px;color:var(--muted);
-  font-size:11px;margin:10px 2px 16px}
-.sports{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;
-  scrollbar-width:none}
-.sport{white-space:nowrap;border:1px solid #303b58;background:#141c30;
-  border-radius:20px;padding:10px 15px;color:#b9c4e0}
-.sport.active{background:#29264c;border-color:#8e80ff;color:#fff}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
-.stat{background:linear-gradient(140deg,#19243b,#131a2b);
-  border:1px solid #2c3853;border-radius:15px;padding:14px}
-.stat label{display:block;color:var(--muted);font-size:11px}
-.stat strong{display:block;font-size:23px;margin-top:7px}
-.sectionhead{display:flex;justify-content:space-between;align-items:center;
-  margin:20px 2px 10px}
-h2{font-size:16px;margin:0}
-.muted{color:var(--muted);font-size:11px}
-.match{
-  background:linear-gradient(145deg,rgba(26,36,58,.94),rgba(15,21,37,.96));
-  border:1px solid #2a3650;border-radius:17px;padding:14px;margin:10px 0;
-  box-shadow:0 8px 28px #0003;position:relative;overflow:hidden;
+.dot { display:inline-block; width:7px; height:7px; background:#49e6a7; border-radius:50%; margin-right:5px; }
+.toolbar { display:flex; gap:8px; margin:18px 0 12px; }
+.search {
+  flex:1; min-width:0; background:#151d30; border:1px solid var(--line);
+  border-radius:12px; padding:12px; color:white; outline:none;
 }
-.match:before{content:"";position:absolute;inset:0 0 auto;height:1px;
-  background:linear-gradient(90deg,transparent,#9eabff88,transparent)}
-.matchtop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-.matchname{font-weight:750;font-size:14px;line-height:1.45}
-.league{font-size:11px;color:var(--muted);margin-top:5px}
-.vol{text-align:right;font-size:11px;color:#a8b5d3;white-space:nowrap}
-.vol b{display:block;color:#e5eaff;font-size:13px;margin-bottom:4px}
-.sourcegrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:13px}
-.source{
-  border-radius:13px;padding:11px 9px;min-width:0;position:relative;
-  overflow:hidden;animation:breathe 4.5s ease-in-out infinite;
+.smallbtn {
+  background:#19233a; border:1px solid #354361; border-radius:11px;
+  padding:11px; color:#dce5ff;
 }
-.exchange{background:linear-gradient(145deg,#102b4a,#101b31);
-  border:1px solid #287bc0;box-shadow:inset 0 0 20px #2185e817}
-.poly{background:linear-gradient(145deg,#351725,#211523);
-  border:1px solid #a53655;box-shadow:inset 0 0 20px #ff527812;
-  animation-delay:1s}
-@keyframes breathe{
-  0%,100%{box-shadow:inset 0 0 16px #ffffff05,0 0 0 #ffffff00}
-  50%{box-shadow:inset 0 0 23px #ffffff0c,0 0 13px #829bff0b}
+.status { display:flex; justify-content:space-between; gap:8px; color:var(--muted); font-size:11px; margin:10px 2px 15px; }
+.sports { display:flex; gap:7px; overflow-x:auto; padding:2px 0 12px; scrollbar-width:none; }
+.sport { white-space:nowrap; border:1px solid #303b58; background:#141c30; border-radius:20px; padding:9px 13px; color:#b9c4e0; }
+.sport.active { background:#29264c; border-color:#8e80ff; color:#fff; }
+.stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:19px; }
+.stat { background:linear-gradient(140deg,#19243b,#131a2b); border:1px solid #2c3853; border-radius:14px; padding:13px; }
+.stat label { display:block; color:var(--muted); font-size:10px; }
+.stat strong { display:block; font-size:22px; margin-top:7px; }
+.sectionhead { display:flex; justify-content:space-between; align-items:center; gap:8px; margin:20px 2px 10px; }
+h2 { font-size:16px; margin:0; }
+.muted { color:var(--muted); font-size:11px; }
+.match { background:linear-gradient(145deg,#1a243aee,#0f1525f5); border:1px solid #2a3650; border-radius:16px; padding:13px; margin:10px 0; box-shadow:0 8px 25px #0003; }
+.matchtop { display:flex; justify-content:space-between; gap:9px; }
+.matchname { font-weight:750; font-size:14px; line-height:1.5; overflow-wrap:anywhere; }
+.league { font-size:11px; color:var(--muted); margin-top:4px; }
+.kickoff { font-size:10px; color:#9aabd0; margin-top:5px; }
+.sourcegrid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px; }
+.source { border-radius:12px; padding:10px 8px; min-width:0; overflow:hidden; background:#10243a; border:1px solid #287bc0; }
+.source.poly { background:#281923; border-color:#8f3a52; }
+.sourcehead { font-size:10px; font-weight:800; line-height:1.4; margin-bottom:8px; }
+.sourcehead.blue { color:var(--blue); }
+.sourcehead.pink { color:var(--pink); }
+.minihead { font-size:9px; color:#a5b4d2; margin:9px 0 4px; }
+.rowodds { display:flex; justify-content:space-between; align-items:center; gap:5px; padding:7px 0; border-bottom:1px solid #ffffff12; }
+.rowodds:last-child { border-bottom:0; }
+.team { min-width:0; overflow-wrap:anywhere; font-size:10px; color:#d6def4; }
+.odd { flex-shrink:0; font-size:15px; font-weight:800; font-variant-numeric:tabular-nums; color:#83caff; }
+.poly .odd { color:#ff91a9; }
+.bookname { font-size:9px; color:#a7b6d2; margin-top:3px; overflow-wrap:anywhere; }
+.marketlimit { margin-top:8px; padding:8px; background:#080e1a55; border-radius:8px; font-size:10px; color:#bdc9df; line-height:1.6; }
+.openbtn { width:100%; margin-top:11px; padding:11px; border-radius:10px; background:#202a42; border:1px solid #3a4868; color:#e4eaff; font-weight:650; }
+.empty { padding:24px 14px; text-align:center; border:1px dashed #35415e; border-radius:14px; color:var(--muted); line-height:1.8; overflow-wrap:anywhere; }
+.details { display:none; margin-top:18px; }
+.details.show { display:block; }
+.backbtn { margin-bottom:12px; background:#1b2540; border:1px solid #394867; border-radius:10px; padding:10px; }
+.market { background:#131c30; border:1px solid #2a3650; border-radius:13px; padding:12px; margin:10px 0; }
+.markettitle { font-weight:750; margin-bottom:8px; }
+.marketmeta { font-size:10px; color:var(--muted); margin-bottom:7px; }
+.bottom {
+  position:fixed; z-index:5; bottom:0; left:0; right:0;
+  background:#0c1120ed; backdrop-filter:blur(18px);
+  border-top:1px solid #27324b;
+  padding:9px 8px calc(9px + env(safe-area-inset-bottom));
+  display:flex; justify-content:space-around;
 }
-.sourcehead{font-size:11px;font-weight:800;letter-spacing:.5px;margin-bottom:10px}
-.exchange .sourcehead{color:#83caff}
-.poly .sourcehead{color:#ff9bb0}
-.rowodds{display:flex;justify-content:space-between;gap:4px;align-items:center;
-  padding:7px 0;border-bottom:1px solid #ffffff0b}
-.rowodds:last-child{border-bottom:0}
-.team{font-size:11px;color:#d6def4;overflow:hidden;text-overflow:ellipsis}
-.odd{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
-.exchange .odd{color:#73c4ff}
-.poly .odd{color:#ff91a9}
-.minihead{font-size:9px;color:#8da2c1;letter-spacing:.6px;margin:9px 0 3px}
-.sourcefoot{border-top:1px solid #ffffff13;margin-top:9px;padding-top:8px;
-  color:#94a2c0;font-size:9px;line-height:1.5}
-.marketlimit{margin-top:9px;padding:8px;background:#080e1a55;border-radius:8px;
-  font-size:10px;color:#b5c2df;line-height:1.6}
-.marketlimit b{color:#e6ebff}
-.openbtn{width:100%;margin-top:12px;padding:11px;border-radius:10px;
-  background:#202a42;border:1px solid #3a4868;color:#e4eaff;font-weight:650}
-.empty{padding:25px 15px;text-align:center;border:1px dashed #35415e;
-  border-radius:14px;color:var(--muted);line-height:1.7}
-.details{display:none;margin-top:20px}
-.details.show{display:block}
-.backbtn{margin:0 0 12px;background:#1b2540;border:1px solid #394867;
-  border-radius:10px;padding:10px}
-.market{background:#131c30;border:1px solid #2a3650;border-radius:14px;
-  padding:13px;margin:10px 0}
-.markettitle{font-weight:750;margin-bottom:10px}
-.marketcols{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.marketcol{padding:10px;border-radius:10px;background:#101b30;border:1px solid #283955}
-.marketcol.red{background:#271722;border-color:#663044}
-.marketcol h3{font-size:11px;margin:0 0 10px;color:#83caff}
-.marketcol.red h3{color:#ff91a9}
-.marketlimitrow{font-size:11px;color:#b5c2df;margin-top:9px;line-height:1.6}
-.bottom{
- position:fixed;z-index:5;bottom:0;left:0;right:0;
- background:#0c1120ed;backdrop-filter:blur(18px);
- border-top:1px solid #27324b;padding:10px 8px calc(10px + env(safe-area-inset-bottom));
- display:flex;justify-content:space-around
-}
-.navitem{background:none;border:0;color:#8794b3;font-size:10px;display:grid;
-  gap:5px;justify-items:center;padding:4px}
-.navitem span:first-child{font-size:17px}
-.navitem.active{color:#b7b0ff}
-.notice{font-size:11px;color:#8794b3;line-height:1.6;margin:14px 2px}
-@media(max-width:370px){
- .app{padding:14px 10px}.source{padding:9px 7px}.odd{font-size:14px}
- .brand{font-size:20px}.team{font-size:10px}
+.navitem { background:none; border:0; color:#8794b3; font-size:10px; display:grid; gap:4px; justify-items:center; padding:4px; }
+.navitem span:first-child { font-size:17px; }
+.navitem.active { color:#b7b0ff; }
+.notice { font-size:10px; color:#8794b3; line-height:1.7; margin:16px 2px; }
+@media(max-width:370px) {
+  .app { padding:13px 9px; }
+  .source { padding:8px 6px; }
+  .odd { font-size:13px; }
+  .brand { font-size:20px; }
+  .team { font-size:9px; }
 }
 </style>
 </head>
@@ -139,85 +110,83 @@ h2{font-size:16px;margin:0}
 <header>
   <div>
     <div class="brand">CRYSTAL EDGE</div>
-    <div class="sub">POLYMARKET × BETFAIR EXCHANGE</div>
+    <div class="sub">SPORTS ODDS COMPARISON</div>
   </div>
   <div class="live"><span class="dot"></span><span id="liveText">CONNECTING</span></div>
 </header>
-
 <div class="toolbar">
-  <input id="search" class="search" placeholder="Search teams, players or matches…">
+  <input id="search" class="search" placeholder="Search teams, players or matches…" autocomplete="off">
   <button id="refresh" class="smallbtn" aria-label="Refresh">↻</button>
 </div>
 <div class="status">
-  <span id="connection">Checking API…</span>
-  <span>Refresh: <b id="refreshState">ON</b></span>
+  <span id="connection">Connecting to API…</span>
+  <span>Auto refresh: <b id="refreshState">ON</b></span>
 </div>
-
 <div class="sports" id="sports">
   <button class="sport active" data-sport="all">All Sports</button>
   <button class="sport" data-sport="cricket">Cricket</button>
   <button class="sport" data-sport="football">Football</button>
+  <button class="sport" data-sport="americanfootball">American Football</button>
+  <button class="sport" data-sport="basketball">Basketball</button>
   <button class="sport" data-sport="tennis">Tennis</button>
   <button class="sport" data-sport="mma">MMA / UFC</button>
+  <button class="sport" data-sport="boxing">Boxing</button>
+  <button class="sport" data-sport="baseball">Baseball</button>
+  <button class="sport" data-sport="icehockey">Ice Hockey</button>
 </div>
-
 <div class="stats">
   <div class="stat"><label>AVAILABLE MATCHES</label><strong id="matchCount">—</strong></div>
   <div class="stat"><label>LAST FETCH</label><strong id="lastFetch" style="font-size:15px">—</strong></div>
 </div>
-
 <div id="listing">
-  <div class="sectionhead"><h2>Matches</h2><span class="muted">Tap a match for markets</span></div>
+  <div class="sectionhead">
+    <h2>Matches & Odds</h2>
+    <span class="muted">Select a match for markets</span>
+  </div>
   <div id="matches"><div class="empty">Connecting to your odds API…</div></div>
 </div>
-
 <div id="details" class="details">
   <button class="backbtn" id="back">← Back to matches</button>
-  <div class="sectionhead"><h2 id="detailTitle">Match details</h2><span class="live">LIVE DATA</span></div>
+  <div class="sectionhead"><h2 id="detailTitle">Match details</h2></div>
   <div id="marketList"></div>
 </div>
-
 <p class="notice">
-Odds and limits are displayed only when returned by the connected feed.
-Polymarket prices are converted to decimal odds only when valid probability
-data is available. Missing data is shown as —, never invented.
+  Live odds are displayed only when supplied by the connected API. Different
+  bookmakers may update at different times. Standard bookmaker prices are not
+  exchange lay prices. Polymarket and Indian betting-app odds require their own
+  connected data sources. Missing prices and limits are never invented.
 </p>
 </div>
-
 <nav class="bottom">
   <button class="navitem active" data-nav="home"><span>⌂</span>Home</button>
   <button class="navitem" data-nav="search"><span>⌕</span>Search</button>
-  <button class="navitem" data-nav="live"><span>◉</span>Live</button>
+  <button class="navitem" data-nav="live"><span>◉</span>Refresh</button>
   <button class="navitem" data-nav="favorites"><span>♡</span>Favorites</button>
   <button class="navitem" data-nav="settings"><span>⚙</span>Settings</button>
 </nav>
-
 <script>
-/*
-  IMPORTANT:
-  Replace this URL with the exact deployed Worker URL.
-  Example format: https://your-worker.your-subdomain.workers.dev
-*/
-const API_BASE = “https://crystal-odds-api.karanarora082000.workers.dev”;
-const REFRESH_MS = 15000;
-
+"use strict";
+/* Deployed Cloudflare Worker */
+const API_BASE = "https://crystal-odds-api.karanarora082000.workers.dev";
+const REFRESH_MS = 30000;
+const MAX_KEYS_PER_LOAD = 8;
+let sportsCatalog = [];
 let allMatches = [];
 let selectedSport = "all";
 let refreshTimer = null;
-let currentMatch = null;
+let currentMatchId = null;
 let autoRefresh = true;
-
+let loading = false;
+let requestVersion = 0;
+let favorites = new Set();
 const $ = id => document.getElementById(id);
-const safe = value => value == null || value === "" ? "—" : String(value);
-const num = value => {
-  if (value == null || value === "") return "—";
-  const n = Number(value);
-  return Number.isFinite(n) ? n.toFixed(2) : "—";
-};
 const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
-  "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  "&":"&amp;",
+  "<":"&lt;",
+  ">":"&gt;",
+  '"':"&quot;",
+  "'":"&#39;"
 }[c]));
-
 function first(obj, keys) {
   for (const key of keys) {
     const value = obj?.[key];
@@ -225,238 +194,412 @@ function first(obj, keys) {
   }
   return null;
 }
-function arrayFrom(data) {
+function getArray(data, keys = ["sports","matches","events","odds","data","results"]) {
   if (Array.isArray(data)) return data;
-  for (const key of ["matches","events","odds","data","results"]) {
+  for (const key of keys) {
     if (Array.isArray(data?.[key])) return data[key];
   }
   return [];
 }
-function sportName(match) {
-  return String(first(match,["sport","sportName","category","key"]) || "").toLowerCase();
+function sportKey(item) {
+  return String(first(item,["key","sport_key","sportKey","id"]) || "");
 }
-function matchName(match) {
-  return first(match,["name","matchName","title","eventName"]) ||
-    [first(match,["homeTeam","home_team","team1"]),
-     first(match,["awayTeam","away_team","team2"])].filter(Boolean).join(" vs ") ||
-    "Unnamed match";
+function sportTitle(item) {
+  return String(first(item,["title","sport_title","name","group"]) || sportKey(item));
 }
-function sourceObject(match, names) {
-  const sources = match?.sources || match?.bookmakers || {};
-  for (const name of names) {
-    if (sources[name]) return sources[name];
-    if (match?.[name]) return match[name];
-  }
-  return {};
+function categoryOfKey(key) {
+  const k = String(key || "").toLowerCase();
+  if (/^soccer_/.test(k)) return "football";
+  if (/^americanfootball_/.test(k)) return "americanfootball";
+  if (/^mma_|mixed_martial|ufc/.test(k)) return "mma";
+  if (/^basketball_/.test(k)) return "basketball";
+  if (/^tennis_/.test(k)) return "tennis";
+  if (/^cricket_/.test(k)) return "cricket";
+  if (/^boxing_/.test(k)) return "boxing";
+  if (/^baseball_/.test(k)) return "baseball";
+  if (/^icehockey_/.test(k)) return "icehockey";
+  return "other";
 }
-function teamsOf(match) {
-  const outcomes = first(match,["teams","outcomes","runners"]);
-  if (Array.isArray(outcomes) && outcomes.length) {
-    return outcomes.map((x,i) => typeof x === "string" ? x :
-      first(x,["name","team","label","runnerName"]) || `Outcome ${i+1}`);
-  }
-  return [
-    first(match,["homeTeam","home_team","team1","participant1"]) || "Team A",
-    first(match,["awayTeam","away_team","team2","participant2"]) || "Team B"
-  ];
+function eventId(event) {
+  return String(first(event,["id","eventId","event_id","key"]) ||
+    [event?.sport_key,event?.home_team,event?.away_team,event?.commence_time].join("|"));
 }
-function oddsFor(source, side, team, index) {
-  const container = source?.[side] || source?.[side.toLowerCase()] || {};
-  if (Array.isArray(container)) return container[index]?.price ?? container[index]?.odds ?? null;
-  if (container && typeof container === "object") {
-    return container[team] ?? container[String(index)] ?? null;
-  }
-  const flat = source?.[`${side.toLowerCase()}Odds`] || source?.[`${side.toLowerCase()}_odds`];
-  if (Array.isArray(flat)) return flat[index]?.price ?? flat[index]?.odds ?? flat[index] ?? null;
-  return null;
+function eventName(event) {
+  const direct = first(event,["name","matchName","title","eventName"]);
+  if (direct) return String(direct);
+  const home = first(event,["home_team","homeTeam","team1","participant1"]);
+  const away = first(event,["away_team","awayTeam","team2","participant2"]);
+  if (home && away) return `${home} vs ${away}`;
+  return "Unnamed match";
 }
-function priceFor(source, team, index) {
-  const outcomes = source?.outcomes || source?.prices || source?.odds;
-  if (Array.isArray(outcomes)) {
-    const item = outcomes.find(x => x?.name === team || x?.team === team) || outcomes[index];
-    if (item && typeof item === "object") return first(item,["decimalOdds","decimal_odds","odds","price","probability"]);
-    return item ?? null;
-  }
-  if (outcomes && typeof outcomes === "object") return outcomes[team] ?? outcomes[String(index)] ?? null;
-  return source?.[team] ?? source?.[String(index)] ?? null;
-}
-function limitText(source) {
-  const liquidity = first(source,["availableLiquidity","available_liquidity","liquidity","marketLiquidity"]);
-  const min = first(source,["minStake","min_stake","minimumStake","minBet"]);
-  const max = first(source,["maxStake","max_stake","maximumStake","maxBet","marketLimit","market_limit"]);
-  const parts = [];
-  if (liquidity != null) parts.push(`Liquidity: ${liquidity}`);
-  if (min != null) parts.push(`Min: ${min}`);
-  if (max != null) parts.push(`Max / limit: ${max}`);
-  return parts.length ? parts.map(esc).join(" · ") : "Limit data unavailable";
-}
-function updated(source, match) {
-  return first(source,["updatedAt","updated_at","lastUpdated","timestamp","last_update"]) ??
-         first(match,["updatedAt","updated_at","lastUpdated","timestamp"]) ?? null;
-}
-function timeText(value) {
-  if (!value) return "—";
-  const date = typeof value === "number"
-    ? new Date(value < 1e12 ? value * 1000 : value)
-    : new Date(value);
-  return Number.isNaN(date.getTime()) ? safe(value) :
-    date.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
-}
-function sourceCard(match, type) {
-  const isExchange = type === "betfair";
-  const source = isExchange
-    ? sourceObject(match,["betfair","Betfair","betfairExchange","exchange"])
-    : sourceObject(match,["polymarket","Polymarket","poly"]);
-  const teams = teamsOf(match);
-  const title = isExchange ? "BETFAIR EXCHANGE" : "POLYMARKET";
-  let rows = "";
-  if (isExchange) {
-    rows += `<div class="minihead">BACK</div>`;
-    teams.slice(0,2).forEach((team,i) => {
-      rows += `<div class="rowodds"><span class="team">${esc(team)}</span>
-      <span class="odd">${esc(num(oddsFor(source,"back",team,i)))}</span></div>`;
+function eventTime(event) {
+  const value = first(event,["commence_time","startTime","start_time","date"]);
+  if (!value) return "";
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? String(value) :
+    d.toLocaleString([],{
+      month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"
     });
-    rows += `<div class="minihead">LAY</div>`;
-    teams.slice(0,2).forEach((team,i) => {
-      rows += `<div class="rowodds"><span class="team">${esc(team)}</span>
-      <span class="odd">${esc(num(oddsFor(source,"lay",team,i)))}</span></div>`;
-    });
-  } else {
-    rows += `<div class="minihead">DECIMAL ODDS</div>`;
-    teams.slice(0,2).forEach((team,i) => {
-      let value = priceFor(source,team,i);
-      if (value && typeof value === "object") value = first(value,["decimalOdds","decimal_odds","odds","price","probability"]);
-      const format = first(source,["priceFormat","price_format"]);
-      const isProbability = format === "probability" || source?.probabilities === true;
-      if (isProbability && Number(value) > 0 && Number(value) <= 1) value = 1 / Number(value);
-      rows += `<div class="rowodds"><span class="team">${esc(team)}</span>
-      <span class="odd">${esc(num(value))}</span></div>`;
-    });
-    const yes = first(source,["yesPrice","yes_price","yes"]);
-    const no = first(source,["noPrice","no_price","no"]);
-    if (yes != null || no != null) {
-      rows += `<div class="minihead">YES / NO MARKET PRICES</div>
-      <div class="rowodds"><span class="team">YES</span><span class="odd">${esc(num(yes))}</span></div>
-      <div class="rowodds"><span class="team">NO</span><span class="odd">${esc(num(no))}</span></div>`;
+}
+function fmtPrice(value) {
+  const n = Number(value);
+  return value == null || value === "" || !Number.isFinite(n) || n <= 0
+    ? "—" : n.toFixed(2);
+}
+function allBookmakers(event) {
+  return Array.isArray(event?.bookmakers) ? event.bookmakers : [];
+}
+function allMarkets(event) {
+  return allBookmakers(event).flatMap(book => {
+    const markets = Array.isArray(book.markets) ? book.markets : [];
+    return markets.map(market => ({
+      ...market,
+      bookmakerTitle: book.title || book.key || "Bookmaker",
+      bookmakerKey: book.key || "",
+      bookmakerUpdated: book.last_update || null
+    }));
+  });
+}
+function marketOutcomes(market) {
+  return Array.isArray(market?.outcomes) ? market.outcomes : [];
+}
+function marketLabel(key) {
+  const labels = {
+    h2h:"Match Winner",
+    spreads:"Handicap / Spread",
+    totals:"Over / Under",
+    outrights:"Outright Winner",
+    h2h_lay:"Lay Market"
+  };
+  return labels[key] || String(key || "Market").replace(/_/g," ");
+}
+function bestOutcomes(event, marketKey) {
+  const best = new Map();
+  for (const market of allMarkets(event)) {
+    if (market.key !== marketKey) continue;
+    for (const outcome of marketOutcomes(market)) {
+      const name = String(outcome.name || "Outcome");
+      const price = Number(outcome.price);
+      if (!Number.isFinite(price) || price <= 0) continue;
+      const old = best.get(name);
+      if (!old || price > old.price) {
+        best.set(name,{
+          name,
+          price,
+          bookmaker:market.bookmakerTitle,
+          updated:market.bookmakerUpdated,
+          point:outcome.point
+        });
+      }
     }
   }
-  return `<div class="source ${isExchange ? "exchange" : "poly"}">
-    <div class="sourcehead">${title}</div>${rows}
-    <div class="marketlimit"><b>Market limits</b><br>${limitText(source)}</div>
-    <div class="sourcefoot">Updated: ${esc(timeText(updated(source,match)))}</div>
-  </div>`;
+  return [...best.values()];
+}
+function sourceCard(event, kind) {
+  const isExchange = kind === "exchange";
+  const isPoly = kind === "poly";
+  /*
+    Standard Odds API bookmaker prices are not Betfair exchange
+    back/lay prices and are not Polymarket prices. Do not relabel them.
+  */
+  if (isExchange || isPoly) {
+    const title = isExchange ? "BETFAIR EXCHANGE" : "POLYMARKET";
+    const source = event?.sources?.[isExchange ? "betfair" : "polymarket"];
+    if (!source) {
+      return `<div class="source ${isPoly ? "poly" : ""}">
+        <div class="sourcehead ${isPoly ? "pink" : "blue"}">${title}</div>
+        <div class="empty" style="padding:12px 5px;font-size:10px">
+          Source not supplied by API
+        </div>
+      </div>`;
+    }
+    return `<div class="source ${isPoly ? "poly" : ""}">
+      <div class="sourcehead ${isPoly ? "pink" : "blue"}">${title}</div>
+      ${renderCustomSource(source)}
+    </div>`;
+  }
+  return "";
+}
+function renderCustomSource(source) {
+  const teams = Array.isArray(source.outcomes) ? source.outcomes : [];
+  let html = "";
+  for (const item of teams) {
+    const name = typeof item === "string" ? item : first(item,["name","team","label"]) || "Outcome";
+    const back = first(item,["back","backOdds","back_odds"]);
+    const lay = first(item,["lay","layOdds","lay_odds"]);
+    const price = first(item,["price","odds","decimalOdds","decimal_odds"]);
+    html += `<div class="rowodds">
+      <span class="team">${esc(name)}</span>
+      <span class="odd">${fmtPrice(back ?? price)}</span>
+    </div>`;
+    if (lay != null) {
+      html += `<div class="rowodds">
+        <span class="team">Lay · ${esc(name)}</span>
+        <span class="odd">${fmtPrice(lay)}</span>
+      </div>`;
+    }
+  }
+  return html || `<div class="muted">No prices supplied</div>`;
+}
+function bookmakerCard(event) {
+  const markets = allMarkets(event);
+  const keys = [...new Set(markets.map(m => m.key).filter(Boolean))];
+  const mainKey = keys.includes("h2h") ? "h2h" : keys[0];
+  const outcomes = mainKey ? bestOutcomes(event,mainKey) : [];
+  let html = `<div class="source">
+    <div class="sourcehead blue">BOOKMAKER ODDS</div>`;
+  if (!outcomes.length) {
+    html += `<div class="empty" style="padding:12px 5px;font-size:10px">
+      No bookmaker prices returned
+    </div>`;
+  } else {
+    html += `<div class="minihead">${esc(marketLabel(mainKey))} · BEST AVAILABLE</div>`;
+    for (const outcome of outcomes.slice(0,3)) {
+      html += `<div class="rowodds">
+        <div style="min-width:0">
+          <div class="team">${esc(outcome.name)}</div>
+          <div class="bookname">${esc(outcome.bookmaker)}</div>
+        </div>
+        <span class="odd">${fmtPrice(outcome.price)}</span>
+      </div>`;
+    }
+  }
+  const updated = markets.map(m => m.bookmakerUpdated).filter(Boolean).sort().pop();
+  html += `<div class="marketlimit">
+    <b>Markets:</b> ${keys.length}<br>
+    <b>Bookmakers:</b> ${new Set(markets.map(m => m.bookmakerKey)).size}<br>
+    <b>Updated:</b> ${esc(updated || "Not supplied")}
+  </div></div>`;
+  return html;
+}
+function matchesSelectedSport(event) {
+  if (selectedSport === "all") return true;
+  return categoryOfKey(event.sport_key || "") === selectedSport;
 }
 function renderMatches() {
   const query = $("search").value.trim().toLowerCase();
-  const list = allMatches.filter(match => {
-    const sport = sportName(match);
-    const sportOk = selectedSport === "all" ||
-      sport.includes(selectedSport) ||
-      (selectedSport === "mma" && /ufc|mma|mixed martial/.test(sport));
-    return sportOk && matchName(match).toLowerCase().includes(query);
+  let list = allMatches.filter(event => {
+    const searchable = [
+      eventName(event),
+      event.sport_title,
+      event.sport_key,
+      event.home_team,
+      event.away_team,
+      ...(allBookmakers(event).map(b => b.title || b.key || ""))
+    ].join(" ").toLowerCase();
+    if (selectedSport === "favorites" && !favorites.has(eventId(event))) return false;
+    return matchesSelectedSport(event) && searchable.includes(query);
   });
   $("matchCount").textContent = list.length;
   if (!list.length) {
-    $("matches").innerHTML = `<div class="empty">No matching markets returned by the API.<br>
-      Check the Worker response or choose another sport.</div>`;
+    $("matches").innerHTML = `<div class="empty">
+      No matches returned for this filter.<br>
+      Try All Sports or refresh the feed.<br>
+      <span class="muted">Only events supplied by your Worker can be shown.</span>
+    </div>`;
     return;
   }
-  $("matches").innerHTML = list.map((match,index) => {
-    const vol = first(match,["volume24h","volume_24h","volume","totalVolume"]);
-    const league = first(match,["league","competition","tournament"]) || "";
-    const start = first(match,["startTime","start_time","commence_time","date"]);
+  $("matches").innerHTML = list.map(event => {
+    const id = eventId(event);
+    const league = first(event,["sport_title","league","competition"]) ||
+      sportTitle({key:event.sport_key});
+    const start = eventTime(event);
+    const favorite = favorites.has(id);
     return `<article class="match">
       <div class="matchtop">
-        <div><div class="matchname">${esc(matchName(match))}</div>
-        <div class="league">${esc(league)}${start ? " · "+esc(start) : ""}</div></div>
-        <div class="vol"><b>${esc(vol == null ? "—" : vol)}</b>24h volume</div>
+        <div style="min-width:0">
+          <div class="matchname">${esc(eventName(event))}</div>
+          <div class="league">${esc(league)}</div>
+          ${start ? `<div class="kickoff">${esc(start)}</div>` : ""}
+        </div>
+        <button class="smallbtn" data-fav="${esc(id)}" aria-label="Toggle favorite">${favorite ? "♥" : "♡"}</button>
       </div>
-      <div class="sourcegrid">${sourceCard(match,"betfair")}${sourceCard(match,"polymarket")}</div>
-      <button class="openbtn" data-open="${index}">View all markets & limits →</button>
+      <div class="sourcegrid">
+        ${bookmakerCard(event)}
+        ${sourceCard(event,"exchange")}
+        ${sourceCard(event,"poly")}
+      </div>
+      <button class="openbtn" data-open="${esc(id)}">View all markets →</button>
     </article>`;
   }).join("");
   $("matches").querySelectorAll("[data-open]").forEach(btn => {
-    btn.addEventListener("click", () => openMatch(list[Number(btn.dataset.open)]));
+    btn.addEventListener("click",() => openMatch(btn.dataset.open));
+  });
+  $("matches").querySelectorAll("[data-fav]").forEach(btn => {
+    btn.addEventListener("click",() => {
+      const id = btn.dataset.fav;
+      if (favorites.has(id)) favorites.delete(id);
+      else favorites.add(id);
+      renderMatches();
+    });
   });
 }
-function openMatch(match) {
-  currentMatch = match;
+function openMatch(id) {
+  const event = allMatches.find(item => eventId(item) === id);
+  if (!event) return;
+  currentMatchId = id;
   $("listing").style.display = "none";
   $("details").classList.add("show");
-  $("detailTitle").textContent = matchName(match);
-  const markets = first(match,["markets","marketList","market_list"]) || [];
-  if (!Array.isArray(markets) || !markets.length) {
-    $("marketList").innerHTML = `<div class="empty">No market-level data in this API response yet.
-      <br>Match odds are shown only when supplied by the connected feed.</div>`;
+  $("detailTitle").textContent = eventName(event);
+  const markets = allMarkets(event);
+  if (!markets.length) {
+    $("marketList").innerHTML = `<div class="empty">
+      No market-level prices are available for this match in the current API response.
+    </div>`;
     return;
   }
-  $("marketList").innerHTML = markets.map(market => {
-    const title = first(market,["name","title","marketName","market_name"]) || "Market";
-    const outcomes = first(market,["outcomes","runners","selections"]) || [];
-    const renderOutcomes = (source,type) => outcomes.map((outcome,i) => {
-      const name = typeof outcome === "string" ? outcome :
-        first(outcome,["name","label","runnerName"]) || `Outcome ${i+1}`;
-      const value = typeof outcome === "object" ? first(outcome,["odds","price","decimalOdds"]) : null;
-      return `<div class="rowodds"><span class="team">${esc(name)}</span>
-      <span class="odd">${esc(num(value))}</span></div>`;
-    }).join("") || `<div class="muted">No outcome prices supplied</div>`;
-    const poly = sourceObject(market,["polymarket","Polymarket","poly"]);
-    const bf = sourceObject(market,["betfair","Betfair","betfairExchange","exchange"]);
-    return `<div class="market"><div class="markettitle">${esc(title)}</div>
-      <div class="marketcols">
-        <div class="marketcol"><h3>BETFAIR EXCHANGE</h3>${renderOutcomes(bf,"betfair")}
-          <div class="marketlimitrow">Market limits: ${limitText(bf)}<br>Updated: ${esc(timeText(updated(bf,market)))}</div>
-        </div>
-        <div class="marketcol red"><h3>POLYMARKET</h3>${renderOutcomes(poly,"poly")}
-          <div class="marketlimitrow">Market limits: ${limitText(poly)}<br>Updated: ${esc(timeText(updated(poly,market)))}</div>
-        </div>
-      </div></div>`;
+  const grouped = new Map();
+  for (const market of markets) {
+    const key = market.key || "other";
+    if (!grouped.has(key)) grouped.set(key,[]);
+    grouped.get(key).push(market);
+  }
+  $("marketList").innerHTML = [...grouped.entries()].map(([key,items]) => {
+    let rows = "";
+    for (const market of items) {
+      rows += `<div class="marketmeta">
+        ${esc(market.bookmakerTitle)}
+        ${market.bookmakerUpdated ? " · Updated "+esc(formatTime(market.bookmakerUpdated)) : ""}
+      </div>`;
+      const outcomes = marketOutcomes(market);
+      if (!outcomes.length) {
+        rows += `<div class="muted">No outcomes supplied</div>`;
+      } else {
+        rows += outcomes.map(outcome => `
+          <div class="rowodds">
+            <div style="min-width:0">
+              <div class="team">${esc(outcome.name || "Outcome")}</div>
+              ${outcome.point != null ? `<div class="bookname">Line: ${esc(outcome.point)}</div>` : ""}
+            </div>
+            <span class="odd">${fmtPrice(outcome.price)}</span>
+          </div>
+        `).join("");
+      }
+    }
+    return `<div class="market">
+      <div class="markettitle">${esc(marketLabel(key))}</div>
+      ${rows}
+    </div>`;
   }).join("");
 }
+async function fetchJSON(url) {
+  const response = await fetch(url,{cache:"no-store"});
+  if (!response.ok) {
+    throw new Error(`API returned HTTP ${response.status}`);
+  }
+  const data = await response.json();
+  if (data?.error) {
+    throw new Error(String(data.error));
+  }
+  return data;
+}
+async function loadSportsCatalog() {
+  const payload = await fetchJSON(`${API_BASE}/sports`);
+  sportsCatalog = getArray(payload,["sports","data","results"]);
+  return sportsCatalog;
+}
+function keysForSelectedSport() {
+  let keys = sportsCatalog.map(sportKey).filter(Boolean);
+  if (selectedSport !== "all") {
+    keys = keys.filter(key => categoryOfKey(key) === selectedSport);
+  }
+  return keys.slice(0,MAX_KEYS_PER_LOAD);
+}
+function normalizeEvents(payload, key) {
+  const events = getArray(payload,["matches","events","odds","data","results"]);
+  return events.map(event => ({
+    ...event,
+    sport_key: event.sport_key || event.sportKey || key,
+    sport_title: event.sport_title || event.sportTitle ||
+      sportTitle(sportsCatalog.find(s => sportKey(s) === key) || {key})
+  }));
+}
 async function loadData() {
-  $("connection").textContent = "Fetching odds…";
+  if (loading) return;
+  loading = true;
+  const version = ++requestVersion;
+  $("connection").textContent = "Fetching live odds…";
+  $("liveText").textContent = "LOADING";
   try {
-    if (API_BASE.includes("YOUR-WORKER-URL")) {
-      throw new Error("Set API_BASE to your deployed Worker URL");
+    if (!sportsCatalog.length) {
+      await loadSportsCatalog();
     }
-    const sport = selectedSport === "all" ? "all" : selectedSport;
-    const url = `${API_BASE.replace(/\/$/,"")}/odds?sport=${encodeURIComponent(sport)}`;
-    const response = await fetch(url,{cache:"no-store"});
-    if (!response.ok) throw new Error(`Odds API HTTP ${response.status}`);
-    const payload = await response.json();
-    if (payload?.error) throw new Error(payload.error);
-    allMatches = arrayFrom(payload);
-    $("connection").textContent = "API connected";
-    $("liveText").textContent = "FEED OK";
+    const keys = keysForSelectedSport();
+    if (!keys.length) {
+      allMatches = [];
+      renderMatches();
+      $("connection").textContent = "No sport keys found for this category";
+      $("liveText").textContent = "NO DATA";
+      return;
+    }
+    const results = await Promise.allSettled(
+      keys.map(async key => {
+        const payload = await fetchJSON(
+          `${API_BASE}/odds?sport=${encodeURIComponent(key)}`
+        );
+        return normalizeEvents(payload,key);
+      })
+    );
+    if (version !== requestVersion) return;
+    const combined = [];
+    const errors = [];
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      if (result.status === "fulfilled") {
+        combined.push(...result.value);
+      } else {
+        errors.push(`${keys[i]}: ${result.reason?.message || "Request failed"}`);
+      }
+    }
+    const unique = new Map();
+    for (const event of combined) {
+      unique.set(eventId(event),event);
+    }
+    allMatches = [...unique.values()];
     $("lastFetch").textContent = new Date().toLocaleTimeString([],{
       hour:"2-digit",minute:"2-digit",second:"2-digit"
     });
+    $("connection").textContent = errors.length
+      ? `Loaded with ${errors.length} feed error(s)`
+      : "API connected";
+    $("liveText").textContent = allMatches.length ? "FEED OK" : "NO MATCHES";
     renderMatches();
-    if (currentMatch) {
-      const id = first(currentMatch,["id","eventId","event_id","key"]);
-      const fresh = allMatches.find(m => id != null &&
-        first(m,["id","eventId","event_id","key"]) === id);
-      if (fresh) openMatch(fresh);
+    if (currentMatchId) {
+      const stillExists = allMatches.some(event => eventId(event) === currentMatchId);
+      if (stillExists) openMatch(currentMatchId);
+    }
+    if (errors.length) {
+      console.warn("Some odds requests failed:",errors);
     }
   } catch (error) {
+    if (version !== requestVersion) return;
     $("connection").textContent = error.message || "API unavailable";
     $("liveText").textContent = "OFFLINE";
     if (!allMatches.length) {
-      $("matches").innerHTML = `<div class="empty">Live data unavailable.<br>
-      Check API_BASE and the Worker endpoint.<br><small>${esc(error.message)}</small></div>`;
+      $("matches").innerHTML = `<div class="empty">
+        Live data unavailable.<br>
+        Check your Worker URL and API response.<br>
+        <small>${esc(error.message)}</small>
+      </div>`;
     }
+  } finally {
+    loading = false;
   }
 }
 function scheduleRefresh() {
   if (refreshTimer) clearInterval(refreshTimer);
-  refreshTimer = setInterval(() => { if (autoRefresh) loadData(); },REFRESH_MS);
+  refreshTimer = setInterval(() => {
+    if (autoRefresh && !document.hidden) loadData();
+  },REFRESH_MS);
 }
-$("sports").addEventListener("click",e => {
-  const btn = e.target.closest("[data-sport]");
+$("sports").addEventListener("click",event => {
+  const btn = event.target.closest("[data-sport]");
   if (!btn) return;
   selectedSport = btn.dataset.sport;
-  document.querySelectorAll(".sport").forEach(b => b.classList.toggle("active",b===btn));
-  currentMatch = null;
+  document.querySelectorAll(".sport").forEach(item => {
+    item.classList.toggle("active",item === btn);
+  });
+  currentMatchId = null;
   $("details").classList.remove("show");
   $("listing").style.display = "block";
   loadData();
@@ -464,27 +607,42 @@ $("sports").addEventListener("click",e => {
 $("search").addEventListener("input",renderMatches);
 $("refresh").addEventListener("click",loadData);
 $("back").addEventListener("click",() => {
-  currentMatch = null;
+  currentMatchId = null;
   $("details").classList.remove("show");
   $("listing").style.display = "block";
 });
-document.querySelectorAll("[data-nav]").forEach(btn => btn.addEventListener("click",() => {
-  document.querySelectorAll("[data-nav]").forEach(b => b.classList.toggle("active",b===btn));
-  if (btn.dataset.nav === "search") $("search").focus();
-  if (btn.dataset.nav === "live") loadData();
-  if (btn.dataset.nav === "favorites") {
-    $("connection").textContent = "Favorites: add this feature after API fields are confirmed";
-  }
-  if (btn.dataset.nav === "settings") {
-    autoRefresh = !autoRefresh;
-    $("refreshState").textContent = autoRefresh ? "ON" : "OFF";
-    $("connection").textContent = autoRefresh ? "Auto refresh enabled" : "Auto refresh paused";
-  }
-  if (btn.dataset.nav === "home") {
-    $("details").classList.remove("show");
-    $("listing").style.display = "block";
-  }
-}));
+document.querySelectorAll("[data-nav]").forEach(btn => {
+  btn.addEventListener("click",() => {
+    document.querySelectorAll("[data-nav]").forEach(item => {
+      item.classList.toggle("active",item === btn);
+    });
+    const action = btn.dataset.nav;
+    if (action === "search") {
+      $("search").focus();
+    } else if (action === "live") {
+      loadData();
+    } else if (action === "favorites") {
+      $("connection").textContent = "Showing your current-session favorites";
+      $("details").classList.remove("show");
+      $("listing").style.display = "block";
+      renderMatches();
+    } else if (action === "settings") {
+      autoRefresh = !autoRefresh;
+      $("refreshState").textContent = autoRefresh ? "ON" : "OFF";
+      $("connection").textContent = autoRefresh
+        ? "Auto refresh enabled"
+        : "Auto refresh paused";
+    } else {
+      currentMatchId = null;
+      $("details").classList.remove("show");
+      $("listing").style.display = "block";
+      renderMatches();
+    }
+  });
+});
+document.addEventListener("visibilitychange",() => {
+  if (!document.hidden && autoRefresh) loadData();
+});
 loadData();
 scheduleRefresh();
 </script>
