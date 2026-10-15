@@ -188,95 +188,768 @@ header h1{color:#f1f7ff}.subtitle{color:#a5b6cc}.eyebrow{color:#9bcaff}
   </div>
 </main>
 <script>
-'use strict';
-const GAMMA='https://gamma-api.polymarket.com',CLOB='https://clob.polymarket.com',ODDS='https://api.the-odds-api.com/v4',WS_URL='wss://ws-subscriptions-clob.polymarket.com/ws/market';
-const $=id=>document.getElementById(id);
-let selectedSport='all',pmMarkets=[],bookEvents=[],loading=false,lastSuccess=null,marketWS=null,wsRetryTimer=null,wsPingTimer=null,wsRetryDelay=1000,wsConnectedAt=0,wsStopped=false,restFallbackBusy=false;
-const expanded=new Set(),bookCache=new Map(),orderBookCache=new Map(),wsSubscribed=new Set();
-const MAX_WS_TOKENS=1200;
-const SPORTS=['cricket','tennis','soccer','mma'];
-const candidateKeys={cricket:['cricket_test_match','cricket_one_day_international','cricket_international_t20','cricket_t20_blast','cricket_big_bash','cricket_ipl'],tennis:['tennis_atp_french_open','tennis_atp_wimbledon','tennis_atp_us_open','tennis_atp_australian_open'],soccer:['soccer_epl','soccer_uefa_champs_league','soccer_spain_la_liga','soccer_italy_serie_a','soccer_germany_bundesliga','soccer_france_ligue_one'],mma:['mma_mixed_martial_arts']};
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function arr(v){if(Array.isArray(v))return v;if(typeof v==='string'){try{const p=JSON.parse(v);return Array.isArray(p)?p:[]}catch{return[]}}return[];}
-function norm(v){return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\b(fc|afc|sc|club|team|women|womens|men|mens)\b/g,' ').replace(/[^a-z0-9]+/g,' ').trim();}
-function classify(text){const t=String(text||'').toLowerCase();if(/\b(cricket|ipl|t20|odi|test match|ashes|ranji|wpl|big bash|county championship)\b/.test(t))return'cricket';if(/\b(tennis|atp|wta|wimbledon|roland garros|french open|us open|australian open)\b/.test(t))return'tennis';if(/\b(soccer|football|ballon d.?or|fifa|uefa|premier league|champions league|la liga|serie a|bundesliga|ligue 1|world cup|europa league|fa cup|epl)\b/.test(t))return'soccer';if(/\b(mma|ufc|mixed martial arts|ultimate fighting championship)\b/.test(t))return'mma';return'other';}
-function fmt(decimal){if(!Number.isFinite(decimal)||decimal<1.001)return'—';return decimal.toFixed(2)}
-function probOdds(p){p=Number(p);return Number.isFinite(p)&&p>0&&p<=1?fmt(1/p):'—'}
-function setStatus(msg,type=''){const el=$('status');el.className='status'+(type?' '+type:'');el.textContent=msg;}
-async function json(url){const r=await fetch(url,{headers:{Accept:'application/json'}});if(!r.ok)throw new Error('HTTP '+r.status+' from '+new URL(url).hostname);return r.json()}
-function getKey(){try{return localStorage.getItem('crystalOddsApiKey')||''}catch{return''}}
-function saveKey(){const k=$('apiKey').value.trim();try{if(k)localStorage.setItem('crystalOddsApiKey',k);else localStorage.removeItem('crystalOddsApiKey')}catch{}if(!k){setStatus('API key cleared. Polymarket remains available without it.');bookEvents=[];render();return}setStatus('Key saved on this device. Checking available bookmaker markets…');refreshAll()}
-function getEventTitle(e){return e?.title||e?.name||''}
-function sportText(e){return [e.title,e.name,e.slug,e.description,arr(e.tags).map(t=>typeof t==='string'?t:[t.label,t.name,t.slug].filter(Boolean).join(' ')).join(' ')].join(' ')}
-function outcomesOf(m){const names=arr(m.outcomes),prices=arr(m.outcomePrices||m.outcome_prices),tokens=arr(m.clobTokenIds||m.clob_token_ids);return names.map((x,i)=>({name:String(typeof x==='object'?(x.name||x.label||''):x),prob:Number(prices[i]),tokenId:tokens[i]?String(tokens[i]):''})).filter(x=>x.name.trim())}
-function volume(m,e){for(const x of [m.volumeNum,m.volume,m.volume24hr,m.liquidityNum,e?.volumeNum,e?.volume]){const n=Number(x);if(x!==''&&x!=null&&Number.isFinite(n)&&n>=0)return new Intl.NumberFormat('en',{notation:n>=1000?'compact':'standard',maximumFractionDigits:1}).format(n)}return'—'}
-function makePMMarket(m,e={},hint='other'){if(m.closed===true||m.active===false)return null;const outs=outcomesOf(m);if(outs.length<2)return null;const titleEvent=getEventTitle(e)||m.eventTitle||'';const sport=classify([sportText(e),m.question,m.slug,m.description,titleEvent].join(' '));const actualSport=sport==='other'?hint:sport;if(actualSport==='other')return null;const title=titleEvent&&/\b(vs?\.?|versus)\b/i.test(titleEvent)?titleEvent:(m.question||titleEvent||outs.map(o=>o.name).slice(0,2).join(' vs '));const eventSlug=e.slug||m.eventSlug||m.slug||'';return{id:String(m.id||m.conditionId||m.slug||m.question),sport:actualSport,title,question:m.question||'',eventTitle:titleEvent,outcomes:outs,volume:volume(m,e),url:eventSlug?'https://polymarket.com/event/'+encodeURIComponent(eventSlug):'https://polymarket.com',source:'Polymarket'};}
-async function loadPM(){
-  // Gamma is the direct, public Polymarket catalogue; CLOB/WebSocket below supplies live bid/ask.
-  const map=new Map(),errors=[];
-  const eventPages=[0,100,200,300,400].map(offset=>json(GAMMA+'/events?active=true&closed=false&limit=100&offset='+offset+'&order=volume24hr&ascending=false'));
-  const marketPages=[0,100,200,300,400].map(offset=>json(GAMMA+'/markets?active=true&closed=false&limit=100&offset='+offset+'&order=volume24hr&ascending=false'));
-  const results=await Promise.allSettled([...eventPages,...marketPages]);
-  for(let i=0;i<results.length;i++){
-    const r=results[i];
-    if(r.status!=='fulfilled'){errors.push(r.reason?.message||'Gamma request failed');continue;}
-    if(!Array.isArray(r.value))continue;
-    if(i<eventPages.length){
-      for(const e of r.value){
-        const s=classify(sportText(e));
-        for(const m of arr(e.markets)){const item=makePMMarket(m,e,s);if(item)map.set(item.id,item);}
-      }
-    }else{
-      for(const m of r.value){
-        const ev=arr(m.events)[0]||{};
-        const item=makePMMarket(m,ev,'other');
-        if(item&&!map.has(item.id))map.set(item.id,item);
-      }
+(() => {
+  "use strict";
+  /* CRYSTAL ODDS — MAIN SCRIPT */
+  const GAMMA = "https://gamma-api.polymarket.com";
+  const CLOB = "https://clob.polymarket.com";
+  const WORKER =
+    "https://crystal-odds-api.karanarora082000.workers.dev";
+  const $ = id => document.getElementById(id);
+  const state = {
+    sport: "all",
+    markets: [],
+    events: [],
+    books: [],
+    prices: {},
+    booksByEvent: {},
+    loading: false,
+    lastUpdate: null,
+    errors: [],
+    ws: null,
+    wsIds: new Set(),
+    wsRetry: null
+  };
+  const SPORT_KEYS = {
+    cricket: [
+      "cricket_international_t20",
+      "cricket_test_match",
+      "cricket_odi"
+    ],
+    tennis: [
+      "tennis_atp",
+      "tennis_wta"
+    ],
+    football: [
+      "soccer_epl",
+      "soccer_spain_la_liga",
+      "soccer_italy_serie_a",
+      "soccer_germany_bundesliga",
+      "soccer_uefa_champs_league",
+      "soccer_uefa_europa_league",
+      "soccer_france_ligue_one"
+    ],
+    mma: [
+      "mma_mixed_martial_arts"
+    ]
+  };
+  const SPORT_WORDS = {
+    cricket: /cricket|ipl|t20|test match|one day|odi|ashes|world cup/i,
+    tennis: /tennis|atp|wta|wimbledon|roland garros|us open|australian open/i,
+    football: /soccer|football|premier league|la liga|bundesliga|serie a|champions league|europa league|fa cup/i,
+    mma: /\bmma\b|ufc|mixed martial arts|fight night/i
+  };
+  const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[c]);
+  const num = value => {
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  };
+  const fmt = value => {
+    const n = num(value);
+    return n === null || n <= 0 ? "—" : n.toFixed(2);
+  };
+  const fmtPct = value => {
+    const n = num(value);
+    return n === null ? "—" : (n * 100).toFixed(1) + "%";
+  };
+  const norm = value => String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\b(fc|cf|sc|afc|club|team|women|womens|men|mens|the)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+  function detectSport(value) {
+    const text = String(value || "");
+    for (const [sport, regex] of Object.entries(SPORT_WORDS)) {
+      if (regex.test(text)) return sport;
+    }
+    return "other";
+  }
+  function activeSport() {
+    const search = $("search")?.value?.trim().toLowerCase() || "";
+    return state.sport || "all";
+  }
+  function setStatus(message, error = false) {
+    const el = $("status");
+    if (el) el.textContent = message;
+    const feed = $("feedText");
+    if (feed) feed.textContent = message;
+    const feedState = $("feedState");
+    if (feedState) {
+      feedState.textContent = error ? "Check connection" : "Connected";
     }
   }
-  if(!map.size&&pmMarkets.length)throw new Error('Gamma returned no markets; keeping the last successful list. '+(errors[0]||''));
-  pmMarkets=[...map.values()];
-  if(!pmMarkets.length)throw new Error('No supported sports markets found in Gamma. '+(errors[0]||'Check network/CORS and Gamma API response.'));
-}
-function parseBookEvent(e,sport){return{...e,sport:sport||classify(e.sport_title||e.sport_key||'other')}}
-async function loadBooks(){const key=$('apiKey').value.trim()||getKey();if(!key){bookEvents=[];return}const sports=await json(ODDS+'/sports/?apiKey='+encodeURIComponent(key));const active=Array.isArray(sports)?sports.filter(s=>s.active):[];let chosen=[];const wanted=selectedSport==='all'?SPORTS:[selectedSport];for(const cat of wanted){let found=active.filter(s=>{const title=[s.key,s.title,s.group].join(' ').toLowerCase();if(cat==='soccer')return title.includes('soccer');if(cat==='cricket')return title.includes('cricket');if(cat==='tennis')return title.includes('tennis');if(cat==='mma')return title.includes('mma')||title.includes('ufc');return false});const exact=candidateKeys[cat]||[];found.sort((a,b)=>{const ai=exact.indexOf(a.key),bi=exact.indexOf(b.key);return(ai<0?999:ai)-(bi<0?999:bi)});chosen.push(...found.slice(0,cat==='soccer'?5:3))}chosen=[...new Map(chosen.map(s=>[s.key,s])).values()];const settled=await Promise.allSettled(chosen.map(s=>json(ODDS+'/sports/'+encodeURIComponent(s.key)+'/odds/?regions=uk&markets=h2h&oddsFormat=decimal&apiKey='+encodeURIComponent(key)).then(events=>({s,events}))));const map=new Map();for(const r of settled){if(r.status!=='fulfilled'||!Array.isArray(r.value.events))continue;for(const e of r.value.events){const item=parseBookEvent(e,classify([r.value.s.key,r.value.s.title,r.value.s.group].join(' ')));const id=e.id||[e.home_team,e.away_team,e.commence_time].join('|');map.set(id,item)}}bookEvents=[...map.values()];const bad=settled.filter(x=>x.status==='rejected');if(!bookEvents.length&&bad.length)throw bad[0].reason;}
-function marketBest(outcome){if(!outcome.tokenId)return{bid:null,ask:null,error:'Token ID unavailable'};return orderBookCache.get(outcome.tokenId)||{bid:null,ask:null,pending:true}}
-function setFeedState(text,state){const box=$('feedState');if(!box)return;box.className='feed-state '+(state||'disconnected');$('feedText').textContent=text}
-function bestFromLevels(levels,side){const prices=arr(levels).map(x=>Number(x.price)).filter(x=>Number.isFinite(x)&&x>0&&x<=1);if(!prices.length)return null;return side==='bid'?Math.max(...prices):Math.min(...prices)}
-function priceLabel(o){const ob=marketBest(o);const vals=[ob.bid,ob.ask].filter(x=>Number.isFinite(x)&&x>0&&x<=1);const p=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:Number(o.prob);return Number.isFinite(p)&&p>=0&&p<=1?(p*100).toFixed(1)+'%':'—'}
-function paintToken(tokenId){const ob=orderBookCache.get(String(tokenId));if(!ob)return;document.querySelectorAll('.source-box.pm[data-token-id="'+CSS.escape(String(tokenId))+'"]').forEach(box=>{const cells=box.querySelectorAll('.price-cell strong');if(cells[0])cells[0].textContent=ob.ask!=null?fmt(1/ob.ask):'—';if(cells[1])cells[1].textContent=ob.bid!=null?fmt(1/ob.bid):'—';const note=box.querySelector('.price-note');if(note)note.textContent=(ob.bid!=null?'Bid '+ob.bid.toFixed(3):'Bid unavailable')+' · '+(ob.ask!=null?'Ask '+ob.ask.toFixed(3):'Ask unavailable')+(ob.at?' · '+new Date(ob.at).toLocaleTimeString():'')});document.querySelectorAll('.outcome-prob[data-prob-token="'+CSS.escape(String(tokenId))+'"]').forEach(el=>el.textContent='· '+priceLabel({tokenId,prob:NaN}))}
-function applyBookUpdate(tokenId,bid,ask,source='ws'){if(!tokenId)return;tokenId=String(tokenId);const old=orderBookCache.get(tokenId)||{};const next={...old,bid:bid!==undefined?validPrice(bid):old.bid,ask:ask!==undefined?validPrice(ask):old.ask,at:Date.now(),source,loading:false};orderBookCache.set(tokenId,next);paintToken(tokenId)}
-function validPrice(v){if(v===null||v===''||v===undefined)return null;const n=Number(v);return Number.isFinite(n)&&n>0&&n<=1?n:null}
-async function loadBookFor(outcome,force=false){if(!outcome.tokenId)return;const id=String(outcome.tokenId),old=orderBookCache.get(id);if(marketWS&&marketWS.readyState===WebSocket.OPEN&&!force&&old&&old.at)return;if(old?.loading)return;if(!force&&old?.at&&Date.now()-old.at<12000)return;const startedAt=Date.now();orderBookCache.set(id,{...(old||{}),loading:true});try{const d=await json(CLOB+'/book?token_id='+encodeURIComponent(id));const current=orderBookCache.get(id);if(!(current?.source==='ws'&&current.at>startedAt))applyBookUpdate(id,bestFromLevels(d.bids,'bid'),bestFromLevels(d.asks,'ask'),'rest')}catch(e){orderBookCache.set(id,{...(orderBookCache.get(id)||{}),loading:false,error:e.message})}}
-function collectTokenIds(){const q=norm($('search').value);const filtered=pmMarkets.filter(m=>(selectedSport==='all'||m.sport===selectedSport)&&(!q||norm([m.title,m.question,m.eventTitle,m.sport,...m.outcomes.map(o=>o.name)].join(' ')).includes(q)));const ordered=[...filtered,...pmMarkets.filter(m=>!filtered.includes(m))];const ids=[];const seen=new Set();for(const m of ordered)for(const o of m.outcomes){if(o.tokenId&&!seen.has(o.tokenId)){seen.add(o.tokenId);ids.push(String(o.tokenId));if(ids.length>=MAX_WS_TOKENS)return ids}}return ids}
-function sendWs(message){if(marketWS&&marketWS.readyState===WebSocket.OPEN)marketWS.send(JSON.stringify(message))}
-function subscribeTokens(ids){const add=ids.filter(id=>!wsSubscribed.has(id));for(let i=0;i<add.length;i+=150){const batch=add.slice(i,i+150);if(!wsSubscribed.size)sendWs({type:'market',assets_ids:batch});else sendWs({operation:'subscribe',assets_ids:batch});batch.forEach(id=>wsSubscribed.add(id))}}
-function updateWsSubscriptions(){const ids=collectTokenIds();if(!marketWS||marketWS.readyState!==WebSocket.OPEN)return;const next=new Set(ids);const remove=[...wsSubscribed].filter(id=>!next.has(id));for(let i=0;i<remove.length;i+=150){const batch=remove.slice(i,i+150);sendWs({operation:'unsubscribe',assets_ids:batch});batch.forEach(id=>wsSubscribed.delete(id))}subscribeTokens(ids)}
-function handleWsMessage(raw){let data;try{data=typeof raw==='string'?JSON.parse(raw):raw}catch{return}if(Array.isArray(data)){data.forEach(handleWsMessage);return}if(!data||typeof data!=='object')return;const type=String(data.event_type||data.type||'').toLowerCase();if(type==='book'||(Array.isArray(data.bids)&&Array.isArray(data.asks))){const id=data.asset_id||data.assetId;if(id)applyBookUpdate(id,bestFromLevels(data.bids,'bid'),bestFromLevels(data.asks,'ask'),'ws');return}if(type==='best_bid_ask'||data.best_bid!==undefined||data.best_ask!==undefined){const id=data.asset_id||data.assetId;if(id)applyBookUpdate(id,data.best_bid!==undefined?data.best_bid:undefined,data.best_ask!==undefined?data.best_ask:undefined,'ws');return}if(type==='price_change'||Array.isArray(data.price_changes)){for(const change of arr(data.price_changes)){const id=change.asset_id||change.assetId;if(id&&(change.best_bid!==undefined||change.best_ask!==undefined))applyBookUpdate(id,change.best_bid,change.best_ask,'ws')}return}if(type==='market'){const id=data.asset_id||data.assetId;if(id&&(data.best_bid!==undefined||data.best_ask!==undefined))applyBookUpdate(id,data.best_bid,data.best_ask,'ws')}}
-function connectMarketWS(){if(wsStopped||marketWS&&(marketWS.readyState===WebSocket.OPEN||marketWS.readyState===WebSocket.CONNECTING))return;clearTimeout(wsRetryTimer);try{setFeedState('Connecting to Polymarket live order book…','disconnected');marketWS=new WebSocket(WS_URL);marketWS.onopen=()=>{wsRetryDelay=1000;wsConnectedAt=Date.now();wsSubscribed.clear();const ids=collectTokenIds();if(ids.length){const first=ids.slice(0,150);sendWs({type:'market',assets_ids:first});first.forEach(id=>wsSubscribed.add(id));for(let i=150;i<ids.length;i+=150){const batch=ids.slice(i,i+150);sendWs({operation:'subscribe',assets_ids:batch});batch.forEach(id=>wsSubscribed.add(id))}}setFeedState('Polymarket WebSocket connected · live order-book updates active for '+wsSubscribed.size+' tokens','connected');if(wsPingTimer)clearInterval(wsPingTimer);wsPingTimer=setInterval(()=>{if(marketWS&&marketWS.readyState===WebSocket.OPEN){try{marketWS.send('PING')}catch{}}},10000);const visible=collectVisibleOutcomes(20);Promise.allSettled(visible.map(o=>loadBookFor(o,true))).then(()=>setFeedState('Polymarket live feed connected · '+wsSubscribed.size+' tokens subscribed','connected'))};marketWS.onmessage=e=>{if(e.data==='PONG')return;handleWsMessage(e.data)};marketWS.onerror=()=>setFeedState('Polymarket live feed hiccup · reconnecting automatically','disconnected');marketWS.onclose=()=>{if(wsPingTimer){clearInterval(wsPingTimer);wsPingTimer=null}wsSubscribed.clear();if(!wsStopped){setFeedState('Live feed disconnected · reconnecting in '+Math.round(wsRetryDelay/1000)+'s; REST fallback remains active','disconnected');wsRetryTimer=setTimeout(connectMarketWS,wsRetryDelay);wsRetryDelay=Math.min(wsRetryDelay*2,30000)}}}catch(e){setFeedState('WebSocket unavailable · REST fallback active','disconnected');wsRetryTimer=setTimeout(connectMarketWS,wsRetryDelay);wsRetryDelay=Math.min(wsRetryDelay*2,30000)}}
-function collectVisibleOutcomes(limit=40){const q=norm($('search').value);const list=pmMarkets.filter(m=>(selectedSport==='all'||m.sport===selectedSport)&&(!q||norm([m.title,m.question,m.eventTitle,m.sport,...m.outcomes.map(o=>o.name)].join(' ')).includes(q)));const out=[];for(const m of list)for(const o of m.outcomes){if(o.tokenId)out.push(o);if(out.length>=limit)return out}return out}
-async function fallbackPoll(){if(restFallbackBusy||document.hidden||marketWS&&marketWS.readyState===WebSocket.OPEN)return;restFallbackBusy=true;try{const batch=collectVisibleOutcomes(30);for(let i=0;i<batch.length;i+=6)await Promise.allSettled(batch.slice(i,i+6).map(o=>loadBookFor(o,true)));setFeedState('REST fallback active · refreshed '+batch.length+' token books · WebSocket reconnecting','disconnected')}finally{restFallbackBusy=false}}
-function isGenericOutcome(name){return['yes','no','true','false','over','under'].includes(norm(name))}
-function getMarketPair(m){const nonGeneric=m.outcomes.filter(o=>!isGenericOutcome(o.name));if(nonGeneric.length>=2)return nonGeneric.slice(0,2).map(o=>o.name);const txt=m.eventTitle+' '+m.title;const vs=txt.split(/\s+(?:vs?\.?|versus)\s+/i);return vs.length>=2?vs.slice(0,2).map(x=>x.trim()):[]}
-function eventTeams(e){return[e.home_team||'',e.away_team||'']}
-function sameName(a,b){const x=norm(a),y=norm(b);return!!x&&!!y&&(x===y||x.includes(y)||y.includes(x))}
-function findBookForMarket(m){const pair=getMarketPair(m);if(pair.length<2)return null;let best=null,bestScore=0;for(const e of bookEvents){if(selectedSport!=='all'&&e.sport!==selectedSport)continue;const teams=eventTeams(e);if(!teams[0]||!teams[1])continue;const direct=sameName(pair[0],teams[0])&&sameName(pair[1],teams[1]);const reverse=sameName(pair[0],teams[1])&&sameName(pair[1],teams[0]);let score=direct||reverse?3:0;if(score>bestScore){best=e;bestScore=score}}return bestScore>=3?best:null}
-function bookPrices(event,outcomeName){if(!event)return[];const want=norm(outcomeName),out=[];for(const b of arr(event.bookmakers)){const m=arr(b.markets).find(x=>x.key==='h2h');if(!m)continue;const o=arr(m.outcomes).find(x=>norm(x.name)===want||sameName(x.name,outcomeName));if(o&&Number.isFinite(Number(o.price)))out.push({price:Number(o.price),book:b.title})}return out.sort((a,b)=>b.price-a.price)}
-function renderPriceBox(side,marketOutcome,bookEvent,bookOutcomeName){if(side==='pm'){const ob=marketBest(marketOutcome),bid=ob.bid,ask=ob.ask;return'<div class="source-box pm" data-token-id="'+esc(marketOutcome.tokenId||'')+'"><div class="source-mini">Polymarket Exchange</div><div class="price-pair"><div class="price-cell"><span class="side">BUY / BACK</span><strong>'+(ask!=null?esc(fmt(1/ask)):'—')+'</strong></div><div class="price-cell"><span class="side">SELL / LAY</span><strong>'+(bid!=null?esc(fmt(1/bid)):'—')+'</strong></div></div><div class="price-note">'+(bid!=null?'Bid '+bid.toFixed(3):'Bid unavailable')+' · '+(ask!=null?'Ask '+ask.toFixed(3):'Ask unavailable')+'</div></div>'}
-const prices=bookPrices(bookEvent,bookOutcomeName);return'<div class="source-box bk"><div class="source-mini">UK BOOKMAKERS</div><div class="uk-price-head"><span>BOOKMAKER</span><span>BACK</span><span>LAY</span></div><div class="bookmaker-list">'+(prices.length?prices.slice(0,6).map(p=>'<div class="bookmaker-line"><span class="book-name">'+esc(p.book)+'</span><strong class="uk-back">'+esc(fmt(p.price))+'</strong><strong class="uk-lay">—</strong></div>').join(''):'<div class="price-note">No matching UK odds available</div>')+'</div><div class="price-note">BACK = provider price · LAY = — when not supplied by the bookmaker feed</div></div>'}
-function renderCard(m){const be=findBookForMarket(m),isOpen=expanded.has(m.id);const nonGeneric=m.outcomes.filter(o=>!isGenericOutcome(o.name));const shown=nonGeneric.length?nonGeneric.slice(0,4):m.outcomes.slice(0,2);const rows=shown.map(o=>{let matchedName=o.name;if(be){const teams=eventTeams(be);if(sameName(o.name,teams[0]))matchedName=teams[0];else if(sameName(o.name,teams[1]))matchedName=teams[1]}const pct=priceLabel(o);return'<div class="outcome-row"><div class="quote-card"><div class="quote-heading"><div class="outcome-name">'+esc(o.name)+'</div><span class="outcome-prob" data-prob-token="'+esc(o.tokenId||'')+'">'+esc(pct)+'</span></div><div class="parallel">'+renderPriceBox('pm',o,null,null)+renderPriceBox('bk',null,be,matchedName)+'</div></div></div>'}).join('');const bTitle=be?be.home_team+' vs '+be.away_team:'No exact bookmaker match found';const bTime=be?.commence_time?new Date(be.commence_time).toLocaleString():'Bookmaker event not matched';return'<article class="match-card glass"><div class="card-top"><span class="sport-tag">'+esc(m.sport)+'</span><span class="source-tag">POLYMARKET'+(be?' + UK MATCH':'')+'</span></div><div class="match-name">'+esc(m.title)+'</div><div class="match-meta"><span class="meta">Volume '+esc(m.volume)+'</span><span class="meta">'+esc(be?bTime:'UK odds: unmatched')+'</span></div><div class="compare-head"><div class="compare-label pm">🔵 POLYMARKET</div><div class="compare-label bk">🔴 UK BOOKMAKER</div></div>'+(rows||'<div class="empty">No outcomes returned for this market.</div>')+'<button class="details-toggle" type="button" data-toggle="'+esc(m.id)+'" aria-expanded="'+isOpen+'">'+(isOpen?'Hide market details ↑':'View full market details ↓')+'</button><div class="details '+(isOpen?'open':'')+'"><div class="detail-title">MARKET DETAILS</div><div class="detail-market"><h4>Polymarket question</h4><div class="detail-line"><span>'+esc(m.question||m.title)+'</span><strong>'+esc(m.outcomes.length)+' outcomes</strong></div><div class="detail-line"><span>UK bookmaker match</span><strong>'+esc(be?bTitle:'Not matched')+'</strong></div>'+(be?'<div class="detail-line"><span>Start time</span><strong>'+esc(bTime)+'</strong></div>':'')+'<a class="market-link" href="'+esc(m.url)+'" target="_blank" rel="noopener noreferrer">Open Polymarket market ↗</a></div>'+(m.outcomes.length>shown.length?'<div class="detail-market"><h4>Other outcomes</h4>'+m.outcomes.slice(shown.length).map(o=>'<div class="detail-line"><span>'+esc(o.name)+'</span><strong>'+esc(Number.isFinite(o.prob)?(o.prob*100).toFixed(1)+'%':'—')+'</strong></div>').join('')+'</div>':'')+'</div></article>'}
-function selectedMarketList(searchText=''){const q=norm(searchText);return pmMarkets.filter(m=>(selectedSport==='all'||m.sport===selectedSport)&&(!q||norm([m.title,m.question,m.eventTitle,m.sport,...m.outcomes.map(o=>o.name)].join(' ')).includes(q))).sort((a,b)=>{const sa=a.eventTitle||a.title,sb=b.eventTitle||b.title;return sa.localeCompare(sb)||a.title.localeCompare(b.title)})}
-function renderMoreCard(m){const be=findBookForMarket(m);const bTime=be?.commence_time?new Date(be.commence_time).toLocaleString():'UK odds not matched';const rows=m.outcomes.map(o=>{let matchedName=o.name;if(be){const teams=eventTeams(be);if(sameName(o.name,teams[0]))matchedName=teams[0];else if(sameName(o.name,teams[1]))matchedName=teams[1]}return'<div class="outcome-row"><div class="quote-card"><div class="quote-heading"><div class="outcome-name">'+esc(o.name)+'</div><span class="outcome-prob">'+esc(priceLabel(o))+'</span></div><div class="parallel">'+renderPriceBox('pm',o,null,null)+renderPriceBox('bk',null,be,matchedName)+'</div></div></div>'}).join('');return'<article class="more-market"><div class="card-top"><span class="sport-tag">'+esc(m.sport)+'</span><span class="source-tag">'+(be?'POLYMARKET + UK MATCH':'POLYMARKET MARKET')+'</span></div><div class="match-name">'+esc(m.eventTitle||m.title)+'</div><div class="market-question">'+esc(m.question||m.title)+'</div><div class="match-meta"><span class="meta">Volume '+esc(m.volume)+'</span><span class="meta">'+esc(bTime)+'</span><span class="meta">'+m.outcomes.length+' outcomes</span></div><div class="compare-head"><div class="compare-label pm">🔵 POLYMARKET</div><div class="compare-label bk">🔴 UK BOOKMAKER</div></div>'+(rows||'<div class="empty">No outcomes returned.</div>')+'<a class="market-link" href="'+esc(m.url)+'" target="_blank" rel="noopener noreferrer">Open this market on Polymarket ↗</a></article>'}
-function renderMoreMarkets(){if(!$('moreOverlay')?.classList.contains('open'))return;const sportName=selectedSport==='all'?'All sports':({cricket:'Cricket',tennis:'Tennis',soccer:'Football',mma:'MMA / UFC'}[selectedSport]||selectedSport);$('moreTitle').textContent=sportName+' · All markets';$('moreSubtitle').textContent='All available '+(selectedSport==='all'?'sports':sportName)+' matches, players and additional bets';const list=selectedMarketList($('moreSearch').value);$('moreCount').textContent=list.length+' markets';$('moreCards').innerHTML=list.length?list.map(renderMoreCard).join(''):'<div class="empty">No markets found for this selection yet. Try clearing the search or refresh the dashboard.</div>';}
-function openMoreMarkets(){ $('moreSearch').value='';$('moreOverlay').classList.add('open');$('moreOverlay').setAttribute('aria-hidden','false');document.body.classList.add('no-scroll');renderMoreMarkets();const visible=collectVisibleOutcomes(120);for(let i=0;i<visible.length;i+=12)Promise.allSettled(visible.slice(i,i+12).map(o=>loadBookFor(o,true))).then(()=>renderMoreMarkets()); }
-function closeMoreMarkets(){ $('moreOverlay').classList.remove('open');$('moreOverlay').setAttribute('aria-hidden','true');document.body.classList.remove('no-scroll');$('openMore').focus();}
-function volumeNumber(v){const m=String(v||'').trim().match(/^([0-9,.]+)\s*([KMB])?$/i);if(!m)return 0;const n=Number(m[1].replace(/,/g,''));return n*(m[2]?({k:1e3,m:1e6,b:1e9}[m[2].toLowerCase()]||1):1)}
-function render(){const q=norm($('search').value);let list=pmMarkets.filter(m=>(selectedSport==='all'||m.sport===selectedSport)&&(!q||norm([m.title,m.question,m.eventTitle,m.sport,...m.outcomes.map(o=>o.name)].join(' ')).includes(q)));const sort=$('sort')?.value||'default';if(sort==='az')list.sort((a,b)=>a.title.localeCompare(b.title));else if(sort==='volume')list.sort((a,b)=>volumeNumber(b.volume)-volumeNumber(a.volume));else list.sort((a,b)=>{const am=findBookForMarket(a)?1:0,bm=findBookForMarket(b)?1:0;return bm-am});$('pmCount').textContent=String(pmMarkets.length);$('bookCount').textContent=String(bookEvents.length);$('visibleCount').textContent=list.length+' matches';if(!list.length){$('cards').innerHTML='<div class="empty glass">No matching markets found for this filter. Try All sports, clear your search, or tap Refresh odds.</div>';updateWsSubscriptions();return}$('cards').innerHTML=list.slice(0,250).map(renderCard).join('');updateWsSubscriptions();renderMoreMarkets()}
-async function refreshAll(){if(loading)return;loading=true;$('refresh').disabled=true;$('refresh').textContent='↻ Updating…';setStatus('Refreshing direct Polymarket Gamma markets, live CLOB feed, and available UK bookmaker prices…');const results=await Promise.allSettled([loadPM(),loadBooks()]);const pmOk=results[0].status==='fulfilled',bookOk=results[1].status==='fulfilled';if(pmOk||bookOk){lastSuccess=new Date();$('updated').textContent=lastSuccess.toLocaleTimeString();setStatus('Catalogue refresh complete · '+pmMarkets.length+' Polymarket markets · '+bookEvents.length+' UK bookmaker events. Individual prices update live when the exchange feed is connected.','ok')}else{setStatus('Could not refresh event data. Check network access, bookmaker API key/quota, and tap Refresh again. '+(results[0].reason?.message||results[1].reason?.message||''),'error')};render();loading=false;$('refresh').disabled=false;$('refresh').textContent='↻ Refresh odds';if(!marketWS||marketWS.readyState===WebSocket.CLOSED)connectMarketWS();updateWsSubscriptions();const initial=collectVisibleOutcomes(40);for(let i=0;i<initial.length;i+=8)await Promise.allSettled(initial.slice(i,i+8).map(o=>loadBookFor(o,true)));render()}
-$('cards').addEventListener('click',e=>{const b=e.target.closest('button[data-toggle]');if(!b)return;const id=b.getAttribute('data-toggle');if(expanded.has(id))expanded.delete(id);else{expanded.add(id);const m=pmMarkets.find(x=>x.id===id);if(m)for(const o of m.outcomes.slice(0,4))if(o.tokenId)loadBookFor(o,true)}render()});
-$('openMore').addEventListener('click',openMoreMarkets);$('closeMore').addEventListener('click',closeMoreMarkets);$('moreOverlay').addEventListener('click',e=>{if(e.target===$('moreOverlay'))closeMoreMarkets()});$('moreSearch').addEventListener('input',renderMoreMarkets);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('moreOverlay').classList.contains('open'))closeMoreMarkets()});
-$('refresh').addEventListener('click',refreshAll);$('saveKey').addEventListener('click',saveKey);$('search').addEventListener('input',()=>{render();updateWsSubscriptions()});$('oddsFormat').addEventListener('change',render);$('sort').addEventListener('change',render);$('tabs').addEventListener('click',e=>{const b=e.target.closest('[data-sport]');if(!b)return;selectedSport=b.dataset.sport;$('tabs').querySelectorAll('[data-sport]').forEach(x=>x.classList.toggle('active',x===b));render();updateWsSubscriptions();renderMoreMarkets();loadBooks().then(()=>{render();renderMoreMarkets()}).catch(e=>setStatus('Bookmaker refresh issue: '+e.message,'error'))});
-$('apiKey').value=getKey();connectMarketWS();refreshAll();setInterval(()=>{if(!document.hidden)refreshAll()},180000);setInterval(()=>{if(!document.hidden)fallbackPoll()},15000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(!marketWS||marketWS.readyState===WebSocket.CLOSED)connectMarketWS();updateWsSubscriptions();if(!marketWS||marketWS.readyState!==WebSocket.OPEN)fallbackPoll()}});window.addEventListener('beforeunload',()=>{wsStopped=true;clearTimeout(wsRetryTimer);if(wsPingTimer)clearInterval(wsPingTimer);if(marketWS)marketWS.close()});
+  function setCounts() {
+    if ($("pmCount")) $("pmCount").textContent = String(state.events.length);
+    if ($("bookCount")) $("bookCount").textContent = String(state.books.length);
+    if ($("updated")) {
+      $("updated").textContent = state.lastUpdate
+        ? state.lastUpdate.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit"
+          })
+        : "—";
+    }
+  }
+  async function fetchJSON(url, timeout = 12000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, {
+        signal: controller.signal,
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status);
+      }
+      return await response.json();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  function parseArray(value) {
+    if (Array.isArray(value)) return value;
+    if (typeof value !== "string") return [];
+    try {
+      const result = JSON.parse(value);
+      return Array.isArray(result) ? result : [];
+    } catch {
+      return [];
+    }
+  }
+  function getEventTitle(event, market) {
+    return (
+      event?.title ||
+      event?.name ||
+      market?.question ||
+      market?.groupItemTitle ||
+      "Untitled market"
+    );
+  }
+  function getTokens(market) {
+    const ids = parseArray(market?.clobTokenIds);
+    const outcomes = parseArray(market?.outcomes);
+    const prices = parseArray(market?.outcomePrices);
+    return outcomes.map((name, i) => ({
+      name: String(name),
+      token: ids[i] ? String(ids[i]) : "",
+      price: num(prices[i])
+    }));
+  }
+  function normaliseGammaEvent(event) {
+    const rawMarkets = Array.isArray(event?.markets)
+      ? event.markets
+      : [];
+    const markets = rawMarkets
+      .filter(m => !m.closed && m.active !== false)
+      .map(m => ({
+        question: getEventTitle(event, m),
+        slug: m.slug || event.slug || "",
+        tokens: getTokens(m),
+        marketId: String(m.conditionId || m.id || ""),
+        volume: num(m.volumeNum ?? m.volume) || 0,
+        endDate: m.endDate || event.endDate || "",
+        raw: m
+      }))
+      .filter(m => m.tokens.length > 0);
+    const title = event.title || event.name || markets[0]?.question || "";
+    const description = event.description || "";
+    const sport = detectSport(
+      [title, description, event.slug, event.category, event.subcategory]
+        .filter(Boolean).join(" ")
+    );
+    return {
+      title,
+      slug: event.slug || "",
+      sport,
+      category: event.category || event.subcategory || sport,
+      markets,
+      volume: num(event.volume) || markets.reduce((sum, m) => sum + m.volume, 0),
+      startDate: event.startDate || "",
+      endDate: event.endDate || "",
+      raw: event
+    };
+  }
+  async function loadPolymarket() {
+    const urls = [
+      `${GAMMA}/events?active=true&closed=false&limit=100&order=volume24hr&ascending=false`,
+      `${GAMMA}/events?active=true&closed=false&limit=100&offset=100&order=volume24hr&ascending=false`
+    ];
+    const results = await Promise.allSettled(urls.map(url => fetchJSON(url)));
+    const all = [];
+    for (const result of results) {
+      if (result.status === "fulfilled" && Array.isArray(result.value)) {
+        all.push(...result.value);
+      }
+    }
+    if (!all.length) {
+      throw new Error("Polymarket Gamma did not return active events");
+    }
+    const unique = new Map();
+    for (const event of all) {
+      const parsed = normaliseGammaEvent(event);
+      if (!parsed.title || !parsed.markets.length) continue;
+      const key = parsed.slug || parsed.title;
+      if (!unique.has(key)) unique.set(key, parsed);
+    }
+    state.events = Array.from(unique.values())
+      .filter(event => event.sport !== "other")
+      .sort((a, b) => b.volume - a.volume);
+    state.markets = state.events.flatMap(event =>
+      event.markets.map(market => ({
+        ...market,
+        eventTitle: event.title,
+        sport: event.sport,
+        eventSlug: event.slug
+      }))
+    );
+    connectMarketWS();
+    loadOrderBooks();
+  }
+  function getBookmakerKey() {
+    // API credentials should be configured in Cloudflare Worker.
+    // Do not expose a private provider key in this browser script.
+    return "";
+  }
+  async function loadSportsList() {
+    try {
+      const data = await fetchJSON(`${WORKER}/sports`);
+      return Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  }
+  function sportKeysToLoad() {
+    if (state.sport !== "all" && SPORT_KEYS[state.sport]) {
+      return SPORT_KEYS[state.sport];
+    }
+    return [...new Set(Object.values(SPORT_KEYS).flat())];
+  }
+  async function loadBookmakerOdds() {
+    const keys = sportKeysToLoad();
+    const settled = await Promise.allSettled(
+      keys.map(async key => {
+        const data = await fetchJSON(
+          `${WORKER}/odds?sport=${encodeURIComponent(key)}`
+        );
+        const events = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? data.data
+            : Array.isArray(data?.odds)
+              ? data.odds
+              : [];
+        return events.map(event => ({
+          ...event,
+          _sportKey: key
+        }));
+      })
+    );
+    const combined = [];
+    for (const result of settled) {
+      if (result.status === "fulfilled") combined.push(...result.value);
+    }
+    const unique = new Map();
+    for (const event of combined) {
+      const key = [
+        event.id || "",
+        event.home_team || "",
+        event.away_team || "",
+        event.commence_time || ""
+      ].join("|");
+      if (!unique.has(key)) unique.set(key, event);
+    }
+    state.books = Array.from(unique.values());
+    matchBookmakerEvents();
+  }
+  function teamSimilarity(a, b) {
+    const x = norm(a);
+    const y = norm(b);
+    if (!x || !y) return 0;
+    if (x === y) return 1;
+    if (x.includes(y) || y.includes(x)) return 0.85;
+    const xs = new Set(x.split(" "));
+    const ys = new Set(y.split(" "));
+    let intersection = 0;
+    for (const word of xs) {
+      if (ys.has(word)) intersection++;
+    }
+    return intersection / Math.max(xs.size, ys.size, 1);
+  }
+  function extractTeams(title) {
+    const clean = String(title || "")
+      .replace(/\s*-\s*(winner|match winner|to win).*$/i, "")
+      .replace(/\s*\([^)]*\)/g, " ")
+      .trim();
+    const separators = [
+      /\s+vs\.?\s+/i,
+      /\s+v\s+/i,
+      /\s+versus\s+/i,
+      /\s+@\s+/,
+      /\s+-\s+/
+    ];
+    for (const separator of separators) {
+      const parts = clean.split(separator);
+      if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {
+        return parts.map(part => part.trim());
+      }
+    }
+    return [];
+  }
+  function eventTeamNames(event) {
+    return [
+      event?.home_team,
+      event?.away_team
+    ].filter(Boolean);
+  }
+  function findBookmakerEvent(pmTitle, pmSport) {
+    const pmTeams = extractTeams(pmTitle);
+    if (pmTeams.length < 2) return null;
+    let best = null;
+    let bestScore = 0;
+    for (const book of state.books) {
+      const bookSport = detectSport(book._sportKey || "");
+      if (pmSport !== "other" && bookSport !== "other" &&
+          pmSport !== bookSport) continue;
+      const teams = eventTeamNames(book);
+      if (teams.length < 2) continue;
+      const direct =
+        (teamSimilarity(pmTeams[0], teams[0]) +
+         teamSimilarity(pmTeams[1], teams[1])) / 2;
+      const reverse =
+        (teamSimilarity(pmTeams[0], teams[1]) +
+         teamSimilarity(pmTeams[1], teams[0])) / 2;
+      const score = Math.max(direct, reverse);
+      if (score > bestScore) {
+        bestScore = score;
+        best = book;
+      }
+    }
+    return bestScore >= 0.68 ? best : null;
+  }
+  function matchBookmakerEvents() {
+    state.booksByEvent = {};
+    for (const event of state.events) {
+      const match = findBookmakerEvent(event.title, event.sport);
+      if (match) state.booksByEvent[event.slug || event.title] = match;
+    }
+  }
+  function findMarketOutcome(market, team) {
+    const target = norm(team);
+    if (!target) return null;
+    let best = null;
+    let score = 0;
+    for (const token of market.tokens) {
+      const candidate = teamSimilarity(token.name, target);
+      if (candidate > score) {
+        score = candidate;
+        best = token;
+      }
+    }
+    return score >= 0.55 ? best : null;
+  }
+  function getBookmakerOdds(event, team) {
+    if (!event) return { back: null, lay: null, source: "No match" };
+    const wanted = norm(team);
+    let back = null;
+    let lay = null;
+    let source = "UK bookmaker";
+    for (const bookmaker of event.bookmakers || []) {
+      for (const market of bookmaker.markets || []) {
+        if (market.key !== "h2h" && market.key !== "h2h_lay") continue;
+        const outcome = (market.outcomes || []).find(item =>
+          teamSimilarity(item.name, wanted) >= 0.55
+        );
+        if (!outcome) continue;
+        const price = num(outcome.price);
+        if (price === null || price <= 1) continue;
+        if (market.key === "h2h" && (back === null || price > back)) {
+          back = price;
+          source = bookmaker.title || bookmaker.key || source;
+        }
+        if (market.key === "h2h_lay" && (lay === null || price < lay)) {
+          lay = price;
+          source = bookmaker.title || bookmaker.key || source;
+        }
+      }
+    }
+    return { back, lay, source };
+  }
+  async function loadOrderBooks() {
+    const markets = state.markets
+      .filter(m => m.tokens.some(t => t.token))
+      .slice(0, 30);
+    const tasks = [];
+    for (const market of markets) {
+      for (const token of market.tokens.slice(0, 3)) {
+        if (!token.token) continue;
+        tasks.push((async () => {
+          try {
+            const book = await fetchJSON(
+              `${CLOB}/book?token_id=${encodeURIComponent(token.token)}`,
+              8000
+            );
+            const bids = (book.bids || [])
+              .map(item => num(item.price))
+              .filter(price => price !== null)
+              .sort((a, b) => b - a);
+            const asks = (book.asks || [])
+              .map(item => num(item.price))
+              .filter(price => price !== null)
+              .sort((a, b) => a - b);
+            state.prices[token.token] = {
+              bid: bids[0] ?? null,
+              ask: asks[0] ?? null,
+              updated: Date.now()
+            };
+          } catch {
+            // Gamma's latest published outcome price remains available.
+          }
+        })());
+      }
+    }
+    await Promise.allSettled(tasks);
+    render();
+  }
+  function connectMarketWS() {
+    if (state.ws) {
+      try { state.ws.close(); } catch {}
+    }
+    const ids = state.markets
+      .flatMap(m => m.tokens.map(t => t.token))
+      .filter(Boolean)
+      .slice(0, 500);
+    if (!ids.length) return;
+    state.wsIds = new Set(ids);
+    try {
+      const ws = new WebSocket(
+        "wss://ws-subscriptions-clob.polymarket.com/ws/market"
+      );
+      state.ws = ws;
+      ws.onopen = () => {
+        try {
+          ws.send(JSON.stringify({
+            type: "market",
+            assets_ids: ids
+          }));
+        } catch {}
+      };
+      ws.onmessage = message => {
+        try {
+          const payload = JSON.parse(message.data);
+          const updates = Array.isArray(payload) ? payload : [payload];
+          for (const update of updates) {
+            const token = String(
+              update.asset_id || update.assetId || update.token_id || ""
+            );
+            if (!token || !state.wsIds.has(token)) continue;
+            const existing = state.prices[token] || {
+              bid: null,
+              ask: null
+            };
+            if (update.bids?.length) {
+              existing.bid = Math.max(
+                ...update.bids.map(x => num(x.price)).filter(x => x !== null)
+              );
+            }
+            if (update.asks?.length) {
+              const asks = update.asks
+                .map(x => num(x.price))
+                .filter(x => x !== null);
+              if (asks.length) existing.ask = Math.min(...asks);
+            }
+            const price = num(update.price);
+            if (price !== null) existing.last = price;
+            existing.updated = Date.now();
+            state.prices[token] = existing;
+          }
+          render();
+        } catch {}
+      };
+      ws.onerror = () => {
+        if ($("feedState")) $("feedState").textContent = "Polling";
+      };
+      ws.onclose = () => {
+        if ($("feedState")) $("feedState").textContent = "Polling";
+      };
+    } catch {
+      if ($("feedState")) $("feedState").textContent = "Polling";
+    }
+  }
+  function getBackLay(token) {
+    const live = state.prices[token.token] || {};
+    const last = num(live.last);
+    const gammaPrice = num(token.price);
+    const back = num(live.ask) ?? last ?? gammaPrice;
+    const lay = num(live.bid);
+    return {
+      back: back !== null && back > 0 ? back : null,
+      lay: lay !== null && lay > 0 ? lay : null
+    };
+  }
+  function renderTokenRow(token, bookmakerEvent) {
+    const pm = getBackLay(token);
+    const book = getBookmakerOdds(bookmakerEvent, token.name);
+    return `
+      <div class="co-odds-row">
+        <div class="co-outcome">${esc(token.name)}</div>
+        <div class="co-price">
+          <small>PM BUY</small>
+          <strong>${fmt(pm.back)}</strong>
+          <small>${fmtPct(pm.back)}</small>
+        </div>
+        <div class="co-price">
+          <small>PM SELL</small>
+          <strong>${fmt(pm.lay)}</strong>
+          <small>${fmtPct(pm.lay)}</small>
+        </div>
+        <div class="co-price">
+          <small>UK BACK</small>
+          <strong>${fmt(book.back)}</strong>
+          <small>${esc(book.source)}</small>
+        </div>
+        <div class="co-price">
+          <small>UK LAY</small>
+          <strong>${fmt(book.lay)}</strong>
+          <small>Exchange only</small>
+        </div>
+      </div>
+    `;
+  }
+  function renderCard(event) {
+    const key = event.slug || event.title;
+    const book = state.booksByEvent[key] || null;
+    const markets = event.markets || [];
+    const rows = markets.slice(0, 5).map(market => {
+      const tokens = market.tokens || [];
+      return `
+        <div class="co-market">
+          <div class="co-market-title">${esc(market.question)}</div>
+          ${tokens.map(token => renderTokenRow(token, book)).join("")}
+        </div>
+      `;
+    }).join("");
+    const bookmakerStatus = book
+      ? "UK match found"
+      : "UK odds unmatched";
+    return `
+      <article class="co-card">
+        <div class="co-card-top">
+          <div>
+            <div class="co-category">${esc(event.category || event.sport)}</div>
+            <h3>${esc(event.title)}</h3>
+          </div>
+          <span class="co-live">${book ? "MATCHED" : "POLYMARKET"}</span>
+        </div>
+        <div class="co-meta">
+          <span>Polymarket volume: ${event.volume.toLocaleString()}</span>
+          <span>${esc(bookmakerStatus)}</span>
+        </div>
+        ${rows || '<div class="co-empty">No active outcomes available.</div>'}
+        <div class="co-foot">
+          <span>PM price: live order book when available</span>
+          <span>${book ? esc(book.home_team + " vs " + book.away_team) : "No confident UK match found"}</span>
+        </div>
+      </article>
+    `;
+  }
+  function ensureStyles() {
+    if ($("crystalOddsScriptStyles")) return;
+    const style = document.createElement("style");
+    style.id = "crystalOddsScriptStyles";
+    style.textContent = `
+      .co-card {
+        border: 1px solid rgba(125,165,220,.28);
+        border-radius: 15px;
+        padding: 14px;
+        margin: 12px 0;
+        background: rgba(255,255,255,.035);
+        color: inherit;
+        overflow: hidden;
+      }
+      .co-card-top {
+        display: flex; justify-content: space-between;
+        gap: 10px; align-items: flex-start;
+      }
+      .co-card h3 {
+        margin: 5px 0 8px; font-size: 17px;
+        font-weight: 750; line-height: 1.3;
+      }
+      .co-category {
+        font-size: 10px; letter-spacing: .12em;
+        text-transform: uppercase; opacity: .7;
+      }
+      .co-live {
+        border: 1px solid rgba(120,190,170,.4);
+        border-radius: 20px; padding: 5px 7px;
+        font-size: 9px; white-space: nowrap;
+      }
+      .co-meta, .co-foot {
+        display: flex; flex-wrap: wrap; justify-content: space-between;
+        gap: 7px; font-size: 10px; opacity: .72;
+        padding: 7px 0;
+      }
+      .co-market {
+        margin-top: 10px; padding-top: 10px;
+        border-top: 1px solid rgba(125,165,220,.18);
+      }
+      .co-market-title { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+      .co-odds-row {
+        display: grid;
+        grid-template-columns: minmax(70px,1.4fr) repeat(4,minmax(54px,1fr));
+        gap: 5px; align-items: stretch; margin: 5px 0;
+      }
+      .co-outcome {
+        font-size: 11px; font-weight: 650;
+        overflow-wrap: anywhere; align-self: center;
+      }
+      .co-price {
+        display: flex; flex-direction: column; gap: 3px;
+        min-width: 0; padding: 7px 4px; text-align: center;
+        border-radius: 7px; background: rgba(135,175,220,.08);
+      }
+      .co-price small {
+        font-size: 8px; opacity: .65; overflow-wrap: anywhere;
+      }
+      .co-price strong { font-size: 13px; font-variant-numeric: tabular-nums; }
+      .co-empty { padding: 12px 0; opacity: .65; font-size: 12px; }
+      @media(max-width:520px) {
+        .co-card { padding: 10px; }
+        .co-odds-row { grid-template-columns: minmax(55px,1.2fr) repeat(4,minmax(45px,1fr)); gap: 3px; }
+        .co-price { padding: 6px 2px; }
+        .co-price strong { font-size: 11px; }
+        .co-price small { font-size: 7px; }
+        .co-outcome { font-size: 10px; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+  function render() {
+    ensureStyles();
+    const container = $("cards") || $("list");
+    if (!container) return;
+    const search = ($("search")?.value || "").trim().toLowerCase();
+    const sport = activeSport();
+    let events = state.events.filter(event => {
+      if (sport !== "all" && event.sport !== sport) return false;
+      if (search && !(
+        event.title.toLowerCase().includes(search) ||
+        event.category.toLowerCase().includes(search) ||
+        event.markets.some(m => m.question.toLowerCase().includes(search))
+      )) return false;
+      return true;
+    });
+    const sort = $("sort")?.value || $("sort")?.dataset?.sort || "";
+    if (sort.includes("volume") || sort.includes("popular")) {
+      events.sort((a, b) => b.volume - a.volume);
+    } else if (sort.includes("az") || sort.includes("name")) {
+      events.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    if ($("visibleCount")) $("visibleCount").textContent = String(events.length);
+    if (!events.length) {
+      container.innerHTML = `
+        <div class="co-card">
+          <strong>No matching markets found.</strong>
+          <div class="co-empty">
+            Try another sport or search term. If the feed is empty, refresh and check the Worker connection.
+          </div>
+        </div>
+      `;
+      return;
+    }
+    container.innerHTML = events.map(renderCard).join("");
+  }
+  function bindUI() {
+    $("refresh")?.addEventListener("click", () => refreshAll());
+    $("search")?.addEventListener("input", () => render());
+    $("sort")?.addEventListener("change", () => render());
+    $("tabs")?.addEventListener("click", event => {
+      const button = event.target.closest("[data-sport]");
+      if (!button) return;
+      state.sport = button.dataset.sport || "all";
+      $("tabs").querySelectorAll("[data-sport]").forEach(el => {
+        el.classList.toggle("active", el === button);
+        el.setAttribute("aria-pressed", el === button ? "true" : "false");
+      });
+      refreshAll();
+    });
+    $("filters")?.addEventListener("click", event => {
+      const button = event.target.closest("[data-sport]");
+      if (!button) return;
+      state.sport = button.dataset.sport || "all";
+      render();
+    });
+    $("saveKey")?.addEventListener("click", () => {
+      setStatus("Odds API keys should be configured in Cloudflare Worker.");
+    });
+    $("saveOddsKey")?.addEventListener("click", () => {
+      setStatus("Odds API keys should be configured in Cloudflare Worker.");
+    });
+  }
+  async function refreshAll() {
+    if (state.loading) return;
+    state.loading = true;
+    state.errors = [];
+    setStatus("Refreshing markets…");
+    const container = $("cards") || $("list");
+    if (container && !state.events.length) {
+      container.innerHTML = '<div class="co-card">Connecting to live feeds…</div>';
+    }
+    try {
+      const results = await Promise.allSettled([
+        loadPolymarket(),
+        loadBookmakerOdds()
+      ]);
+      if (results[0].status === "rejected") {
+        state.errors.push("Polymarket: " + results[0].reason.message);
+      }
+      if (results[1].status === "rejected") {
+        state.errors.push("UK odds: " + results[1].reason.message);
+      }
+      matchBookmakerEvents();
+      state.lastUpdate = new Date();
+      setCounts();
+      render();
+      if (state.errors.length) {
+        setStatus(state.errors.join(" | "), true);
+      } else {
+        setStatus("Feeds refreshed");
+      }
+    } catch (error) {
+      setStatus(error.message || "Could not refresh feeds", true);
+    } finally {
+      state.loading = false;
+    }
+  }
+  async function healthCheck() {
+    try {
+      const health = await fetchJSON(`${WORKER}/health`, 7000);
+      if (health?.status !== "ok") {
+        setStatus("Worker health check did not return OK", true);
+      }
+    } catch {
+      setStatus("Worker connection failed. Check deployment and CORS.", true);
+    }
+  }
+  bindUI();
+  ensureStyles();
+  healthCheck();
+  refreshAll();
+  // Refresh automatically without claiming that a fetch time is a market-change time.
+  setInterval(() => {
+    if (!state.loading) refreshAll();
+  }, 30000);
+  window.addEventListener("online", () => refreshAll());
+})();
 </script>
 </body>
 </html>
