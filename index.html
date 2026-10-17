@@ -12,119 +12,99 @@
 
 <meta name="theme-color" content="#080d19">
 
-<title>Crystal Edge — Live Odds</title>
+<title>Crystal Edge — Live Polymarket</title>
 
 <style>
 
-:root{color-scheme:dark;--bg:#080d19;--panel:#10192a;--line:#263750;--text:#edf4ff;--muted:#91a3bf;--blue:#39a8ff;--red:#ff5477;--purple:#b58aff}
+:root{color-scheme:dark;--bg:#080d19;--panel:#111c2d;--line:#283b55;--text:#edf4ff;--muted:#91a5c0;--blue:#56aaff;--green:#65e0b0;--red:#ff8196}
 
 *{box-sizing:border-box}
 
-body{margin:0;background:radial-gradient(ellipse at top,#14233b 0,#080d19 55%);color:var(--text);font:14px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{margin:0;background:radial-gradient(ellipse at top left,#172c4a,transparent 45%),var(--bg);color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 
-button,input{font:inherit}button{cursor:pointer;color:inherit}
+.wrap{max-width:950px;margin:auto;padding:16px 11px 40px}
 
-.app{max-width:1000px;margin:auto;padding:14px 12px 40px}
+header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}
 
-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.logo{font-size:22px;font-weight:900;letter-spacing:-.6px}
 
-.brand{font-size:23px;font-weight:850;letter-spacing:-.8px}.brand span{color:var(--blue)}
+.logo span{color:var(--blue)}
 
-.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#45efac;margin-right:5px;box-shadow:0 0 10px #45efac}
+.sub,.muted{font-size:11px;color:var(--muted)}
 
-.status{font-size:11px;color:var(--muted);margin-top:5px}
+.pill{border:1px solid var(--line);border-radius:30px;padding:7px 10px;font-size:10px;color:var(--muted)}
 
-.top-actions{display:flex;gap:7px}
+#sports{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px}
 
-.btn,.sport,.filter{border:1px solid var(--line);background:#111d30;border-radius:10px;padding:9px 11px;font-size:12px;font-weight:700}
+button{font:inherit;cursor:pointer}
 
-.btn:disabled{opacity:.6}.primary{border-color:#247dc4;background:#12345a}
+.sport,.btn{border:1px solid var(--line);background:#121e30;color:#cbdcf2;border-radius:11px;padding:9px 12px;font-weight:750;white-space:nowrap}
 
-.search-wrap{margin:15px 0 10px}
+.sport.active{background:#163a60;border-color:#479be9;color:white}
 
-.search{width:100%;border:1px solid var(--line);border-radius:12px;background:#0d1727;color:var(--text);padding:13px 14px;outline:none}
+.searchrow{display:flex;gap:8px;margin:8px 0 12px}
 
-.filters,.sports{display:flex;gap:7px;overflow-x:auto;padding:3px 0 10px;scrollbar-width:none}
+input{min-width:0;flex:1;background:#0e1727;color:white;border:1px solid var(--line);border-radius:11px;padding:12px;font:inherit}
 
-.filters::-webkit-scrollbar,.sports::-webkit-scrollbar{display:none}
+.btn{background:#18304b}
 
-.filter,.sport{white-space:nowrap;flex-shrink:0}
+.statusrow{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 14px}
 
-.filter.active,.sport.active{background:#153e66;border-color:#38a8ff;color:#fff}
+.status{border:1px solid var(--line);border-radius:9px;background:#101a29;padding:7px 9px;font-size:10px;color:var(--muted)}
 
-.section-line{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 0}
+.status strong{color:var(--green)}
 
-.section-title{font-size:13px;font-weight:800}.small{font-size:11px;color:var(--muted)}
+.event{background:linear-gradient(145deg,#131f32,#0c1422);border:1px solid #2b405d;border-radius:16px;padding:12px;margin:11px 0;box-shadow:0 8px 24px #0002}
 
-.notice{border:1px solid #263750;background:#0e1929;border-radius:11px;padding:10px 12px;color:var(--muted);font-size:11px;line-height:1.5;margin:7px 0 12px}
+.eventhead{display:flex;justify-content:space-between;align-items:flex-start;gap:9px}
 
-.matches{display:grid;gap:12px}
+.eventname{font-size:15px;font-weight:850;line-height:1.35;overflow-wrap:anywhere}
 
-.match{border:1px solid #253650;border-radius:16px;padding:12px;background:linear-gradient(145deg,rgba(19,32,52,.97),rgba(10,17,30,.97));box-shadow:0 8px 26px #0003;overflow:hidden}
+.tag{font-size:9px;color:#a9d6ff;border:1px solid #2c5378;padding:5px 7px;border-radius:8px;white-space:nowrap}
 
-.match-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.meta{color:var(--muted);font-size:10px;margin-top:5px;overflow-wrap:anywhere}
 
-.event-name{font-size:14px;font-weight:800;line-height:1.35}
+.prices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 
-.event-meta{font-size:10px;color:var(--muted);margin-top:5px}
+.outcome{border:1px solid #284b6c;background:#101e30;border-radius:12px;padding:9px;min-width:0}
 
-.pill{font-size:10px;border:1px solid #31435d;border-radius:20px;padding:5px 7px;white-space:nowrap;color:#b9c8de}
+.outcome:nth-child(2){border-color:#59404b;background:#201823}
 
-.pill.live{color:#68f2b4;border-color:#236c55;background:#103427}
+.team{font-weight:800;font-size:12px;min-height:32px;overflow-wrap:anywhere}
 
-.teams{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.oddsrow{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}
 
-.team{border:1px solid #253650;background:#0a1322;border-radius:10px;padding:10px;min-width:0}
+.quote{background:#18344c;border-radius:8px;text-align:center;padding:8px 2px;min-width:0}
 
-.team-name{font-size:12px;font-weight:750;overflow-wrap:anywhere}
+.quote.lay{background:#3a222d}
 
-.team-sub{font-size:9px;color:var(--muted);margin-top:4px}
+.qtitle{font-size:9px;color:#b5cce4}
 
-.sources{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.qvalue{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
 
-.source{border:1px solid var(--line);border-radius:11px;padding:8px 6px;min-width:0;background:#0a1322}
+.outcome:nth-child(2) .quote{background:#30251f}
 
-.source.poly{border-color:#1872ad;background:linear-gradient(155deg,#102e49,#0b1728)}
+.outcome:nth-child(2) .quote.lay{background:#3a222d}
 
-.source.betfair{border-color:#9d3650;background:linear-gradient(155deg,#3a1728,#101321)}
+.depth{font-size:9px;color:var(--muted);margin-top:6px;overflow-wrap:anywhere}
 
-.source.ice{border-color:#64449b;background:linear-gradient(155deg,#281a43,#101321)}
+.last{margin-top:11px;border-top:1px solid #27364b;padding-top:9px;display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:10px;color:var(--muted)}
 
-.source-title{font-size:10px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:8px}
+.fresh{color:var(--green)}
 
-.poly .source-title{color:#66c2ff}.betfair .source-title{color:#ff829a}.ice .source-title{color:#c7a7ff}
+.detail{display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:#b8c9df;overflow-wrap:anywhere}
 
-.quote-head,.quote-row{display:grid;grid-template-columns:minmax(0,1fr) 1fr 1fr;gap:3px;align-items:center}
+.event.open .detail{display:block}
 
-.quote-head{font-size:8px;color:#a6b6cc;margin-bottom:5px}
+.actions{display:flex;gap:7px;margin-top:9px}
 
-.quote-row{margin:5px 0}
+.actions button{flex:1}
 
-.quote-team{font-size:9px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{padding:28px 12px;text-align:center;color:var(--muted);border:1px dashed #30435d;border-radius:14px;margin-top:12px}
 
-.price{display:block;text-align:center;font-size:10px;font-weight:800;padding:6px 2px;border-radius:6px;background:#17263b;overflow:hidden;min-width:0}
+.foot{font-size:10px;line-height:1.6;color:var(--muted);margin-top:18px}
 
-.poly .price{background:#123555}.betfair .price{background:#3a1d2a}.ice .price{background:#2b2041}
-
-.price.empty{color:#64758d;background:#111a28;font-weight:500}
-
-.source-foot{font-size:8px;color:#8296b2;margin-top:8px;line-height:1.4;overflow-wrap:anywhere}
-
-.details-btn{width:100%;margin-top:10px;padding:9px;border:1px solid #293d59;border-radius:9px;background:#111e31;font-size:11px;font-weight:750}
-
-.detail-panel{display:none;margin-top:10px;border-top:1px solid #263750;padding-top:10px}
-
-.detail-panel.open{display:block}
-
-.detail-row{display:flex;justify-content:space-between;gap:8px;font-size:11px;padding:5px 0;color:#c0cce0}
-
-.detail-row strong{text-align:right;overflow-wrap:anywhere}
-
-.empty-state{text-align:center;padding:28px 15px;border:1px dashed #30415a;border-radius:14px;color:var(--muted);line-height:1.6}
-
-.footer{text-align:center;font-size:10px;color:#7588a5;margin-top:20px;line-height:1.6}
-
-@media(max-width:370px){.app{padding:11px 8px 30px}.brand{font-size:20px}.source{padding:7px 4px}.sources{gap:4px}.source-title{font-size:9px}.price{font-size:9px}.quote-team{font-size:8px}}
+@media(max-width:360px){.wrap{padding:12px 8px}.event{padding:9px}.prices{gap:5px}.outcome{padding:7px}.qvalue{font-size:14px}.team{font-size:11px}}
 
 </style>
 
@@ -132,155 +112,205 @@ header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 
 <body>
 
-<div class="app">
+<main class="wrap">
 
 <header>
 
   <div>
 
-    <div class="brand">CRYSTAL <span>EDGE</span></div>
+    <div class="logo">CRYSTAL <span>EDGE</span></div>
 
-    <div class="status"><span class="live-dot"></span><span id="status">Connecting to feeds…</span></div>
+    <div class="sub">Polymarket · Real-time order book</div>
 
   </div>
 
-  <div class="top-actions"><button class="btn primary" id="refreshBtn">↻ Refresh</button></div>
+  <div class="pill" id="connection">Connecting…</div>
 
 </header>
 
-<div class="search-wrap">
+<nav id="sports">
 
-  <input class="search" id="search" placeholder="Search team, player or match…" autocomplete="off">
+  <button class="sport active" data-sport="all">All</button>
 
-</div>
+  <button class="sport" data-sport="cricket">Cricket</button>
 
-<div class="filters" id="filters">
+  <button class="sport" data-sport="football">Football</button>
 
-  <button class="filter active" data-filter="all">All Matches</button>
+  <button class="sport" data-sport="tennis">Tennis</button>
 
-  <button class="filter" data-filter="live">Live Now</button>
+  <button class="sport" data-sport="basketball">Basketball</button>
 
-  <button class="filter" data-filter="today">Today</button>
+  <button class="sport" data-sport="mma">MMA</button>
 
-  <button class="filter" data-filter="tomorrow">Tomorrow</button>
+  <button class="sport" data-sport="esports">Esports</button>
 
-</div>
+</nav>
 
-<div class="section-line">
+<div class="searchrow">
 
-  <div class="section-title">SPORTS</div>
+  <input id="search" placeholder="Search team, player or match…" autocomplete="off">
 
-  <div class="small" id="sportHint">All sports selected</div>
-
-</div>
-
-<div class="sports" id="sports">
-
-  <button class="sport active" data-sport="all">All Sports</button>
+  <button class="btn" id="refresh">Refresh</button>
 
 </div>
 
-<div class="notice">
+<div class="statusrow">
 
-  All displayed prices use decimal odds. Polymarket quotes are converted from the order book. Betfair and ICE prices appear only when supplied by the connected API. Missing prices are not invented.
+  <div class="status" id="feedStatus">Feed: connecting</div>
 
-</div>
+  <div class="status" id="marketCount">Markets: —</div>
 
-<div class="section-line">
-
-  <div class="section-title" id="listTitle">All Matches</div>
-
-  <div class="small" id="count">Loading…</div>
+  <div class="status" id="lastRefresh">Last check: —</div>
 
 </div>
 
-<main class="matches" id="matches">
+<div id="events"><div class="empty">Loading Polymarket markets…</div></div>
 
-  <div class="empty-state">Loading fixtures…</div>
+<div class="foot">
+
+  <b>Back:</b> 1 ÷ best ask. <b>Lay:</b> 1 ÷ best bid. Prices are decimal odds derived from the Polymarket order book, not bookmaker odds. Missing quotes show —. Last update shows browser receipt time when a live message arrives; the REST timestamp is labelled separately. Market liquidity is not the same as available size at the best price.
+
+</div>
 
 </main>
-
-<div class="footer">
-
-Crystal Edge · Decimal odds · Automatic updates<br>
-
-Provider delays, missing markets and API restrictions can affect availability. Verify prices with the source.
-
-</div>
-
-</div>
 
 <script>
 
 "use strict";
 
-const API="https://crystal-odds-api.karanarora082000.workers.dev";
+const API = "https://crystal-odds-api.karanarora082000.workers.dev";
 
-const WS_URL="wss://ws-subscriptions-clob.polymarket.com/ws/market";
+const WS_URL = "wss://ws-subscriptions-clob.polymarket.com/ws/market";
 
-const POLL_MS=60000;
+const REFRESH_MS = 60000;
 
-const state={
+const PAGE_SIZE = 50;
 
-  sports:[],selectedSport:"all",filter:"all",search:"",
+const MAX_PAGES = 10;
 
-  events:[],markets:[],live:{},ws:null,wsTokens:"",
+const MAX_WS_TOKENS = 500;
 
-  reconnectTimer:null,heartbeat:null,lastRefresh:null,busy:false,
+const state = {
 
-  errors:[],loadedKeys:new Set()
+  sport: "all",
+
+  search: "",
+
+  markets: [],
+
+  live: {},
+
+  ws: null,
+
+  wsTokens: "",
+
+  heartbeat: null,
+
+  reconnect: null,
+
+  refreshing: false,
+
+  lastRefresh: null
 
 };
 
-const $=id=>document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-const arr=v=>Array.isArray(v)?v:[];
+const first = (...values) =>
 
-const lower=v=>String(v??"").toLowerCase();
+  values.find(v => v !== undefined && v !== null && v !== "");
 
-const first=(...v)=>v.find(x=>x!==undefined&&x!==null&&x!=="");
+function number(v) {
 
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  if (v === null || v === undefined || v === "") return null;
 
-async function getJSON(path){
+  const n = Number(v);
 
-  const response=await fetch(API+path,{cache:"no-store"});
+  return Number.isFinite(n) && n > 0 ? n : null;
+
+}
+
+function safe(v) {
+
+  return String(v ?? "").replace(/[&<>"']/g, c => ({
+
+    "&":"&amp;", "<":"&lt;", ">":"&gt;",
+
+    '"':"&quot;", "'":"&#39;"
+
+  }[c]));
+
+}
+
+function decimal(probability) {
+
+  const p = number(probability);
+
+  if (p === null || p > 1) return null;
+
+  return 1 / p;
+
+}
+
+function fmtOdds(value) {
+
+  if (value === null || value === undefined ||
+
+      !Number.isFinite(value) || value < 1) return "—";
+
+  if (value >= 1000) return "1000+";
+
+  return value.toFixed(2);
+
+}
+
+function timeText(value) {
+
+  if (!value) return "Waiting for quote update";
+
+  return new Date(value).toLocaleTimeString("en-IN", {
+
+    hour: "2-digit", minute: "2-digit",
+
+    second: "2-digit", hour12: true
+
+  });
+
+}
+
+async function getJSON(path) {
+
+  const response = await fetch(API + path, {cache:"no-store"});
 
   let data;
 
-  try{data=await response.json()}catch{throw new Error("Invalid JSON from "+path)}
+  try {
 
-  if(!response.ok)throw new Error("HTTP "+response.status+" from "+path);
+    data = await response.json();
 
-  if(data&&data.success===false)throw new Error(data.message||data.error||"Provider returned an error");
+  } catch {
 
-  if(data&&data.error&&!Array.isArray(data.data))throw new Error(data.error);
+    throw new Error("Worker returned invalid JSON");
+
+  }
+
+  if (!response.ok || data.success === false || data.error) {
+
+    throw new Error(data.error || "HTTP " + response.status);
+
+  }
 
   return data;
 
 }
 
-function unwrapArray(data,depth=0){
+function getRows(data) {
 
-  if(Array.isArray(data))return data;
+  if (Array.isArray(data)) return data;
 
-  if(!data||typeof data!=="object"||depth>5)return [];
+  for (const key of ["data","markets","events","results","items"]) {
 
-  for(const k of ["sports","events","data","results","odds","matches","markets","items","fixtures"]){
-
-    if(Array.isArray(data[k]))return data[k];
-
-  }
-
-  for(const k of ["data","result","response","payload"]){
-
-    if(data[k]&&typeof data[k]==="object"){
-
-      const found=unwrapArray(data[k],depth+1);
-
-      if(found.length)return found;
-
-    }
+    if (Array.isArray(data?.[key])) return data[key];
 
   }
 
@@ -288,789 +318,781 @@ function unwrapArray(data,depth=0){
 
 }
 
-function sportCategory(item){
+function parseOutcomes(market) {
 
-  const t=lower([item.key,item.sport_key,item.title,item.name,item.group,item.description].join(" "));
+  let outcomes = first(market.outcomes, []);
 
-  if(/cricket|ipl|test_match|t20|odi/.test(t))return "Cricket";
+  let ids = first(
 
-  if(/soccer|football|epl|premier_league|champions_league/.test(t))return "Football";
+    market.clobTokenIds, market.clob_token_ids,
 
-  if(/tennis|atp|wta/.test(t))return "Tennis";
+    market.tokenIds, market.token_ids, []
 
-  if(/basketball|nba|wnba|ncaab/.test(t))return "Basketball";
+  );
 
-  if(/\bmma\b|ufc|mixed_martial/.test(t))return "MMA";
+  if (typeof outcomes === "string") {
 
-  if(/americanfootball|nfl|ncaaf/.test(t))return "American Football";
-
-  if(/baseball|mlb/.test(t))return "Baseball";
-
-  if(/hockey|nhl/.test(t))return "Hockey";
-
-  return "Other";
-
-}
-
-function iconFor(c){return ({Cricket:"🏏",Football:"⚽",Tennis:"🎾",Basketball:"🏀",MMA:"🥊","American Football":"🏈",Baseball:"⚾",Hockey:"🏒",Other:"🏆"})[c]||"🏆"}
-
-function sportKey(s){return first(s.key,s.sport_key,s.sportKey,s.id)}
-
-function normalizeName(v){return lower(v).replace(/[^a-z0-9]+/g," ").trim()}
-
-function renderSports(){
-
-  const cats=["all",...new Set(state.sports.map(sportCategory))];
-
-  $("sports").innerHTML=cats.map(c=>{
-
-    const active=state.selectedSport===c?"active":"";
-
-    return c==="all"
-
-      ?`<button class="sport ${active}" data-sport="all">All Sports</button>`
-
-      :`<button class="sport ${active}" data-sport="${esc(c)}">${iconFor(c)} ${esc(c)}</button>`;
-
-  }).join("");
-
-  $("sports").querySelectorAll("[data-sport]").forEach(b=>b.addEventListener("click",()=>{
-
-    state.selectedSport=b.dataset.sport;
-
-    $("sportHint").textContent=state.selectedSport==="all"?"All sports selected":"Showing "+state.selectedSport;
-
-    renderSports();renderEvents();loadOddsForSelection();
-
-  }));
-
-}
-
-function eventTeams(e){
-
-  let h=first(e.home_team,e.homeTeam,e.home_name,e.team1,e.player1,e.home);
-
-  let a=first(e.away_team,e.awayTeam,e.away_name,e.team2,e.player2,e.away);
-
-  const competitors=arr(e.competitors);
-
-  if((!h||!a)&&competitors.length>=2){h=h||first(competitors[0].name,competitors[0].title);a=a||first(competitors[1].name,competitors[1].title)}
-
-  if((!h||!a)&&Array.isArray(e.teams)&&e.teams.length>=2){h=h||e.teams[0];a=a||e.teams[1]}
-
-  if((!h||!a)&&Array.isArray(e.outcomes)&&e.outcomes.length>=2){h=h||e.outcomes[0].name||e.outcomes[0];a=a||e.outcomes[1].name||e.outcomes[1]}
-
-  return [String(h||""),String(a||"")];
-
-}
-
-function eventName(e){
-
-  const [h,a]=eventTeams(e);
-
-  return h&&a&&normalizeName(h)!==normalizeName(a)?h+" vs "+a:String(first(e.match_name,e.event_name,e.name,e.title,e.question,""));
-
-}
-
-function isMatch(e){
-
-  const [h,a]=eventTeams(e);
-
-  if(h&&a&&normalizeName(h)!==normalizeName(a))return true;
-
-  return /\bvs\.?\b|\bversus\b|\bv\.?\s/i.test(eventName(e));
-
-}
-
-function eventDate(e){
-
-  const raw=first(e.commence_time,e.start_time,e.startTime,e.date,e.starts_at,e.scheduled,e.timestamp);
-
-  if(!raw)return null;
-
-  const d=new Date(raw);
-
-  return Number.isNaN(d.getTime())?null:d;
-
-}
-
-function isLive(e){
-
-  const s=lower(first(e.status,e.state,e.event_status,e.game_status,""));
-
-  return e.is_live===true||e.live===true||e.in_play===true||/live|in.play|in_progress|in progress|halftime|half.time|quarter|period/.test(s);
-
-}
-
-function sameDay(d,offset){
-
-  if(!d)return false;
-
-  const target=new Date();target.setDate(target.getDate()+offset);
-
-  return d.getFullYear()===target.getFullYear()&&d.getMonth()===target.getMonth()&&d.getDate()===target.getDate();
-
-}
-
-function withinFilter(e){
-
-  if(state.filter==="live")return isLive(e);
-
-  if(state.filter==="today")return sameDay(eventDate(e),0);
-
-  if(state.filter==="tomorrow")return sameDay(eventDate(e),1);
-
-  return true;
-
-}
-
-function matchId(e){return String(first(e.id,e.event_id,e.fixture_id,e.key,eventName(e)))}
-
-function parsePositive(v){
-
-  if(v===null||v===undefined||v==="")return null;
-
-  const n=Number(v);
-
-  return Number.isFinite(n)&&n>0?n:null;
-
-}
-
-function fmt(v){const n=parsePositive(v);return n?n.toFixed(2):"—"}
-
-function getTokens(m){
-
-  let tokens=first(m.clobTokenIds,m.clob_token_ids,m.tokenIds,m.token_ids,[]);
-
-  let outcomes=first(m.outcomes,[]);
-
-  if(typeof tokens==="string"){try{tokens=JSON.parse(tokens)}catch{tokens=[]}}
-
-  if(typeof outcomes==="string"){try{outcomes=JSON.parse(outcomes)}catch{outcomes=[]}}
-
-  if(!Array.isArray(tokens))tokens=[];
-
-  if(!Array.isArray(outcomes))outcomes=[];
-
-  return tokens.map((id,i)=>({id:String(id),outcome:String(outcomes[i]?.name??outcomes[i]??i)})).filter(t=>t.id&&t.id!=="undefined");
-
-}
-
-function marketQuestion(m){return String(first(m.question,m.title,m.name,m.slug,""))}
-
-function marketIsMatch(m){return /\bvs\.?\b|\bversus\b|\bmatch winner\b/i.test(marketQuestion(m))}
-
-function marketForEvent(e){
-
-  const [h,a]=eventTeams(e);
-
-  if(!h||!a)return null;
-
-  const hn=normalizeName(h),an=normalizeName(a);
-
-  let best=null,scoreBest=0;
-
-  for(const m of state.markets){
-
-    const q=normalizeName(marketQuestion(m));
-
-    let score=0;
-
-    if(q.includes(hn))score+=2;
-
-    if(q.includes(an))score+=2;
-
-    if(score===4)score++;
-
-    if(score>scoreBest){best=m;scoreBest=score}
+    try { outcomes = JSON.parse(outcomes); } catch { outcomes = []; }
 
   }
 
-  return scoreBest>=4?best:null;
+  if (typeof ids === "string") {
+
+    try { ids = JSON.parse(ids); } catch { ids = []; }
+
+  }
+
+  if (Array.isArray(outcomes) &&
+
+      outcomes.some(o => o && typeof o === "object" && o.tokenId)) {
+
+    return outcomes.filter(o => o?.tokenId).map(o => ({
+
+      id: String(o.tokenId),
+
+      name: String(first(o.outcome, o.name, o.title, "Outcome")),
+
+      bestBid: number(o.bestBid),
+
+      bestAsk: number(o.bestAsk)
+
+    }));
+
+  }
+
+  if (!Array.isArray(outcomes)) outcomes = [];
+
+  if (!Array.isArray(ids)) ids = [];
+
+  return ids.map((id, i) => ({
+
+    id: String(id),
+
+    name: String(outcomes[i]?.name ?? outcomes[i] ?? "Outcome " + (i+1)),
+
+    bestBid: null,
+
+    bestAsk: null
+
+  })).filter(t => t.id && t.id !== "undefined");
 
 }
 
-function tokenForTeam(m,team){
+function question(m) {
 
-  if(!m||!team)return null;
-
-  const tokens=getTokens(m),target=normalizeName(team);
-
-  return tokens.find(t=>normalizeName(t.outcome)===target)
-
-    ||tokens.find(t=>normalizeName(t.outcome)&&(
-
-      target.includes(normalizeName(t.outcome))||normalizeName(t.outcome).includes(target)
-
-    ))||null;
+  return String(first(m.question, m.title, m.name, m.slug, "Unnamed market"));
 
 }
 
-function polyQuote(e,team){
+function looksLikeMatch(m) {
 
-  const m=marketForEvent(e),t=tokenForTeam(m,team);
+  const q = question(m);
 
-  return t?state.live[t.id]||null:null;
+  const outcomes = parseOutcomes(m);
 
-}
+  return /\bvs\.?\b|\bversus\b/i.test(q) &&
 
-function polyHTML(e,team){
-
-  const q=polyQuote(e,team);
-
-  if(!q)return `<span class="price empty">—</span><span class="price empty">—</span>`;
-
-  // Back = buy at ask; Lay = sell at bid. Prices are reciprocals of probabilities.
-
-  const back=q.ask&&q.ask<1?1/q.ask:null;
-
-  const lay=q.bid&&q.bid<1?1/q.bid:null;
-
-  return `<span class="price">${fmt(back)}</span><span class="price">${fmt(lay)}</span>`;
+         outcomes.length >= 2;
 
 }
 
-function bookList(e){return arr(first(e.bookmakers,e.sites,e.providers,e.books,[]))}
+function sportOf(text) {
 
-function outcomeName(o){return String(first(o.name,o.team,o.label,o.description,o.runner_name,""))}
+  const s = String(text || "").toLowerCase();
 
-function quoteFromOutcome(o){
+  if (/cricket|\bipl\b|\bt20\b|\bodi\b|test match/.test(s)) return "cricket";
 
-  const back=first(o.back,o.back_odds,o.back_price,o.best_back,o.price,o.odds,o.decimal_odds);
+  if (/soccer|football|premier league|champions league|la liga|bundesliga|serie a/.test(s)) return "football";
 
-  const lay=first(o.lay,o.lay_odds,o.lay_price,o.best_lay,o.h2h_lay,o.exchange_lay);
+  if (/tennis|\batp\b|\bwta\b|grand slam/.test(s)) return "tennis";
 
-  return {back:parsePositive(back),lay:parsePositive(lay)};
+  if (/basketball|\bnba\b|\bwnba\b|euroleague/.test(s)) return "basketball";
 
-}
+  if (/\bmma\b|\bufc\b/.test(s)) return "mma";
 
-function getBookQuote(e,source,team){
+  if (/valorant|league of legends|\blol\b|dota|counter.?strike|\bcs2\b|esports/.test(s)) return "esports";
 
-  const books=bookList(e);
-
-  const patterns=source==="betfair"?/betfair/i:/ice\s*exchange|iceexch/i;
-
-  const book=books.find(b=>patterns.test(String(first(b.key,b.title,b.name,b.provider,b.bookmaker,""))));
-
-  if(!book)return null;
-
-  const markets=arr(first(book.markets,book.odds,book.lines,book.market,[]));
-
-  const market=markets.find(m=>/h2h|moneyline|match.winner|winner/i.test(String(first(m.key,m.name,m.market_type,""))))||markets[0];
-
-  if(!market)return null;
-
-  const outcomes=arr(first(market.outcomes,market.selections,market.runners,[]));
-
-  const target=normalizeName(team);
-
-  const selection=outcomes.find(o=>normalizeName(outcomeName(o))===target)
-
-    ||outcomes.find(o=>normalizeName(outcomeName(o))&&(
-
-      target.includes(normalizeName(outcomeName(o)))||normalizeName(outcomeName(o)).includes(target)
-
-    ));
-
-  if(!selection)return null;
-
-  return {...quoteFromOutcome(selection),time:first(book.last_update,book.updated_at,e.last_update)};
+  return "other";
 
 }
 
-function bookHTML(e,source,team){
+function quoteFor(token) {
 
-  const q=getBookQuote(e,source,team);
+  const live = state.live[token.id];
 
-  return q?`<span class="price">${fmt(q.back)}</span><span class="price">${fmt(q.lay)}</span>`:
+  const bid = live && Object.hasOwn(live, "bid")
 
-    `<span class="price empty">—</span><span class="price empty">—</span>`;
+    ? live.bid : token.bestBid;
 
-}
+  const ask = live && Object.hasOwn(live, "ask")
 
-function sourceBox(e,source,cls,title){
+    ? live.ask : token.bestAsk;
 
-  const [home,away]=eventTeams(e),poly=source==="poly";
+  return {
 
-  const row=team=>{
+    bid: number(bid),
 
-    const prices=poly?polyHTML(e,team):bookHTML(e,source,team);
+    ask: number(ask),
 
-    return `<div class="quote-row"><div class="quote-team" title="${esc(team)}">${esc(team||"—")}</div>${prices}</div>`;
+    receivedAt: live?.receivedAt || null,
+
+    sourceTime: live?.sourceTime || null,
+
+    bidSize: live?.bidSize ?? null,
+
+    askSize: live?.askSize ?? null
 
   };
 
-  let time="No source price returned";
+}
 
-  if(poly){
+function marketTokens(m) {
 
-    const q=polyQuote(e,home)||polyQuote(e,away);
-
-    time=q?.time?"Updated "+new Date(q.time).toLocaleTimeString():"Waiting for order book";
-
-  }else{
-
-    const q=getBookQuote(e,source,home);
-
-    if(q?.time)time="Updated "+new Date(q.time).toLocaleTimeString();
-
-  }
-
-  return `<div class="source ${cls}">
-
-    <div class="source-title">${title}</div>
-
-    <div class="quote-head"><span>Team</span><span>Back</span><span>Lay</span></div>
-
-    ${row(home)}${row(away)}
-
-    <div class="source-foot">${esc(time)}</div>
-
-  </div>`;
+  return parseOutcomes(m).slice(0, 2);
 
 }
 
-function renderEvents(){
+function filteredMarkets() {
 
-  const search=normalizeName(state.search);
+  return state.markets.filter(m => {
 
-  let list=state.events.filter(e=>{
+    const q = question(m);
 
-    if(!isMatch(e)||!withinFilter(e))return false;
+    const category = sportOf(q);
 
-    if(state.selectedSport&&state.selectedSport!=="all"){
+    const searchText = (
 
-      const category=sportCategory({key:first(e.sport_key,e.sport,e.sport_title,e.league),title:first(e.sport_title,e.sport,e.league)});
+      q + " " + marketTokens(m).map(t => t.name).join(" ")
 
-      if(category!==state.selectedSport)return false;
+    ).toLowerCase();
 
-    }
+    return (state.sport === "all" || category === state.sport) &&
 
-    if(search&&!normalizeName(eventName(e)).includes(search))return false;
-
-    return true;
+           (!state.search || searchText.includes(state.search));
 
   });
 
-  list.sort((a,b)=>{
+}
 
-    if(isLive(a)&&!isLive(b))return -1;
+function outcomeHTML(token) {
 
-    if(!isLive(a)&&isLive(b))return 1;
+  const q = quoteFor(token);
 
-    return (eventDate(a)?.getTime()||Infinity)-(eventDate(b)?.getTime()||Infinity);
+  const back = decimal(q.ask);
 
-  });
+  const lay = decimal(q.bid);
 
-  $("count").textContent=list.length+" match"+(list.length===1?"":"es");
+  const updated = q.receivedAt ? timeText(q.receivedAt) : "No live quote received";
 
-  $("listTitle").textContent=state.selectedSport==="all"?"All Matches":state.selectedSport||"Matches";
+  return `
 
-  const container=$("matches");
+    <section class="outcome">
 
-  if(!list.length){
+      <div class="team">${safe(token.name)}</div>
 
-    const errors=state.errors.length?`<br><span class="small">${esc(state.errors.slice(0,2).join(" · "))}</span>`:"";
+      <div class="oddsrow">
 
-    container.innerHTML=`<div class="empty-state">No matches returned for these filters yet.<br><span class="small">Try Refresh or choose another sport. A provider error can prevent fixtures from loading.</span>${errors}</div>`;
+        <div class="quote">
+
+          <div class="qtitle">BACK / BUY</div>
+
+          <div class="qvalue">${fmtOdds(back)}</div>
+
+        </div>
+
+        <div class="quote lay">
+
+          <div class="qtitle">LAY / SELL</div>
+
+          <div class="qvalue">${fmtOdds(lay)}</div>
+
+        </div>
+
+      </div>
+
+      <div class="depth">
+
+        Bid: ${q.bid === null ? "—" : q.bid.toFixed(3)}
+
+        · Ask: ${q.ask === null ? "—" : q.ask.toFixed(3)}
+
+      </div>
+
+      <div class="depth">Quote updated: ${safe(updated)}</div>
+
+    </section>`;
+
+}
+
+function render() {
+
+  const markets = filteredMarkets();
+
+  $("marketCount").textContent =
+
+    "Markets: " + markets.length + " / " + state.markets.length;
+
+  if (!markets.length) {
+
+    $("events").innerHTML = `
+
+      <div class="empty">
+
+        No matching match markets found.<br>
+
+        Try All sports or clear the search.
+
+      </div>`;
 
     return;
 
   }
 
-  container.innerHTML=list.map((e,i)=>{
+  $("events").innerHTML = markets.map(m => {
 
-    const [home,away]=eventTeams(e),date=eventDate(e),name=eventName(e)||"Match";
+    const tokens = marketTokens(m);
 
-    const meta=[first(e.sport_title,e.sport,e.league,""),date?date.toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}):"",first(e.score,e.status,e.state,"")].filter(Boolean).join(" · ");
+    const q = question(m);
 
-    const status=isLive(e)?`<span class="pill live">● LIVE</span>`:`<span class="pill">${date?"UPCOMING":"MATCH"}</span>`;
+    const latest = tokens
 
-    const detail="detail-"+i;
+      .map(t => state.live[t.id]?.receivedAt || 0)
 
-    const market=marketForEvent(e);
+      .filter(Boolean)
 
-    const polyLink=first(market?.url,market?.slug?("https://polymarket.com/event/"+market.slug):"");
+      .sort((a,b) => b-a)[0] || null;
 
-    return `<article class="match">
+    const restTime = m.updatedAt
 
-      <div class="match-head"><div><div class="event-name">${esc(name)}</div><div class="event-meta">${esc(meta)}</div></div>${status}</div>
+      ? new Date(m.updatedAt).toLocaleString("en-IN")
 
-      <div class="teams">
+      : "Not provided";
 
-        <div class="team"><div class="team-name">${esc(home||"Team 1")}</div><div class="team-sub">Selection 1</div></div>
+    const url = first(m.url, m.slug
 
-        <div class="team"><div class="team-name">${esc(away||"Team 2")}</div><div class="team-sub">Selection 2</div></div>
+      ? "https://polymarket.com/event/" + m.slug
 
-      </div>
+      : null);
 
-      <div class="sources">
+    return `
 
-        ${sourceBox(e,"poly","poly","POLYMARKET")}
+      <article class="event">
 
-        ${sourceBox(e,"betfair","betfair","BETFAIR")}
+        <div class="eventhead">
 
-        ${sourceBox(e,"ice","ice","ICE EXCHANGE")}
+          <div>
 
-      </div>
+            <div class="eventname">${safe(q)}</div>
 
-      ${polyLink?`<button class="details-btn" data-open="${esc(polyLink)}">Open Polymarket ↗</button>`:""}
+            <div class="meta">
 
-      <button class="details-btn" data-detail="${detail}">View match details ＋</button>
+              ${safe(sportOf(q).toUpperCase())}
 
-      <div class="detail-panel" id="${detail}">
+              · Volume: ${Number(m.volume || 0).toLocaleString("en-IN", {maximumFractionDigits:0})}
 
-        <div class="detail-row"><span>Match</span><strong>${esc(name)}</strong></div>
+              · Liquidity: ${Number(m.liquidity || 0).toLocaleString("en-IN", {maximumFractionDigits:0})}
 
-        <div class="detail-row"><span>Sport / League</span><strong>${esc(first(e.sport_title,e.sport,e.league,"—"))}</strong></div>
+            </div>
 
-        <div class="detail-row"><span>Start time</span><strong>${date?esc(date.toLocaleString()):"Not provided"}</strong></div>
+          </div>
 
-        <div class="detail-row"><span>Status</span><strong>${isLive(e)?"Live":esc(first(e.status,e.state,"Upcoming"))}</strong></div>
+          <span class="tag">POLYMARKET</span>
 
-        <div class="detail-row"><span>Polymarket market</span><strong>${esc(marketQuestion(market)||"No exact market match found")}</strong></div>
+        </div>
 
-        <div class="detail-row"><span>Event ID</span><strong>${esc(matchId(e))}</strong></div>
+        <div class="prices">
 
-      </div>
+          ${tokens.map(outcomeHTML).join("")}
 
-    </article>`;
+        </div>
+
+        <div class="last">
+
+          <span class="fresh">Last live quote: ${latest ? safe(timeText(latest)) : "Waiting for WebSocket quote"}</span>
+
+          <span>REST snapshot: ${safe(restTime)}</span>
+
+        </div>
+
+        <div class="actions">
+
+          <button class="btn" data-detail="${safe(m.id)}">Market details</button>
+
+          ${url ? `<button class="btn" data-open="${safe(url)}">Open market ↗</button>` : ""}
+
+        </div>
+
+        <div class="detail">
+
+          Market ID: ${safe(m.id || "—")}<br>
+
+          Slug: ${safe(m.slug || "—")}<br>
+
+          Token IDs: ${tokens.map(t => safe(t.id)).join(" · ")}<br>
+
+          REST update time: ${safe(m.updatedAt || "Not provided")}<br>
+
+          Volume and liquidity are market-level figures, not guaranteed executable size at the displayed price.
+
+        </div>
+
+      </article>`;
 
   }).join("");
 
-  container.querySelectorAll("[data-detail]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("[data-detail]").forEach(button => {
 
-    const panel=$(b.dataset.detail);panel.classList.toggle("open");
-
-    b.textContent=panel.classList.contains("open")?"Hide match details −":"View match details ＋";
-
-  }));
-
-  container.querySelectorAll("[data-open]").forEach(b=>b.addEventListener("click",()=>{
-
-    window.open(b.dataset.open,"_blank","noopener,noreferrer");
-
-  }));
-
-}
-
-function currentSportItems(){
-
-  if(!state.selectedSport||state.selectedSport==="all")return state.sports;
-
-  return state.sports.filter(s=>sportCategory(s)===state.selectedSport);
-
-}
-
-async function loadSports(){
-
-  const data=await getJSON("/sports");
-
-  state.sports=unwrapArray(data).filter(s=>sportKey(s)&&s.active!==false);
-
-  if(!state.sports.length)throw new Error("No sports returned by /sports");
-
-  renderSports();
-
-}
-
-function mergeEvents(items,key){
-
-  for(const original of items){
-
-    if(!original||typeof original!=="object")continue;
-
-    const e={...original};
-
-    e.sport_key=first(e.sport_key,e.sportKey,e.sport,key);
-
-    if(!isMatch(e))continue;
-
-    const id=matchId(e),sport=e.sport_key;
-
-    const index=state.events.findIndex(old=>matchId(old)===id&&old.sport_key===sport);
-
-    if(index>=0)state.events[index]={...state.events[index],...e};
-
-    else state.events.push(e);
-
-  }
-
-}
-
-async function fetchOneSport(key){
-
-  let parlayError=null;
-
-  try{
-
-    const data=await getJSON("/parlay?sport="+encodeURIComponent(key));
-
-    const events=unwrapArray(data);
-
-    if(events.length){mergeEvents(events,key);return true}
-
-    parlayError=new Error("Parlay returned no events");
-
-  }catch(e){parlayError=e}
-
-  try{
-
-    const data=await getJSON("/odds?sport="+encodeURIComponent(key));
-
-    const events=unwrapArray(data);
-
-    if(events.length){mergeEvents(events,key);return true}
-
-    throw new Error("No events returned");
-
-  }catch(e){
-
-    state.errors.push(key+": "+(e.message||"feed error"));
-
-    console.warn("Both odds endpoints failed for",key,parlayError,e);
-
-    return false;
-
-  }
-
-}
-
-async function fetchOddsKeys(keys){
-
-  const queue=[...new Set(keys)];
-
-  const workers=Array.from({length:3},async()=>{
-
-    while(queue.length){
-
-      const key=queue.shift();
-
-      await fetchOneSport(key);
-
-    }
+    button.onclick = () => button.closest(".event").classList.toggle("open");
 
   });
 
-  await Promise.all(workers);
+  document.querySelectorAll("[data-open]").forEach(button => {
 
-  renderEvents();
+    button.onclick = () => window.open(button.dataset.open, "_blank", "noopener");
 
-}
-
-async function loadOddsForSelection(){
-
-  const selected=currentSportItems();
-
-  const keys=selected.map(sportKey).filter(Boolean);
-
-  if(!keys.length){renderEvents();return}
-
-  state.errors=[];
-
-  $("status").textContent="Loading fixtures…";
-
-  await fetchOddsKeys(keys);
-
-  $("status").textContent=state.events.length
-
-    ?"Fixtures loaded · "+new Date().toLocaleTimeString()
-
-    :"No fixtures received · check provider";
+  });
 
 }
 
-async function loadPolymarket(){
+function parseBook(x) {
 
-  const data=await getJSON("/polymarket?limit=300&offset=0");
+  const bids = (x.bids || []).map(v => ({
 
-  const markets=unwrapArray(data);
+    price: number(v.price), size: Number(v.size || 0)
 
-  state.markets=markets.filter(m=>m.active!==false&&m.closed!==true&&marketIsMatch(m)&&getTokens(m).length>0);
+  })).filter(v => v.price !== null && v.size > 0);
 
-  connectPoly();
+  const asks = (x.asks || []).map(v => ({
+
+    price: number(v.price), size: Number(v.size || 0)
+
+  })).filter(v => v.price !== null && v.size > 0);
+
+  const bid = bids.length ? Math.max(...bids.map(v => v.price)) : null;
+
+  const ask = asks.length ? Math.min(...asks.map(v => v.price)) : null;
+
+  return {
+
+    bid, ask,
+
+    bidSize: bid === null ? null :
+
+      bids.filter(v => v.price === bid).reduce((s,v) => s+v.size, 0),
+
+    askSize: ask === null ? null :
+
+      asks.filter(v => v.price === ask).reduce((s,v) => s+v.size, 0)
+
+  };
 
 }
 
-function processPolyMessage(msg){
+function eventSourceTime(x) {
 
-  if(Array.isArray(msg)){msg.forEach(processPolyMessage);return}
+  const raw = Number(x?.timestamp);
 
-  if(!msg||typeof msg!=="object")return;
+  if (!Number.isFinite(raw) || raw <= 0) return null;
 
-  if(msg.event_type==="book"||(Array.isArray(msg.bids)&&Array.isArray(msg.asks))){
+  // Polymarket book timestamps are commonly Unix milliseconds.
 
-    const id=String(first(msg.asset_id,msg.assetId,msg.token_id,""));
+  return new Date(raw < 1e12 ? raw * 1000 : raw).toISOString();
 
-    if(id&&id!=="undefined"){
+}
 
-      const bid=arr(msg.bids).map(x=>parsePositive(x.price??x[0])).filter(Boolean);
+function handleWSMessage(message) {
 
-      const ask=arr(msg.asks).map(x=>parsePositive(x.price??x[0])).filter(Boolean);
+  const list = Array.isArray(message) ? message : [message];
 
-      state.live[id]={bid:bid.length?Math.max(...bid):null,ask:ask.length?Math.min(...ask):null,time:Date.now()};
+  for (const x of list) {
+
+    if (!x || typeof x !== "object") continue;
+
+    const receivedAt = Date.now();
+
+    const sourceTime = eventSourceTime(x);
+
+    if (x.event_type === "book" && x.asset_id) {
+
+      const book = parseBook(x);
+
+      state.live[String(x.asset_id)] = {
+
+        ...book, receivedAt, sourceTime, source: "book"
+
+      };
+
+    }
+
+    if (x.event_type === "best_bid_ask" && x.asset_id) {
+
+      const id = String(x.asset_id);
+
+      const previous = state.live[id] || {};
+
+      state.live[id] = {
+
+        ...previous,
+
+        bid: number(x.best_bid),
+
+        ask: number(x.best_ask),
+
+        receivedAt, sourceTime, source: "best_bid_ask"
+
+      };
+
+    }
+
+    if (x.event_type === "price_change" &&
+
+        Array.isArray(x.price_changes)) {
+
+      for (const change of x.price_changes) {
+
+        if (!change.asset_id) continue;
+
+        const id = String(change.asset_id);
+
+        const previous = state.live[id] || {
+
+          bid: null, ask: null,
+
+          bidSize: null, askSize: null
+
+        };
+
+        const bid = change.best_bid !== undefined
+
+          ? number(change.best_bid) : previous.bid;
+
+        const ask = change.best_ask !== undefined
+
+          ? number(change.best_ask) : previous.ask;
+
+        state.live[id] = {
+
+          ...previous,
+
+          bid, ask, receivedAt, sourceTime,
+
+          source: "price_change"
+
+        };
+
+      }
 
     }
 
   }
 
-  if(msg.event_type==="price_change"&&Array.isArray(msg.price_changes)){
+  render();
 
-    msg.price_changes.forEach(c=>{
+  $("feedStatus").innerHTML =
 
-      const id=String(first(c.asset_id,c.assetId,""));if(!id)return;
+    "Feed: <strong>live messages received</strong>";
 
-      state.live[id]={bid:parsePositive(c.best_bid)??state.live[id]?.bid??null,ask:parsePositive(c.best_ask)??state.live[id]?.ask??null,time:Date.now()};
+}
 
-    });
+function stopWS() {
+
+  clearInterval(state.heartbeat);
+
+  clearTimeout(state.reconnect);
+
+  state.heartbeat = null;
+
+  state.reconnect = null;
+
+  if (state.ws) {
+
+    state.ws.onclose = null;
+
+    try { state.ws.close(); } catch {}
+
+  }
+
+  state.ws = null;
+
+}
+
+function connectWS() {
+
+  const ids = [...new Set(state.markets.flatMap(m =>
+
+    parseOutcomes(m).map(t => t.id)
+
+  ))].slice(0, MAX_WS_TOKENS);
+
+  if (!ids.length) {
+
+    $("connection").textContent = "No tokens";
+
+    $("feedStatus").textContent = "Feed: no token IDs";
+
+    return;
+
+  }
+
+  const signature = ids.join(",");
+
+  if (state.ws && state.wsTokens === signature &&
+
+      (state.ws.readyState === WebSocket.OPEN ||
+
+       state.ws.readyState === WebSocket.CONNECTING)) return;
+
+  stopWS();
+
+  state.wsTokens = signature;
+
+  $("connection").textContent = "Connecting…";
+
+  $("feedStatus").textContent =
+
+    "Feed: subscribing to " + ids.length + " tokens";
+
+  try {
+
+    const ws = new WebSocket(WS_URL);
+
+    state.ws = ws;
+
+    ws.onopen = () => {
+
+      if (state.ws !== ws) return;
+
+      ws.send(JSON.stringify({
+
+        assets_ids: ids,
+
+        type: "market",
+
+        custom_feature_enabled: true
+
+      }));
+
+      $("connection").textContent = "WebSocket connected";
+
+      $("feedStatus").textContent =
+
+        "Feed: connected · " + ids.length + " tokens";
+
+      clearInterval(state.heartbeat);
+
+      state.heartbeat = setInterval(() => {
+
+        if (ws.readyState === WebSocket.OPEN) ws.send("PING");
+
+      }, 10000);
+
+    };
+
+    ws.onmessage = ev => {
+
+      if (ev.data === "PONG" || state.ws !== ws) return;
+
+      try {
+
+        handleWSMessage(JSON.parse(ev.data));
+
+      } catch (err) {
+
+        console.warn("WebSocket message parse error", err);
+
+      }
+
+    };
+
+    ws.onerror = () => {
+
+      $("connection").textContent = "Connection error";
+
+    };
+
+    ws.onclose = () => {
+
+      if (state.ws !== ws) return;
+
+      clearInterval(state.heartbeat);
+
+      state.heartbeat = null;
+
+      state.ws = null;
+
+      $("connection").textContent = "Reconnecting…";
+
+      $("feedStatus").textContent =
+
+        "Feed: disconnected; retrying";
+
+      clearTimeout(state.reconnect);
+
+      state.reconnect = setTimeout(connectWS, 5000);
+
+    };
+
+  } catch (err) {
+
+    $("connection").textContent = "WebSocket unavailable";
+
+    state.reconnect = setTimeout(connectWS, 5000);
 
   }
 
 }
 
-function connectPoly(){
+async function loadMarkets() {
 
-  const tokens=[...new Set(state.markets.flatMap(getTokens).map(t=>t.id))].slice(0,500);
+  const all = [];
 
-  const signature=tokens.join(",");
+  let offset = 0;
 
-  if(!signature){closePoly();return}
+  for (let page = 0; page < MAX_PAGES; page++) {
 
-  if(signature===state.wsTokens&&state.ws&&state.ws.readyState<=1)return;
+    const data = await getJSON(
 
-  closePoly();state.wsTokens=signature;
+      "/polymarket?limit=" + PAGE_SIZE + "&offset=" + offset
 
-  try{
+    );
 
-    const ws=new WebSocket(WS_URL);state.ws=ws;
+    const rows = getRows(data);
 
-    ws.onopen=()=>{
+    all.push(...rows);
 
-      if(state.ws!==ws)return;
+    if (data.hasMore !== true || rows.length === 0) break;
 
-      ws.send(JSON.stringify({assets_ids:tokens,type:"market"}));
+    const next = Number(data.nextOffset);
 
-      $("status").textContent="Polymarket connected · "+tokens.length+" tokens";
+    offset = Number.isFinite(next) && next > offset
 
-      state.heartbeat=setInterval(()=>{if(ws.readyState===WebSocket.OPEN){try{ws.send("PING")}catch{}}},10000);
+      ? next : offset + PAGE_SIZE;
 
-    };
+  }
 
-    ws.onmessage=ev=>{
+  const unique = new Map();
 
-      if(ev.data==="PONG")return;
+  for (const m of all) {
 
-      try{processPolyMessage(JSON.parse(ev.data));renderEvents()}catch{}
+    if (!m || m.active === false || m.closed === true) continue;
 
-    };
+    if (!looksLikeMatch(m)) continue;
 
-    ws.onclose=()=>{
+    const key = String(first(m.id, m.slug, question(m)));
 
-      if(state.ws!==ws)return;
+    unique.set(key, m);
 
-      clearInterval(state.heartbeat);state.heartbeat=null;state.ws=null;
+    // Seed the display from the real REST snapshot.
 
-      state.reconnectTimer=setTimeout(()=>{if(state.markets.length)connectPoly()},5000);
+    for (const token of parseOutcomes(m)) {
 
-    };
+      const previous = state.live[token.id] || {};
 
-    ws.onerror=()=>{};
+      state.live[token.id] = {
 
-  }catch(e){console.warn("Polymarket WebSocket error",e)}
+        ...previous,
+
+        bid: previous.receivedAt ? previous.bid : token.bestBid,
+
+        ask: previous.receivedAt ? previous.ask : token.bestAsk,
+
+        receivedAt: previous.receivedAt || null,
+
+        sourceTime: m.updatedAt || null,
+
+        source: previous.source || "REST snapshot"
+
+      };
+
+    }
+
+  }
+
+  state.markets = [...unique.values()];
+
+  $("lastRefresh").textContent =
+
+    "Last check: " + new Date().toLocaleTimeString("en-IN");
+
+  render();
+
+  connectWS();
 
 }
 
-function closePoly(){
+async function refresh() {
 
-  clearTimeout(state.reconnectTimer);clearInterval(state.heartbeat);
+  if (state.refreshing) return;
 
-  state.reconnectTimer=null;state.heartbeat=null;
+  state.refreshing = true;
 
-  if(state.ws){const old=state.ws;state.ws=null;try{old.close()}catch{}}
+  $("refresh").textContent = "Loading…";
 
-}
+  $("feedStatus").textContent = "Feed: refreshing market list";
 
-async function refreshAll(){
+  try {
 
-  if(state.busy)return;
+    await loadMarkets();
 
-  state.busy=true;$("refreshBtn").disabled=true;$("refreshBtn").textContent="↻ Loading";
+  } catch (err) {
 
-  try{
+    console.error(err);
 
-    if(!state.sports.length)await loadSports();
+    $("feedStatus").textContent = "Feed error: " + err.message;
 
-    const jobs=[loadOddsForSelection()];
+    $("events").innerHTML = `
 
-    jobs.push(loadPolymarket().catch(e=>{state.errors.push("Polymarket: "+e.message);console.warn(e)}));
+      <div class="empty">
 
-    await Promise.allSettled(jobs);
+        Could not load Polymarket markets.<br>
 
-    state.lastRefresh=Date.now();
+        ${safe(err.message)}<br><br>
 
-    $("status").textContent=state.events.length
+        Check the Worker health endpoint and try Refresh again.
 
-      ?"Updated "+new Date().toLocaleTimeString()
+      </div>`;
 
-      :"No fixtures · check Worker/API";
+  } finally {
 
-  }catch(e){
+    state.refreshing = false;
 
-    $("status").textContent="Feed error: "+e.message;
-
-    state.errors.push(e.message);
-
-    console.error(e);
-
-  }finally{
-
-    state.busy=false;$("refreshBtn").disabled=false;$("refreshBtn").textContent="↻ Refresh";
-
-    renderEvents();
+    $("refresh").textContent = "Refresh";
 
   }
 
 }
 
-$("search").addEventListener("input",e=>{state.search=e.target.value;renderEvents()});
+$("sports").addEventListener("click", ev => {
 
-$("filters").querySelectorAll("[data-filter]").forEach(b=>b.addEventListener("click",()=>{
+  const button = ev.target.closest("[data-sport]");
 
-  state.filter=b.dataset.filter;
+  if (!button) return;
 
-  $("filters").querySelectorAll(".filter").forEach(x=>x.classList.toggle("active",x===b));
+  state.sport = button.dataset.sport;
 
-  renderEvents();
+  document.querySelectorAll(".sport").forEach(b =>
 
-}));
+    b.classList.toggle("active", b === button)
 
-$("refreshBtn").addEventListener("click",refreshAll);
+  );
 
-(async function start(){
+  render();
 
-  try{
+});
 
-    await loadSports();
+$("search").addEventListener("input", ev => {
 
-    state.selectedSport="all";
+  state.search = ev.target.value.trim().toLowerCase();
 
-    renderSports();renderEvents();
+  render();
 
-    await refreshAll();
+});
 
-  }catch(e){
+$("refresh").addEventListener("click", refresh);
 
-    $("status").textContent="Could not load sports: "+e.message;
+refresh();
 
-    $("matches").innerHTML=`<div class="empty-state">Could not load the sports list.<br>Check your Worker /sports endpoint and deployment.<br><span class="small">${esc(e.message)}</span></div>`;
-
-    console.error(e);
-
-  }
-
-  setInterval(()=>{if(!document.hidden)refreshAll()},POLL_MS);
-
-})();
+setInterval(refresh, REFRESH_MS);
 
 </script>
 
