@@ -1,38 +1,4 @@
 
-export default {
-  async fetch(request) {
-    const url = new URL(request.url); 
-    const origin = request.headers.get("Origin") || "*";
-
-    const headers = {
-      "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Methods": "GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Content-Type": "application/json; charset=utf-8",
-      "Cache-Control": "no-store",
-      "Vary": "Origin"
-    };
-
-    const reply = (data, status = 200) =>
-      new Response(JSON.stringify(data), { status, headers });
-
-    if (request.method === "OPTIONS")
-      return new Response(null, { status: 204, headers });
-
-    if (request.method !== "GET")
-      return reply({ success: false, error: "Method not allowed" }, 405);
-
-    const getJSON = async (target) => {
-      const response = await fetch(target, {
-        signal: AbortSignal.timeout(12000),
-        headers: { Accept: "application/json" }
-      });
-      const data = await response.json().catch(() => null);
-      if (!response.ok)
-        throw new Error(`Provider HTTP ${response.status}`);
-      return data;
-    };
-
 const GAMMA = "https://gamma-api.polymarket.com";
 const CLOB = "https://clob.polymarket.com";
 
