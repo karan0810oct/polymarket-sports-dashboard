@@ -315,6 +315,179 @@ export default {
         });
       }
 
+      // Live and upcoming real-match endpoint
+      if (url.pathname === "/matches") {
+        const limit = intParam("limit", 100, 1, 100);
+        const offset = intParam("offset", 0, 0, 1000000);
+        const search = (url.searchParams.get("search") || "")
+          .trim()
+          .toLowerCase();
+        const sport = (url.searchParams.get("sport") || "")
+          .trim()
+          .toLowerCase();
+
+        const raw = await getJSON(gamma("/events", {
+          active: true,
+          closed: false,
+          limit,
+          offset,
+          order: "startDate",
+          ascending: true
+        }));
+
+        const now = Date.now();
+
+        const data = (Array.isArray(raw) ? raw : [])
+          .filter(event => {
+            if (event.closed === true || event.active === false) {
+              return false;
+            }
+
+            const title = String(
+              event.title || event.name || event.question || ""
+            ).trim();
+
+            if (!title) return false;
+
+            // Remove outrights, tournaments and winner futures
+            if (/\b(outright|ballon d['’]or|league winner|tournament winner|season winner|champion\s+20\d{2}|winner\s+20\d{2}|to win the league)\b/i.test(title)) {
+              return false;
+            }
+
+            // Require two identifiable participants in the title
+            const parts = title.split(/\s+(?:vs\.?|v\.?|versus|@)\s+/i);
+            if (parts.length !== 2) return false;
+
+            const home = parts[0].trim();
+            const away = parts[1].trim();
+
+            if (!home || !away || home.toLowerCase() === away.toLowerCase()) {
+              return false;
+            }
+
+            const startValue = event.startDate || event.startTime || null;
+            const endValue = event.endDate || null;
+            const start = startValue ? Date.parse(startValue) : NaN;
+            const end = endValue ? Date.parse(endValue) : NaN;
+
+            const statusText = [
+              event.status,
+              event.eventStatus,
+              event.gameStatus
+            ].filter(Boolean).join(" ").toLowerCase();
+
+            const explicitlyLive =
+              event.live === true ||
+              event.isLive === true ||
+              /\b(live|in progress|in-play|in play)\b/.test(statusText);
+
+            const explicitlyEnded =
+              event.ended === true ||
+              event.isEnded === true ||
+              /\b(ended|finished|completed|final)\b/.test(statusText);
+
+            if (explicitlyEnded) return false;
+
+            const upcoming = Number.isFinite(start) && start > now;
+            const withinEndTime =
+              Number.isFinite(end) && end >= now;
+
+            // Include upcoming fixtures or events with live evidence.
+            // A past start date alone is not proof that a match is live.
+            if (!explicitlyLive && !upcoming && !withinEndTime) {
+              return false;
+            }
+
+            if (sport) {
+              const tags = Array.isArray(event.tags) ? event.tags : [];
+              const tagText = tags.map(t =>
+                String(t.label || t.name || "")
+              ).join(" ").toLowerCase();
+
+              if (
+                !tagText.includes(sport) &&
+                !title.toLowerCase().includes(sport)
+              ) {
+                return false;
+              }
+            }
+
+            if (
+              search &&
+              !title.toLowerCase().includes(search)
+            ) {
+              return false;
+            }
+
+            return true;
+          })
+          .map(event => {
+            const startValue = event.startDate || event.startTime || null;
+            const endValue = event.endDate || null;
+            const start = startValue ? Date.parse(startValue) : NaN;
+            const end = endValue ? Date.parse(endValue) : NaN;
+
+            const statusText = [
+              event.status,
+              event.eventStatus,
+              event.gameStatus
+            ].filter(Boolean).join(" ").toLowerCase();
+
+            const live =
+              event.live === true ||
+              event.isLive === true ||
+              /\b(live|in progress|in-play|in play)\b/.test(statusText);
+
+            const upcoming = Number.isFinite(start) && start > now;
+
+            const markets = (
+              Array.isArray(event.markets) ? event.markets : []
+            ).map(normalizeMarket);
+
+            return {
+              id: event.id ?? null,
+              title: event.title ?? event.name ?? "",
+              slug: event.slug ?? null,
+              description: event.description ?? "",
+              startDate: startValue,
+              endDate: endValue,
+              active: event.active ?? null,
+              closed: event.closed ?? null,
+              status: live ? "live" : "upcoming",
+              volume: num(event.volume ?? event.volumeNum),
+              liquidity: num(event.liquidity ?? event.liquidityNum),
+              tags: Array.isArray(event.tags)
+                ? event.tags.map(t => ({
+                    id: t.id ?? null,
+                    label: t.label ?? t.name ?? ""
+                  }))
+                : [],
+              marketCount: markets.length,
+              markets,
+              marketQuestions: markets
+                .map(m => m.question)
+                .filter(Boolean)
+            };
+          })
+          .sort((a, b) => {
+            if (a.status === "live" && b.status !== "live") return -1;
+            if (b.status === "live" && a.status !== "live") return 1;
+            return (Date.parse(a.startDate || "") || 0) -
+                   (Date.parse(b.startDate || "") || 0);
+          });
+
+        return reply({
+          success: true,
+          provider: "Polymarket Gamma",
+          type: "matches",
+          limit,
+          offset,
+          count: data.length,
+          updatedAt: new Date().toISOString(),
+          data
+        });
+      }
+
       // One event with actual order-book quotes
       if (url.pathname === "/event") {
         const id = url.searchParams.get("id");
