@@ -218,9 +218,27 @@ function tokenForTeam(m,team){if(!m||!team)return null;const ts=getMarketTokens(
 function getPolyQuote(e,team){const m=marketForEvent(e),t=tokenForTeam(m,team);return t?state.live[t.id]||null:null;}
 function bestBookPrice(levels,side){if(!Array.isArray(levels))return null;const vals=levels.map(x=>parseNumber(x?.price??x?.[0])).filter(Boolean);return vals.length?(side==="bid"?Math.max(...vals):Math.min(...vals)):null;}
 function timeText(ts){return ts?new Date(ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit",fractionalSecondDigits:3}):"—";}
-function applyQuote(id,bid,ask){if(!id)return;const old=state.live[id]||{};const nextBid=parseNumber(bid)??old.bid??null,nextAsk=parseNumber(ask)??old.ask??null;const move={bid:"",ask:""};if(old.bid&&nextBid&&old.bid!==nextBid)move.bid=(1/nextBid)>(1/old.bid)?"up":"down";if(old.ask&&nextAsk&&old.ask!==nextAsk)move.ask=(1/nextAsk)>(1/old.ask)?"up":"down";const now=Date.now();state.live[id]={...old,bid:nextBid,ask:nextAsk,time:now,receivedAt:now,receivedPerf:performance.now(),move,moveUntil:(move.bid||move.ask)?now+2200:(old.moveUntil||0)};state.lastQuoteAt=now;state.quoteReceivedText=timeText(now);}
-function saveBookMessage(m){const id=String(first(m.asset_id,m.assetId,m.token_id,m.market,""));if(!id||id==="undefined")return;const bid=bestBookPrice(m.bids,"bid"),ask=bestBookPrice(m.asks,"ask");if(bid!==null||ask!==null)applyQuote(id,bid,ask);}
+function applyQuote(id,bid,ask,clearMissing=false){if(!id)return;const old=state.live[id]||{};const nextBid=parseNumber(bid)??(clearMissing?null:(old.bid??null)),nextAsk=parseNumber(ask)??(clearMissing?null:(old.ask??null));const move={bid:"",ask:""};if(old.bid&&nextBid&&old.bid!==nextBid)move.bid=(1/nextBid)>(1/old.bid)?"up":"down";if(old.ask&&nextAsk&&old.ask!==nextAsk)move.ask=(1/nextAsk)>(1/old.ask)?"up":"down";const now=Date.now();state.live[id]={...old,bid:nextBid,ask:nextAsk,time:now,receivedAt:now,receivedPerf:performance.now(),move,moveUntil:(move.bid||move.ask)?now+2200:(old.moveUntil||0)};state.lastQuoteAt=now;state.quoteReceivedText=timeText(now);}
+function saveBookMessage(m){const id=String(first(m.asset_id,m.assetId,m.token_id,m.market,""));if(!id||id==="undefined")return;const bid=bestBookPrice(m.bids,"bid"),ask=bestBookPrice(m.asks,"ask");applyQuote(id,bid,ask,true);}
 function processPolyMessage(m){if(Array.isArray(m)){m.forEach(processPolyMessage);return;}if(!m||typeof m!=="object")return;if(m.event_type==="book"||(Array.isArray(m.bids)&&Array.isArray(m.asks)))saveBookMessage(m);if(m.event_type==="price_change"&&Array.isArray(m.price_changes))for(const c of m.price_changes){const id=String(first(c.asset_id,c.assetId,""));if(id&&(c.best_bid!==undefined||c.best_ask!==undefined))applyQuote(id,c.best_bid,c.best_ask);}if(m.asset_id&&(m.best_bid!==undefined||m.best_ask!==undefined))applyQuote(String(m.asset_id),m.best_bid,m.best_ask);}
+
+async function loadInitialBooks(events){
+ const ids=new Set();
+ for(const e of (events||[]).slice(0,35)){
+  const m=marketForEvent(e);
+  if(!m)continue;
+  for(const t of getMarketTokens(m))if(t.id&&t.id!="undefined"&&t.id!="null")ids.add(t.id);
+ }
+ const tokenIds=[...ids].slice(0,70);
+ for(let i=0;i<tokenIds.length;i+=10){
+  const batch=tokenIds.slice(i,i+10);
+  await Promise.allSettled(batch.map(async id=>{
+   try{const data=await getJSON(API+"/book?token_id="+encodeURIComponent(id));if(data?.success===false)throw new Error(data.error||"Book unavailable");const bid=bestBookPrice(data.bids,"bid"),ask=bestBookPrice(data.asks,"ask");applyQuote(id,bid,ask,true);}
+   catch(err){console.warn("REST order book unavailable for token",id,err);}
+  }));
+ }
+}
+
 function updateLiveStatus(){const age=state.lastQuoteAt?Date.now()-state.lastQuoteAt:Infinity;const connected=!!state.ws&&state.ws.readyState===WebSocket.OPEN;let label="WAITING FOR QUOTE",cls="status-wait";if(!connected){label=state.wsTokens?"DISCONNECTED":"WAITING FOR QUOTE";cls="status-off";}else if(state.lastQuoteAt&&age<=STALE_AFTER_MS){label="LIVE";cls="status-live";}else if(state.lastQuoteAt){label="STALE";cls="status-stale";}const status=$("status");if(status)status.innerHTML=`<span class="status-chip ${cls}">${label}</span> <span class="small">${connected?"WebSocket connected":"WebSocket disconnected"}</span>`;const chip=$("marketStatus");if(chip){chip.className="status-chip "+cls;chip.textContent=label;}if($("quoteReceived"))$("quoteReceived").textContent=state.quoteReceivedText||"—";if($("screenUpdated"))$("screenUpdated").textContent=state.screenUpdatedText||"—";if($("latencyValue"))$("latencyValue").textContent=state.latencyMs===null?"—":state.latencyMs+" ms";if($("lastQuoteValue"))$("lastQuoteValue").textContent=state.lastQuoteAt?timeText(state.lastQuoteAt)+" · "+Math.max(0,Math.round(age/1000))+"s ago":"No quote received";}
 function connectPoly(){const tokens=[...new Set(state.markets.flatMap(getMarketTokens).map(t=>t.id))];const sig=tokens.join(",");if(!tokens.length){updateLiveStatus();return;}if(sig===state.wsTokens&&state.ws&&state.ws.readyState<=1)return;closePoly();state.wsTokens=sig;try{const ws=new WebSocket(POLY_WS_URL);state.ws=ws;ws.onopen=()=>{if(state.ws!==ws)return;const chunks=[];for(let i=0;i<tokens.length;i+=500)chunks.push(tokens.slice(i,i+500));chunks.forEach((ids,i)=>{try{ws.send(JSON.stringify(i===0?{assets_ids:ids,type:"market"}:{assets_ids:ids,operation:"subscribe"}));}catch(err){console.warn("Polymarket subscribe batch failed",i,err);}});updateLiveStatus();state.heartbeat=setInterval(()=>{if(ws.readyState===WebSocket.OPEN)try{ws.send("PING")}catch{}},10000);};ws.onmessage=e=>{if(e.data==="PONG")return;try{processPolyMessage(JSON.parse(e.data));renderEvents();if($("marketsOverlay").classList.contains("open")&&state.selectedEvent)renderSelectedMarkets();updateLiveStatus()}catch(err){console.warn("Polymarket message parse/render error",err)}};ws.onerror=()=>updateLiveStatus();ws.onclose=()=>{if(state.ws!==ws)return;clearInterval(state.heartbeat);state.heartbeat=null;state.ws=null;updateLiveStatus();state.reconnectTimer=setTimeout(connectPoly,2500);};}catch(err){console.warn("Polymarket WebSocket failed",err);updateLiveStatus();state.reconnectTimer=setTimeout(connectPoly,2500);}}
 function closePoly(){clearTimeout(state.reconnectTimer);clearInterval(state.heartbeat);state.reconnectTimer=null;state.heartbeat=null;if(state.ws){const w=state.ws;state.ws=null;try{w.close()}catch{}}}
@@ -243,8 +261,14 @@ async function loadSports(){state.sports=FALLBACK_SPORTS.slice();renderSports();
 function normalizeIncomingEvent(raw,key,source){const e={...raw,sport_key:first(raw.sport_key,raw.sportKey,raw.key,raw.sport_id,key),sport_title:first(raw.sport_title,raw.sportTitle,raw.sport_name,raw.league_name,raw.league,raw.competition,typeof raw.sport==="object"?first(raw.sport.title,raw.sport.name,raw.sport.key):raw.sport,key),_source:source};const [h,a]=eventTeams(e);if((!e.home_team||!e.away_team)&&h&&a){e.home_team=h;e.away_team=a;}if(!e.commence_time&&!e.start_time&&!e.startTime&&!e.startDate&&!e.start_date){const d=eventDate(raw);if(d)e.commence_time=d.toISOString();}return e;}
 async function loadPolymarket(){
  try{
-  const [eventResult,marketResult]=await Promise.allSettled([loadSportTaggedEvents(),fetchPolyPages("markets",{_maxPages:"10"})]);
-  const rawEvents=eventResult.status==="fulfilled"?eventResult.value:[];
+  const [globalEventResult,taggedEventResult,marketResult]=await Promise.allSettled([
+   fetchPolyPages("events",{_maxPages:"10"}),
+   loadSportTaggedEvents(),
+   fetchPolyPages("markets",{_maxPages:"10"})
+  ]);
+  const globalEvents=globalEventResult.status==="fulfilled"?globalEventResult.value:[];
+  const taggedEvents=taggedEventResult.status==="fulfilled"?taggedEventResult.value:[];
+  const rawEvents=[...new Map([...globalEvents,...taggedEvents].map((e)=>[String(first(e.id,e.slug,e.event_id,e.title,e.name,JSON.stringify(e).slice(0,160))),e])).values()];
   const rawMarkets=marketResult.status==="fulfilled"?marketResult.value:[];
   if(!rawEvents.length&&!rawMarkets.length)throw new Error("Polymarket events and markets could not be loaded");
   const marketMap=new Map();
@@ -266,6 +290,7 @@ async function loadPolymarket(){
   console.info("Crystal Edge Polymarket loaded",{eventPages:rawEvents.length,marketRows:rawMarkets.length,tokenMarkets:state.markets.length,matchEvents:state.events.length,sports:[...new Set(state.events.map(e=>e.sport_title))]});
   for(const m of state.markets){for(const t of getMarketTokens(m)){const bid=parseNumber(t.bestBid),ask=parseNumber(t.bestAsk);if(bid!==null||ask!==null){const old=state.live[t.id]||{};const nextBid=bid??old.bid??null,nextAsk=ask??old.ask??null;const changed=!old.receivedAt||old.bid!==nextBid||old.ask!==nextAsk;if(changed){const now=Date.now();state.live[t.id]={...old,bid:nextBid,ask:nextAsk,time:now,receivedAt:now,receivedPerf:performance.now(),source:"REST"};state.lastQuoteAt=now;state.quoteReceivedText=timeText(now);}else state.live[t.id]={...old,bid:nextBid,ask:nextAsk,source:old.source||"REST"};}}}
   connectPoly();renderEvents();
+  await loadInitialBooks(state.events);renderEvents();
   if(!state.events.length){const root=$("matches");if(root&&state.selectedSport)root.innerHTML='<div class="empty-state">No team-vs-team Polymarket events were found in the returned event/market pages.<br><span class="small">Markets loaded: '+state.markets.length+'. This can mean the Worker response is empty or Polymarket currently has no matching event markets for these sports.</span></div>';}
  }catch(err){console.warn("Polymarket fetch failed",err);const root=$("matches");if(root&&!state.events.length)root.innerHTML=`<div class="empty-state">Polymarket feed could not be loaded.<br><span class="small">${esc(err?.message||String(err))}. Check Worker /polymarket and /polymarket?type=events.</span></div>`;const status=$("status");if(status)status.innerHTML=`<span class="status-chip status-off">LOAD ERROR</span> <span class="small">${esc(err?.message||String(err))}</span>`;updateLiveStatus();}
 }
