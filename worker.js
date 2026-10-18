@@ -1,7 +1,7 @@
 
 export default {
   async fetch(request) {
-    const url = new URL(request.url);
+    const url = new URL(request.url); 
     const origin = request.headers.get("Origin") || "*";
 
     const headers = {
