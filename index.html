@@ -91,18 +91,23 @@
     .match-meta { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-bottom: 5px; }
     .match-teams { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px; }
     
-    .odds-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 6px; }
-    .odds-btn {
+    /* Parallel Bookmaker Grid for Main Match */
+    .parallel-odds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+    .book-box-main { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; }
+    .book-header-main { font-size: 9px; font-weight: 800; color: #94a3b8; margin-bottom: 4px; display: flex; justify-content: space-between; }
+    
+    .odds-row-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+    .odds-btn-mini {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 10px; border-radius: 8px; font-size: 12px; font-weight: 600; gap: 3px;
+      padding: 6px 4px; border-radius: 5px; font-size: 10px; font-weight: 600; gap: 1px;
     }
-    .odds-btn span { font-size: 10px; opacity: 0.85; text-transform: uppercase; font-weight: 700; }
-    .odds-btn strong { font-size: 16px; font-weight: 900; }
+    .odds-btn-mini span { font-size: 8px; opacity: 0.8; text-transform: uppercase; font-weight: 700; }
+    .odds-btn-mini strong { font-size: 13px; font-weight: 900; }
     
     .back { background: rgba(0, 122, 255, 0.2); border: 1px solid var(--blue-border); color: #64b5f6; }
     .lay { background: rgba(255, 59, 48, 0.2); border: 1px solid var(--red-border); color: #ff8a80; }
     
-    .match-sub { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); }
+    .match-sub { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 4px; }
 
     /* Expanded Comparison Panel */
     .comparison-panel {
@@ -117,9 +122,10 @@
     .market-row-title { font-size: 9px; font-weight: 800; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; }
     
     .books-split { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .book-col { background: rgba(0,0,0,0.3); border-radius: 4px; padding: 4px 6px; }
-    .book-col-title { font-size: 8px; font-weight: 800; color: #cbd5e1; margin-bottom: 2px; }
-    .rate-pair { display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; }
+    .book-col { background: rgba(0,0,0,0.3); border-radius: 4px; padding: 6px; }
+    .book-col-title { font-size: 8px; font-weight: 800; color: #cbd5e1; margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .rate-pair-parallel { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; text-align: center; }
+    .rate-box-sub { background: rgba(255,255,255,0.05); padding: 3px; border-radius: 3px; font-size: 10px; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -173,7 +179,7 @@
 
   <!-- Info Notice -->
   <div class="notice-box">
-    Real-time multi-sport institutional execution feed. Showing all available Polymarket fixtures matched against Pinnacle order books with complete secondary market availability.
+    Real-time multi-sport institutional execution feed. Parallel real-time arbitrage pricing comparison across Polymarket and Pinnacle order books.
   </div>
 
   <!-- Open Markets Header & Sport Dropdown -->
@@ -193,7 +199,6 @@
   <div id="matchList"></div>
 
   <script>
-    // Complete Dataset of All Sports & Matches to ensure nothing is missed
     const allMatches = [
       { id: 'm1', sport: 'cricket', category: 'live', teams: 'India vs Australia', vol: '$1,450,200', back: '1.86', lay: '1.88', spread: '1.8ms', pBack: '1.84', pLay: '1.87', market: 'Match Winner (Moneyline)' },
       { id: 'm2', sport: 'cricket', category: 'today', teams: 'Pakistan vs England', vol: '$980,400', back: '1.92', lay: '1.95', spread: '2.1ms', pBack: '1.90', pLay: '1.93', market: 'Match Winner (Moneyline)' },
@@ -235,52 +240,77 @@
               <span style="color: var(--accent-green);">Spread: ${m.spread}</span>
             </div>
             <div class="match-teams">${m.teams}</div>
-            <div class="odds-grid">
-              <div class="odds-btn back">
-                <span>Back</span> <strong>${m.back}</strong>
+            
+            <!-- Parallel Poly vs Pinnacle Grid -->
+            <div class="parallel-odds-grid">
+              <div class="book-box-main">
+                <div class="book-header-main"><span style="color:#60a5fa;">POLYMARKET</span> <span>⚡ 1ms</span></div>
+                <div class="odds-row-inline">
+                  <div class="odds-btn-mini back"><span>Back</span> <strong>${m.back}</strong></div>
+                  <div class="odds-btn-mini lay"><span>Lay</span> <strong>${m.lay}</strong></div>
+                </div>
               </div>
-              <div class="odds-btn lay">
-                <span>Lay</span> <strong>${m.lay}</strong>
+              <div class="book-box-main">
+                <div class="book-header-main"><span style="color:#fbbf24;">PINNACLE</span> <span>⚡ 5ms</span></div>
+                <div class="odds-row-inline">
+                  <div class="odds-btn-mini back"><span>Back</span> <strong>${m.pBack}</strong></div>
+                  <div class="odds-btn-mini lay"><span>Lay</span> <strong>${m.pLay}</strong></div>
+                </div>
               </div>
             </div>
+
             <div class="match-sub">
               <span>Vol: ${m.vol}</span>
               <span style="color: #38bdf8;">Tap for All Markets & Books ▾</span>
             </div>
           </div>
 
-          <!-- Extended Comparison Panel -->
+          <!-- Extended Comparison Panel with Parallel Markets -->
           <div class="comparison-panel" id="${m.id}">
             <div class="comparison-header">
               <span>⚡ POLY vs PINNACLE ALL MARKETS</span>
-              <span style="color: var(--accent-green);">Fast Sync</span>
+              <span style="color: var(--accent-green);">Live Parallel Sync</span>
             </div>
             
             <div class="books-container">
+              <!-- Market 1 -->
               <div class="market-row-box">
                 <div class="market-row-title">Market: ${m.market}</div>
                 <div class="books-split">
                   <div class="book-col">
-                    <div class="book-col-title" style="color: #60a5fa;">POLYMARKET</div>
-                    <div class="rate-pair"><span>B: ${m.back}</span> <span style="color:#f87171">L: ${m.lay}</span></div>
+                    <div class="book-col-title"><span style="color: #60a5fa;">POLY</span></div>
+                    <div class="rate-pair-parallel">
+                      <div class="rate-box-sub" style="color:#64b5f6">B: ${m.back}</div>
+                      <div class="rate-box-sub" style="color:#f87171">L: ${m.lay}</div>
+                    </div>
                   </div>
                   <div class="book-col">
-                    <div class="book-col-title" style="color: #fbbf24;">PINNACLE</div>
-                    <div class="rate-pair"><span>B: ${m.pBack}</span> <span style="color:#f87171">L: ${m.pLay}</span></div>
+                    <div class="book-col-title"><span style="color: #fbbf24;">PINNACLE</span></div>
+                    <div class="rate-pair-parallel">
+                      <div class="rate-box-sub" style="color:#64b5f6">B: ${m.pBack}</div>
+                      <div class="rate-box-sub" style="color:#f87171">L: ${m.pLay}</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
+              <!-- Market 2 -->
               <div class="market-row-box">
                 <div class="market-row-title">Market: Secondary Handicap / Totals</div>
                 <div class="books-split">
                   <div class="book-col">
-                    <div class="book-col-title" style="color: #60a5fa;">POLYMARKET</div>
-                    <div class="rate-pair"><span>O: 1.88</span> <span style="color:#f87171">U: 1.90</span></div>
+                    <div class="book-col-title"><span style="color: #60a5fa;">POLY</span></div>
+                    <div class="rate-pair-parallel">
+                      <div class="rate-box-sub" style="color:#64b5f6">O: 1.88</div>
+                      <div class="rate-box-sub" style="color:#f87171">U: 1.90</div>
+                    </div>
                   </div>
                   <div class="book-col">
-                    <div class="book-col-title" style="color: #fbbf24;">PINNACLE</div>
-                    <div class="rate-pair"><span>O: 1.86</span> <span style="color:#f87171">U: 1.88</span></div>
+                    <div class="book-col-title"><span style="color: #fbbf24;">PINNACLE</span></div>
+                    <div class="rate-pair-parallel">
+                      <div class="rate-box-sub" style="color:#64b5f6">O: 1.86</div>
+                      <div class="rate-box-sub" style="color:#f87171">U: 1.88</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -301,7 +331,7 @@
               </div>
               <div class="lat-box" style="padding: 4px;">
                 <div class="lat-title" style="font-size: 8px;">STATUS</div>
-                <div class="lat-val" style="font-size: 9px;">Live Sync</div>
+                <div class="lat-val" style="font-size: 9px;">Parallel Active</div>
               </div>
             </div>
           </div>
@@ -344,7 +374,6 @@
       renderMatches(activeSport, activeTime);
     }
 
-    // Initial load of all matches
     window.onload = () => {
       renderMatches('all', 'all');
     };
