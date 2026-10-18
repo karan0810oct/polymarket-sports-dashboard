@@ -180,30 +180,56 @@ async function fetchPolyPages(type,filters={}){
  return all;
 }
 async function loadSportTaggedEvents(){
+ // IMPORTANT: /sports on our Worker belongs to the bookmaker provider, not Polymarket.
+ // Read Polymarket's own public sport catalogue for real tag/series IDs, then ask the
+ // existing Worker proxy for the matching event pages. If the catalogue is unavailable,
+ // fall back to global Polymarket pagination without inventing matches.
  let sportRows=[];
- try{const payload=await getJSON(API+"/sports");sportRows=unwrapArray(payload);if(!sportRows.length&&Array.isArray(payload?.data))sportRows=payload.data;}catch(error){console.warn("Polymarket /sports metadata unavailable; falling back to global events",error);}
+ try{
+  const payload=await getJSON("https://gamma-api.polymarket.com/sports");
+  sportRows=unwrapArray(payload);
+  if(!sportRows.length&&Array.isArray(payload?.data))sportRows=payload.data;
+  if(!sportRows.length&&Array.isArray(payload?.sports))sportRows=payload.sports;
+ }catch(error){console.warn("Polymarket Gamma /sports catalogue unavailable; using global event pagination",error);}
  const wanted=SUPPORTED_SPORTS;
  const jobs=new Map();
+ const addIds=(value,param,category)=>{
+  for(const id of numericIds(value))jobs.set(param+"="+id,{[param]:id,category});
+ };
  for(const row of sportRows){
-  const rawSport=first(row.sport,row.name,row.title,row.key,row.sport_name,row.sportName,"");
+  if(!row||typeof row!=="object")continue;
+  const rawSport=first(row.sport,row.name,row.title,row.key,row.sport_name,row.sportName,row.league,"");
   let category=sportCategory({sport:rawSport,key:row.key,title:rawSport,name:row.name,description:row.description});
+  const rowText=lower([rawSport,row.slug,row.series_title,row.description,row.name].filter(Boolean).join(" "));
+  if(!wanted.includes(category)){
+   if(/cricket|\bipl\b|\bt20\b|\bodi\b|big[- ]?bash|\bbbl\b|\bcpl\b|\bpsl\b|\bwpl\b/.test(rowText))category="Cricket";
+   else if(/tennis|\batp\b|\bwta\b|wimbledon|roland garros/.test(rowText))category="Tennis";
+   else if(/basketball|\bnba\b|\bwnba\b|euroleague|\bbknbl\b|\bnbl\b/.test(rowText))category="Basketball";
+   else if(/soccer|football|\bepl\b|premier league|serie a|la liga|bundesliga|ligue 1|\bmls\b|uefa|fifa/.test(rowText))category="Football";
+  }
   if(!wanted.includes(category))continue;
-  for(const id of numericIds(first(row.series,row.series_id,row.seriesId,row.series_ids)))jobs.set("series_id="+id,{series_id:id,category});
-  for(const id of numericIds(first(row.tags,row.tag_id,row.tagId,row.tag_ids)))jobs.set("tag_id="+id,{tag_id:id,category});
+  addIds(first(row.series_id,row.seriesId,row.series_ids,row.series),"series_id",category);
+  addIds(first(row.tag_id,row.tagId,row.tag_ids,row.tags),"tag_id",category);
  }
- // When Polymarket exposes sport metadata, use every matching tag/series so the first global page
- // cannot hide lower-volume cricket, football or basketball fixtures behind tennis markets.
  const collected=[];
  if(jobs.size){
-  for(const [label,job] of jobs){
-   try{const rows=await fetchPolyPages("events",{[label.split("=")[0]]:job[label.split("=")[0]]});for(const e of rows){if(e&&typeof e==="object"){if(!e.sport_title)e.sport_title=job.category;e._discoveredSport=job.category;collected.push(e);}}}
-   catch(error){console.warn("Sport-scoped Polymarket query failed",label,error);}
+  const jobList=[...jobs.entries()];
+  // Run a few requests in parallel to keep the iPhone page responsive without flooding the Worker.
+  const batchSize=4;
+  for(let i=0;i<jobList.length;i+=batchSize){
+   const batch=jobList.slice(i,i+batchSize);
+   const results=await Promise.allSettled(batch.map(async([label,job])=>{const param=label.split("=")[0];return {label,job,rows:await fetchPolyPages("events",{[param]:job[param]})};}));
+   for(const result of results){
+    if(result.status!=="fulfilled"){console.warn("Sport-scoped Polymarket query failed",result.reason);continue;}
+    const {job,rows}=result.value;
+    for(const e of rows){if(e&&typeof e==="object"){if(!e.sport_title)e.sport_title=job.category;e._discoveredSport=job.category;collected.push(e);}}
+   }
   }
-  // A small general discovery page adds markets that do not belong to a configured sports series.
-  try{const extra=await fetchPolyPages("events",{_firstPageOnly:"true"});collected.push(...extra);}catch(error){console.warn("General event supplement unavailable",error);}
-  if(!collected.length){console.warn("Sport tags/series returned no events; falling back to full global event pagination");return await fetchPolyPages("events");}
-  return collected;
  }
+ // Add a global page to pick up fixtures not attached to a configured sport series.
+ try{const extra=await fetchPolyPages("events",{_firstPageOnly:"true"});collected.push(...extra);}catch(error){console.warn("General Polymarket event supplement unavailable",error);}
+ if(collected.length)return collected;
+ // Global pagination is the safe fallback. This also handles Gamma catalogue shape changes.
  return await fetchPolyPages("events");
 }
 
