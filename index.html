@@ -118,9 +118,7 @@ function eventFromMarket(m){
  for(const raw of candidates){const pair=parseMatchupText(raw);if(pair){h=pair[0];a=pair[1];break;}}
  if((!h||!a)&&ev&&typeof ev==="object"){const pair=eventTeams(ev);if(pair[0]&&pair[1]){h=pair[0];a=pair[1];}}
  if(!h||!a)return null;
- const sport=marketSport(m)||"Other";
- // Keep genuine participant-vs-participant markets even when the Worker does not
- // attach a recognizable league/sport label; the All Sports view must not go blank.
+ const sport=marketSport(m);if(!SUPPORTED_SPORTS.includes(sport))return null;
  const rawDate=first(ev?.startTime,ev?.start_time,ev?.startDateTime,ev?.start_date_time,ev?.commence_time,ev?.commenceTime,m?.gameStartTime,m?.game_start_time,m?.matchStartTime,m?.match_start_time,m?.commence_time,m?.startTime,m?.start_time);
  const date=eventDate({...m,start_time:rawDate,...(ev&&typeof ev==="object"?{event:ev}:{})});
  const slug=String(first(ev?.slug,m?.eventSlug,m?.event_slug,normalizeName(h+"-vs-"+a)));
@@ -161,21 +159,27 @@ async function fetchPolyPages(type,filters={}){
  // Unlimited total pagination for each Polymarket query. 100 is only the per-request page size.
  const all=[];const signatures=new Set();const seenIds=new Set();let successfulPages=0,offset=0,consecutiveErrors=0;
  const pageSize=100;
- const maxPages=type==="events"?5:3; // bounded startup: avoid downloading the entire Gamma catalogue on mobile
- while(successfulPages < maxPages){
+ // No fixed page ceiling: continue until the feed ends, repeats a page, or repeatedly errors.
+ while(true){
   const params=new URLSearchParams({limit:String(pageSize),offset:String(offset)});
   if(type)params.set("type",type);
   for(const [key,value] of Object.entries(filters)){if(!key.startsWith("_")&&value!==undefined&&value!==null&&value!==""){params.set(key,String(value));}}
-  // Use the dedicated Worker catalogue routes: /markets returns the canonical
-  // clobTokenIds array. The legacy /polymarket?type=markets route may return a
-  // different shape and leave the UI falsely reporting NO TOKEN IDS.
-  const endpoint=type==="markets"?"/markets":type==="events"?"/events":"/polymarket";
-  if(endpoint!=="/polymarket")params.delete("type");
-  const url=API+endpoint+"?"+params.toString();
+  const directPath=type==="events"?"/events":"/markets";
+  const urls=[API+directPath+"?limit="+pageSize+"&offset="+offset,API+"/polymarket?"+params.toString()];
   let data=null,items=[],lastError=null;
   for(let attempt=0;attempt<2;attempt++){
-   try{data=await getJSON(url);if(data?.success===false)throw new Error(data.error?.message||data.error||("Polymarket API error "+(data.upstreamStatus||"")));items=unwrapArray(data).filter(x=>x&&typeof x==="object");lastError=null;break;}
-   catch(error){lastError=error;console.warn("Polymarket "+(type||"markets")+" page failed",filters,"offset",offset,"attempt",attempt+1,error);if(attempt===0)await new Promise(resolve=>setTimeout(resolve,450));}
+   for(const url of urls){
+    try{
+     data=await getJSON(url);
+     if(data?.success===false)throw new Error(data.error?.message||data.error||("Polymarket API error "+(data.upstreamStatus||"")));
+     items=unwrapArray(data).filter(x=>x&&typeof x==="object");
+     if(items.length){lastError=null;break;}
+     // Try the alternate Worker route when this route returns an empty catalogue page.
+     lastError=new Error("Empty "+type+" page at offset "+offset);
+    }catch(error){lastError=error;console.warn("Polymarket "+(type||"markets")+" route failed",url,"attempt",attempt+1,error);}
+   }
+   if(items.length){lastError=null;break;}
+   if(attempt===0)await new Promise(resolve=>setTimeout(resolve,450));
   }
   if(lastError){consecutiveErrors++;if(consecutiveErrors>=3){if(!successfulPages)throw lastError;console.warn("Stopping this Polymarket query after repeated errors; retained pages:",successfulPages,filters);break;}offset+=pageSize;await new Promise(resolve=>setTimeout(resolve,600));continue;}
   consecutiveErrors=0;successfulPages++;
@@ -263,7 +267,7 @@ async function loadSportTaggedEvents(){
    }
   }
  }catch(error){stats.errors.push('sports: '+String(error?.message||error));console.warn('Polymarket Gamma sports catalogue unavailable',error);}
- const fetchEventPages=async(params,category,maxPages=8)=>{
+ const fetchEventPages=async(params,category)=>{
   let offset=0;const pageSize=100;const signatures=new Set();let pages=0;
   while(true){
    let data;
@@ -274,7 +278,7 @@ async function loadSportTaggedEvents(){
    const sig=rows.map(x=>String(first(x.id,x.slug,x.title,''))).join('|');
    if(sig&&signatures.has(sig))break; if(sig)signatures.add(sig);
    for(const e of rows){remember(e,category);stats.eventRows++;if(category==='Cricket'&&stats.cricketCandidates.length<12)stats.cricketCandidates.push(String(first(e.title,e.name,e.slug,e.question,'(untitled)')));}
-   pages++;if(pages>=maxPages)break;
+   pages++;
    // A page may contain events already found through another series; still advance offset.
    // The repeated-page signature above is the guard against an ignored offset/infinite loop.
    offset+=rows.length;
@@ -302,7 +306,7 @@ async function loadSportTaggedEvents(){
   }catch(error){stats.errors.push('search '+term+': '+String(error?.message||error));console.warn('Gamma public search failed',term,error);}
  }
  // Always supplement with global active events so catalogue gaps do not hide sports.
- await fetchEventPages({},'Other',8);
+ await fetchEventPages({},'Other');
  stats.seriesQueriesTotal=seriesJobs.size;stats.discoveredEvents=collected.length;
  state.gammaDiagnostics=stats;
  return collected;
@@ -487,8 +491,9 @@ async function loadPolymarket(){
    }
   }
   connectPoly();renderEvents();
-  // Background Gamma discovery intentionally disabled: it can issue hundreds of catalogue requests and stall mobile startup.
-  // The bounded events pages above already include real event titles, team names, and nested market token IDs.
+  // Start a second, independent Gamma sports-catalogue scan after the Worker feed is rendered.
+  // It is not awaited, so the dashboard remains usable while every available sport page is discovered.
+  void runBackgroundGammaDiscovery();
   if(!state.events.length){const root=$("matches");if(root&&state.selectedSport)root.innerHTML='<div class="empty-state">Worker returned '+allRows.length+' records and '+state.markets.length+' market rows, but no team-vs-team fixtures could be identified for the selected sports.<br><span class="small">This is a feed/schema or match-name parsing issue, not a WebSocket-only issue. No fixtures or odds are fabricated.</span></div>';}
  }catch(err){console.warn("Polymarket fetch failed",err);const root=$("matches");if(root&&!state.events.length)root.innerHTML=`<div class="empty-state">Polymarket feed could not be loaded.<br><span class="small">${esc(err?.message||String(err))}. Check Worker /polymarket?limit=50.</span></div>`;const status=$("status");if(status)status.innerHTML=`<span class="status-chip status-off">LOAD ERROR</span> <span class="small">${esc(err?.message||String(err))}</span>`;updateLiveStatus();}
 }
