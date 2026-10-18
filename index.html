@@ -150,7 +150,7 @@ async function fetchPolyPages(type,filters={}){
  while(true){
   const params=new URLSearchParams({limit:String(pageSize),offset:String(offset)});
   if(type)params.set("type",type);
-  for(const [key,value] of Object.entries(filters))if(value!==undefined&&value!==null&&value!=="")params.set(key,String(value));
+  for(const [key,value] of Object.entries(filters)){if(!key.startsWith("_")&&value!==undefined&&value!==null&&value!==""){params.set(key,String(value));}}
   const url=API+"/polymarket?"+params.toString();
   let data=null,items=[],lastError=null;
   for(let attempt=0;attempt<2;attempt++){
@@ -169,6 +169,8 @@ async function fetchPolyPages(type,filters={}){
   if(added===0)break;
   offset+=items.length;
   if(filters._firstPageOnly==="true")break;
+  const maxPages=Number(filters._maxPages)||0;
+  if(maxPages>0&&successfulPages>=maxPages)break;
   if(items.length<pageSize)await new Promise(resolve=>setTimeout(resolve,140));
   else if(successfulPages%5===0)await new Promise(resolve=>setTimeout(resolve,100));
  }
@@ -241,7 +243,10 @@ async function loadSports(){state.sports=FALLBACK_SPORTS.slice();renderSports();
 function normalizeIncomingEvent(raw,key,source){const e={...raw,sport_key:first(raw.sport_key,raw.sportKey,raw.key,raw.sport_id,key),sport_title:first(raw.sport_title,raw.sportTitle,raw.sport_name,raw.league_name,raw.league,raw.competition,typeof raw.sport==="object"?first(raw.sport.title,raw.sport.name,raw.sport.key):raw.sport,key),_source:source};const [h,a]=eventTeams(e);if((!e.home_team||!e.away_team)&&h&&a){e.home_team=h;e.away_team=a;}if(!e.commence_time&&!e.start_time&&!e.startTime&&!e.startDate&&!e.start_date){const d=eventDate(raw);if(d)e.commence_time=d.toISOString();}return e;}
 async function loadPolymarket(){
  try{
-  const rawEvents=await loadSportTaggedEvents();const rawMarkets=[];if(!rawEvents.length)throw new Error("Polymarket returned no events for the configured sports tags/series");
+  const [eventResult,marketResult]=await Promise.allSettled([loadSportTaggedEvents(),fetchPolyPages("markets",{_maxPages:"10"})]);
+  const rawEvents=eventResult.status==="fulfilled"?eventResult.value:[];
+  const rawMarkets=marketResult.status==="fulfilled"?marketResult.value:[];
+  if(!rawEvents.length&&!rawMarkets.length)throw new Error("Polymarket events and markets could not be loaded");
   const marketMap=new Map();
   for(const m of [...rawMarkets,...rawEvents.flatMap(e=>arr(e?.markets))]){
    if(!m||typeof m!=="object")continue;
