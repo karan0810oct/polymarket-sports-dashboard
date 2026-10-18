@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Polymarket Live Odds</title>
+  <title>Polymarket Live Speed Feed</title>
   <style>
     :root {
       --bg-dark: #090d16;
@@ -38,7 +38,7 @@
     }
 
     .top-header {
-      background: rgba(17, 24, 39, 0.9);
+      background: rgba(17, 24, 39, 0.95);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--card-border);
       padding: 12px 16px;
@@ -159,7 +159,7 @@
       min-width: 55px;
       text-align: center;
       min-height: 40px;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.3s ease, transform 0.15s ease;
     }
 
     .odds-yes { background-color: var(--odds-blue); }
@@ -169,12 +169,12 @@
     .flash-down { animation: flashRed 0.5s ease; }
 
     @keyframes flashGreen {
-      0% { background-color: var(--green); transform: scale(1.06); }
+      0% { background-color: var(--green); transform: scale(1.08); }
       100% { transform: scale(1); }
     }
 
     @keyframes flashRed {
-      0% { background-color: var(--red); transform: scale(1.06); }
+      0% { background-color: var(--red); transform: scale(1.08); }
       100% { transform: scale(1); }
     }
   </style>
@@ -194,181 +194,179 @@
     <button class="sport-pill" onclick="filterSports('cricket', this)">🏏 Cricket</button>
     <button class="sport-pill" onclick="filterSports('football', this)">⚽ Football</button>
     <button class="sport-pill" onclick="filterSports('tennis', this)">🎾 Tennis</button>
-    <button class="sport-pill" onclick="filterSports('mma', this)">🥊 MMA / Boxing</button>
+    <button class="sport-pill" onclick="filterSports('crypto', this)">📈 Crypto / Finance</button>
   </nav>
 
   <main class="main-content">
     <section id="match-list">
       <div style="text-align: center; color: var(--text-secondary); padding: 40px 0; font-size: 0.85rem;" id="loader">
-        Connecting to Polymarket Live Markets...
+        Initializing Live Connection...
       </div>
     </section>
   </main>
 
   <script>
-    // Updated Working Direct API URL
-    const GAMMA_API = "https://gamma-api.polymarket.com/events?active=true&closed=false&limit=30&order=volume_24hr&ascending=false";
+    const MARKET_API = "https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=25&order=volume24hr&ascending=false";
     const WS_URL = "wss://ws-subscriptions-clob.polymarket.com/ws/market";
 
     let socket;
-    let trackedAssetIds = [];
-    let allFetchedEvents = [];
-    let pingStartTime = 0;
+    let trackedTokens = [];
+    let marketsData = [];
+    let pingTime = 0;
 
-    async function fetchLiveMarkets() {
+    async function loadData() {
       try {
-        const response = await fetch(GAMMA_API);
-        allFetchedEvents = await response.json();
+        const res = await fetch(MARKET_API);
+        marketsData = await res.json();
         
-        renderMarkets('all');
-        connectWebSocket();
-
-      } catch (err) {
-        console.error("API Fetch Error:", err);
-        document.getElementById('loader').innerText = "Failed to load live data. Check internet connection.";
+        document.getElementById('loader').style.display = 'none';
+        renderList('all');
+        initWS();
+      } catch (e) {
+        console.error(e);
+        document.getElementById('loader').innerText = "Connecting fallback engine...";
+        setTimeout(loadData, 2000);
       }
     }
 
-    function renderMarkets(filterCategory) {
-      const listContainer = document.getElementById('match-list');
-      listContainer.innerHTML = '';
-      trackedAssetIds = [];
+    function renderList(category) {
+      const container = document.getElementById('match-list');
+      container.innerHTML = '';
+      trackedTokens = [];
 
-      let hasItems = false;
+      let found = 0;
 
-      allFetchedEvents.forEach(event => {
-        if (!event.markets || event.markets.length === 0) return;
+      marketsData.forEach(item => {
+        let tokens = [];
+        try {
+          tokens = typeof item.clobTokenIds === 'string' ? JSON.parse(item.clobTokenIds) : item.clobTokenIds;
+        } catch(err) { tokens = []; }
 
-        event.markets.forEach(market => {
-          let clobTokens = [];
-          try {
-            clobTokens = typeof market.clobTokenIds === 'string' ? JSON.parse(market.clobTokenIds) : market.clobTokenIds;
-          } catch(e) { clobTokens = []; }
+        let prices = [0.5, 0.5];
+        try {
+          prices = typeof item.outcomePrices === 'string' ? JSON.parse(item.outcomePrices) : item.outcomePrices;
+        } catch(err) { prices = [0.5, 0.5]; }
 
-          let outcomePrices = ["0", "0"];
-          try {
-            outcomePrices = typeof market.outcomePrices === 'string' ? JSON.parse(market.outcomePrices) : market.outcomePrices;
-          } catch(e) { outcomePrices = ["0", "0"]; }
+        if (tokens && tokens.length >= 2) {
+          const yesId = tokens[0];
+          const noId = tokens[1];
 
-          if (clobTokens && clobTokens.length >= 2) {
-            const yesId = clobTokens[0];
-            const noId = clobTokens[1];
+          const q = (item.question || item.groupItemTitle || "").toLowerCase();
 
-            const titleText = (market.question || event.title).toLowerCase();
-            const groupText = (event.title || "").toLowerCase();
-
-            // Category Filter Logic
-            if (filterCategory !== 'all') {
-              const isMatch = titleText.includes(filterCategory) || groupText.includes(filterCategory);
-              if (!isMatch) return;
-            }
-
-            hasItems = true;
-            trackedAssetIds.push(yesId, noId);
-
-            const card = document.createElement('div');
-            card.className = 'match-card';
-
-            const p1 = parseFloat(outcomePrices[0] || 0).toFixed(2);
-            const p2 = parseFloat(outcomePrices[1] || 0).toFixed(2);
-
-            card.innerHTML = `
-              <div class="match-info">
-                <div class="match-title">${market.question || event.title}</div>
-                <div class="match-subtitle">${event.title}</div>
-              </div>
-              <div class="odds-group">
-                <button class="odds-btn odds-yes" id="btn-${yesId}">${p1}</button>
-                <button class="odds-btn odds-no" id="btn-${noId}">${p2}</button>
-              </div>
-            `;
-
-            listContainer.appendChild(card);
+          if (category !== 'all') {
+            if (!q.includes(category)) return;
           }
-        });
+
+          found++;
+          trackedTokens.push(yesId, noId);
+
+          const card = document.createElement('div');
+          card.className = 'match-card';
+
+          const p1 = (parseFloat(prices[0] || 0.5)).toFixed(2);
+          const p2 = (parseFloat(prices[1] || 0.5)).toFixed(2);
+
+          card.innerHTML = `
+            <div class="match-info">
+              <div class="match-title">${item.question || 'Live Market'}</div>
+              <div class="match-subtitle">Polymarket Direct Odds</div>
+            </div>
+            <div class="odds-group">
+              <button class="odds-btn odds-yes" id="btn-${yesId}">${p1}</button>
+              <button class="odds-btn odds-no" id="btn-${noId}">${p2}</button>
+            </div>
+          `;
+
+          container.appendChild(card);
+        }
       });
 
-      if (!hasItems) {
-        listContainer.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 40px 0;">No active events found for this filter.</div>`;
+      if (found === 0) {
+        container.innerHTML = `<div style="text-align: center; color: var(--text-secondary); padding: 40px 0;">No active events found in this category right now.</div>`;
       }
     }
 
-    function filterSports(category, btnElement) {
-      document.querySelectorAll('.sport-pill').forEach(el => el.classList.remove('active'));
-      btnElement.classList.add('active');
-      renderMarkets(category);
+    function filterSports(cat, el) {
+      document.querySelectorAll('.sport-pill').forEach(btn => btn.classList.remove('active'));
+      el.classList.add('active');
+      renderList(cat);
 
-      // Re-subscribe WebSocket if active
-      if (socket && socket.readyState === WebSocket.OPEN && trackedAssetIds.length > 0) {
+      if (socket && socket.readyState === WebSocket.OPEN && trackedTokens.length > 0) {
         socket.send(JSON.stringify({
           type: "market",
-          assets_ids: trackedAssetIds
+          assets_ids: trackedTokens
         }));
       }
     }
 
-    function connectWebSocket() {
+    function initWS() {
       if (socket) socket.close();
+
       socket = new WebSocket(WS_URL);
 
       socket.onopen = () => {
         document.getElementById('ws-dot').className = 'status-dot online';
-        if (trackedAssetIds.length > 0) {
+
+        if (trackedTokens.length > 0) {
           socket.send(JSON.stringify({
             type: "market",
-            assets_ids: trackedAssetIds
+            assets_ids: trackedTokens
           }));
         }
-        measureLatency();
+        startLatencyCounter();
       };
 
-      socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+      socket.onmessage = (msg) => {
+        const data = JSON.parse(msg.data);
 
-        if (pingStartTime > 0) {
-          const latency = Math.round(performance.now() - pingStartTime);
-          document.getElementById('latency-val').innerText = latency;
-          pingStartTime = 0;
+        // Record ping latency
+        if (pingTime > 0) {
+          const lat = Math.round(performance.now() - pingTime);
+          document.getElementById('latency-val').innerText = lat;
+          pingTime = 0;
         }
 
-        if (data.event_type === "price_change" || data.event_type === "book") {
-          updateOdds(data);
+        if (data.asset_id && data.price) {
+          updatePrice(data.asset_id, data.price);
         }
       };
 
       socket.onclose = () => {
         document.getElementById('ws-dot').className = 'status-dot offline';
-        setTimeout(connectWebSocket, 3000);
+        setTimeout(initWS, 2000);
+      };
+
+      socket.onerror = () => {
+        document.getElementById('ws-dot').className = 'status-dot offline';
       };
     }
 
-    function updateOdds(data) {
-      if (!data.asset_id || !data.price) return;
-
-      const btn = document.getElementById(`btn-${data.asset_id}`);
+    function updatePrice(assetId, priceVal) {
+      const btn = document.getElementById(`btn-${assetId}`);
       if (btn) {
-        const oldPrice = parseFloat(btn.innerText) || 0;
-        const newPrice = parseFloat(data.price);
+        const oldP = parseFloat(btn.innerText) || 0;
+        const newP = parseFloat(priceVal);
 
-        if (newPrice !== oldPrice) {
-          btn.innerText = newPrice.toFixed(2);
-          const flashClass = newPrice > oldPrice ? 'flash-up' : 'flash-down';
+        if (newP !== oldP) {
+          btn.innerText = newP.toFixed(2);
+          const flash = newP > oldP ? 'flash-up' : 'flash-down';
           btn.classList.remove('flash-up', 'flash-down');
           void btn.offsetWidth;
-          btn.classList.add(flashClass);
+          btn.classList.add(flash);
         }
       }
     }
 
-    function measureLatency() {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        pingStartTime = performance.now();
-        socket.send("PING");
-      }
-      setTimeout(measureLatency, 3000);
+    function startLatencyCounter() {
+      setInterval(() => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+          pingTime = performance.now();
+          socket.send(JSON.stringify({ type: "ping" }));
+        }
+      }, 3000);
     }
 
-    fetchLiveMarkets();
+    loadData();
   </script>
 </body>
 </html>
