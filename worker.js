@@ -314,180 +314,132 @@ export default {
           data
         });
       }
+// Live and upcoming real-match endpoint
 
-      // Live and upcoming real-match endpoint
-      if (url.pathname === "/matches") {
-        const limit = intParam("limit", 100, 1, 100);
-        const offset = intParam("offset", 0, 0, 1000000);
-        const search = (url.searchParams.get("search") || "")
-          .trim()
-          .toLowerCase();
-        const sport = (url.searchParams.get("sport") || "")
-          .trim()
-          .toLowerCase();
+if (url.pathname === "/matches") {
+  const limit = Math.min(
+    100,
+    Math.max(1, Number(url.searchParams.get("limit")) || 50)
+  );
+  const offset = Math.max(
+    0,
+    Number(url.searchParams.get("offset")) || 0
+  );
+  const sport = (url.searchParams.get("sport") || "").toLowerCase();
+  const search = (url.searchParams.get("search") || "").toLowerCase();
 
-        const raw = await getJSON(gamma("/events", {
-          active: true,
-          closed: false,
-          limit,
-          offset,
-          order: "startDate",
-          ascending: true
-        }));
+  const pageSize = 100;
+  const pageCount = 10;
 
-        const now = Date.now();
+  const pages = await Promise.all(
+    Array.from({ length: pageCount }, async (_, page) => {
+      try {
+        const apiUrl = new URL("https://gamma-api.polymarket.com/events");
+        apiUrl.searchParams.set("active", "true");
+        apiUrl.searchParams.set("closed", "false");
+        apiUrl.searchParams.set("limit", String(pageSize));
+        apiUrl.searchParams.set("offset", String(page * pageSize));
+        apiUrl.searchParams.set("order", "volume_24hr");
+        apiUrl.searchParams.set("ascending", "false");
 
-        const data = (Array.isArray(raw) ? raw : [])
-          .filter(event => {
-            if (event.closed === true || event.active === false) {
-              return false;
-            }
-
-            const title = String(
-              event.title || event.name || event.question || ""
-            ).trim();
-
-            if (!title) return false;
-
-            // Remove outrights, tournaments and winner futures
-            if (/\b(outright|ballon d['’]or|league winner|tournament winner|season winner|champion\s+20\d{2}|winner\s+20\d{2}|to win the league)\b/i.test(title)) {
-              return false;
-            }
-
-            // Require two identifiable participants in the title
-            const parts = title.split(/\s+(?:vs\.?|v\.?|versus|@)\s+/i);
-            if (parts.length !== 2) return false;
-
-            const home = parts[0].trim();
-            const away = parts[1].trim();
-
-            if (!home || !away || home.toLowerCase() === away.toLowerCase()) {
-              return false;
-            }
-
-            const startValue = event.startDate || event.startTime || null;
-            const endValue = event.endDate || null;
-            const start = startValue ? Date.parse(startValue) : NaN;
-            const end = endValue ? Date.parse(endValue) : NaN;
-
-            const statusText = [
-              event.status,
-              event.eventStatus,
-              event.gameStatus
-            ].filter(Boolean).join(" ").toLowerCase();
-
-            const explicitlyLive =
-              event.live === true ||
-              event.isLive === true ||
-              /\b(live|in progress|in-play|in play)\b/.test(statusText);
-
-            const explicitlyEnded =
-              event.ended === true ||
-              event.isEnded === true ||
-              /\b(ended|finished|completed|final)\b/.test(statusText);
-
-            if (explicitlyEnded) return false;
-
-            const upcoming = Number.isFinite(start) && start > now;
-            const withinEndTime =
-              Number.isFinite(end) && end >= now;
-
-            // Include upcoming fixtures or events with live evidence.
-            // A past start date alone is not proof that a match is live.
-            if (!explicitlyLive && !upcoming && !withinEndTime) {
-              return false;
-            }
-
-            if (sport) {
-              const tags = Array.isArray(event.tags) ? event.tags : [];
-              const tagText = tags.map(t =>
-                String(t.label || t.name || "")
-              ).join(" ").toLowerCase();
-
-              if (
-                !tagText.includes(sport) &&
-                !title.toLowerCase().includes(sport)
-              ) {
-                return false;
-              }
-            }
-
-            if (
-              search &&
-              !title.toLowerCase().includes(search)
-            ) {
-              return false;
-            }
-
-            return true;
-          })
-          .map(event => {
-            const startValue = event.startDate || event.startTime || null;
-            const endValue = event.endDate || null;
-            const start = startValue ? Date.parse(startValue) : NaN;
-            const end = endValue ? Date.parse(endValue) : NaN;
-
-            const statusText = [
-              event.status,
-              event.eventStatus,
-              event.gameStatus
-            ].filter(Boolean).join(" ").toLowerCase();
-
-            const live =
-              event.live === true ||
-              event.isLive === true ||
-              /\b(live|in progress|in-play|in play)\b/.test(statusText);
-
-            const upcoming = Number.isFinite(start) && start > now;
-
-            const markets = (
-              Array.isArray(event.markets) ? event.markets : []
-            ).map(normalizeMarket);
-
-            return {
-              id: event.id ?? null,
-              title: event.title ?? event.name ?? "",
-              slug: event.slug ?? null,
-              description: event.description ?? "",
-              startDate: startValue,
-              endDate: endValue,
-              active: event.active ?? null,
-              closed: event.closed ?? null,
-              status: live ? "live" : "upcoming",
-              volume: num(event.volume ?? event.volumeNum),
-              liquidity: num(event.liquidity ?? event.liquidityNum),
-              tags: Array.isArray(event.tags)
-                ? event.tags.map(t => ({
-                    id: t.id ?? null,
-                    label: t.label ?? t.name ?? ""
-                  }))
-                : [],
-              marketCount: markets.length,
-              markets,
-              marketQuestions: markets
-                .map(m => m.question)
-                .filter(Boolean)
-            };
-          })
-          .sort((a, b) => {
-            if (a.status === "live" && b.status !== "live") return -1;
-            if (b.status === "live" && a.status !== "live") return 1;
-            return (Date.parse(a.startDate || "") || 0) -
-                   (Date.parse(b.startDate || "") || 0);
-          });
-
-        return reply({
-          success: true,
-          provider: "Polymarket Gamma",
-          type: "matches",
-          limit,
-          offset,
-          count: data.length,
-          updatedAt: new Date().toISOString(),
-          data
+        const response = await fetch(apiUrl.toString(), {
+          headers: { Accept: "application/json" },
+          signal: AbortSignal.timeout(12000)
         });
+
+        if (!response.ok) return [];
+
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    })
+  );
+
+  const events = new Map();
+
+  for (const page of pages) {
+    for (const event of page) {
+      if (event && event.id != null) {
+        events.set(String(event.id), event);
+      }
+    }
+  }
+
+  const excluded = [
+    "presidential nominee",
+    "ballon d'or",
+    "winner of",
+    "champion of the",
+    "season winner",
+    "league winner",
+    "to win the",
+    "outright"
+  ];
+
+  const isMatchTitle = (title) =>
+    /\s(?:vs\.?|versus|v\.|@)\s/i.test(title || "");
+
+  const matches = [...events.values()]
+    .filter((event) => {
+      const title = String(event.title || event.name || "").trim();
+      const lower = title.toLowerCase();
+
+      if (!title || event.closed === true || event.active === false) {
+        return false;
       }
 
+      if (!isMatchTitle(title)) return false;
+      if (excluded.some((word) => lower.includes(word))) return false;
+
+      if (search && !lower.includes(search)) return false;
+
+      if (sport) {
+        const sportText = [
+          event.sport,
+          event.category,
+          event.league,
+          event.series?.name,
+          event.slug,
+          title
+        ].filter(Boolean).join(" ").toLowerCase();
+
+        if (!sportText.includes(sport)) return false;
+      }
+
+      return true;
+    })
+    .map((event) => ({
+      id: event.id,
+      title: event.title || event.name,
+      slug: event.slug || null,
+      sport: event.sport || event.category || null,
+      startDate: event.startDate || event.startDateIso || null,
+      endDate: event.endDate || null,
+      status: "upcoming",
+      active: event.active,
+      markets: Array.isArray(event.markets) ? event.markets : []
+    }))
+    .sort((a, b) => {
+      const aTime = Date.parse(a.startDate || "") || 0;
+      const bTime = Date.parse(b.startDate || "") || 0;
+      return aTime - bTime;
+    });
+
+  return reply({
+    success: true,
+    provider: "Polymarket Gamma",
+    type: "matches",
+    limit,
+    offset,
+    scanned: events.size,
+    count: matches.length,
+    updatedAt: new Date().toISOString(),
+    data: matches.slice(offset, offset + limit)
+  });
+}
+ 
       // One event with actual order-book quotes
       if (url.pathname === "/event") {
         const id = url.searchParams.get("id");
