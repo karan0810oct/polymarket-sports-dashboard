@@ -21,7 +21,7 @@
 <div class="notice">Polymarket only · Live decimal Back/Lay odds on the main screen. Open a match for comparison and all related markets. Only real quotes returned by Polymarket are shown.</div>
 <div class="section-line"><div class="section-title" id="listTitle">Select a sport</div><div class="small" id="count">0 matches</div></div>
 <main class="matches" id="matches"><div class="empty-state">Tap a sport above to load its matches.</div></main>
-<div class="footer">Crystal Edge · Polymarket decimal odds · Automatic quote monitoring<br>Verify prices and liquidity at the source before acting.</div>
+<div class="footer">Crystal Edge V12 · Polymarket decimal odds · Automatic quote monitoring<br>Verify prices and liquidity at the source before acting.</div>
 </div>
 <div class="markets-overlay" id="marketsOverlay" aria-hidden="true"><section class="markets-window" role="dialog" aria-modal="true" aria-labelledby="marketsTitle"><div class="markets-head"><div><div class="small">CRYSTAL EDGE · MATCH EXPLORER</div><h2 id="marketsTitle">Open Markets</h2><p id="marketsSubtitle">Available markets for this match</p></div><button class="close-markets" id="closeMarkets" type="button" aria-label="Close markets">✕</button></div><div class="comparison-grid"><div class="comparison-box"><div class="box-title">🔵 POLYMARKET · DECIMAL</div><div id="polyCompareBox"><div class="small">Loading real Back / Lay quotes…</div></div><div class="box-note">Only real order-book quotes. Blank when unavailable.</div></div><div class="comparison-placeholder ice"><strong>🟣 ICE EXCHANGE</strong><div class="small">Decimal · Back / Lay</div><div class="placeholder-odds"><span>Selection</span><span>BACK</span><span>LAY</span><span id="iceTeam1">Team 1</span><span>—</span><span>—</span><span id="iceTeam2">Team 2</span><span>—</span><span>—</span></div><div class="placeholder-state">ICE feed not connected · rates show — until a real feed is available</div></div></div><div class="market-actions"><a class="poly-link" id="openPolyLink" href="https://polymarket.com" target="_blank" rel="noopener noreferrer">Open on Polymarket ↗</a><span id="marketStatus" class="status-chip status-wait">WAITING FOR QUOTE</span></div><div class="latency-strip"><div class="latency-cell"><span>QUOTE RECEIVED</span><strong id="quoteReceived">—</strong></div><div class="latency-cell"><span>SCREEN UPDATED</span><strong id="screenUpdated">—</strong></div><div class="latency-cell"><span>LATENCY</span><strong id="latencyValue">—</strong></div><div class="latency-cell"><span>LAST QUOTE / AGE</span><strong id="lastQuoteValue">—</strong></div></div><div class="section-line"><div class="section-title">All related markets · player props · totals</div><div class="small" id="marketCount">0 markets</div></div><div class="market-list" id="marketList"><div class="empty-state">Tap Open Markets on a match to load its available markets.</div></div></section></div>
 <script>
@@ -94,7 +94,19 @@ function eventName(e){const[h,a]=eventTeams(e);return h&&a?h+" vs "+a:first(e.na
 function isMatch(e){const[h,a]=eventTeams(e);if(h&&a&&normalizeName(h)!==normalizeName(a))return true;return /\bvs\.?\b|\bversus\b|\bv\.?\s/i.test(eventName(e));}
 function parseNumber(v){if(v===null||v===undefined||v==="")return null;const n=Number(v);return Number.isFinite(n)&&n>0?n:null;}
 function fmt(v){const n=parseNumber(v);return n?n.toFixed(2):"—";}
-function getMarketTokens(m){if(!m||typeof m!=="object")return[];let ids=first(m.clobTokenIds,m.clob_token_ids,m.tokenIds,m.token_ids,[]),outs=first(m.outcomes,[]);if(typeof ids==="string"){try{ids=JSON.parse(ids)}catch{ids=[]}}if(typeof outs==="string"){try{outs=JSON.parse(outs)}catch{outs=[]}}if(!Array.isArray(ids))ids=[];if(!Array.isArray(outs))outs=[];const fromIds=ids.map((id,i)=>({id:String(typeof id==="object"?first(id.token_id,id.tokenId,id.asset_id,id.id):id),outcome:String(typeof outs[i]==="object"?first(outs[i].name,outs[i].title,outs[i].outcome,i):outs[i]??i),bestBid:typeof outs[i]==="object"?first(outs[i].bestBid,outs[i].best_bid,outs[i].bid):null,bestAsk:typeof outs[i]==="object"?first(outs[i].bestAsk,outs[i].best_ask,outs[i].ask):null}));const fromOutcomes=outs.map((o,i)=>({id:String(typeof o==="object"?first(o.token_id,o.tokenId,o.asset_id,o.assetId,o.id):""),outcome:String(typeof o==="object"?first(o.name,o.title,o.outcome,i):o),bestBid:typeof o==="object"?first(o.bestBid,o.best_bid,o.bid):null,bestAsk:typeof o==="object"?first(o.bestAsk,o.best_ask,o.ask):null}));const result=(fromIds.some(t=>t.id&&t.id!=="undefined")?fromIds:fromOutcomes).filter(t=>t.id&&t.id!=="undefined"&&t.id!=="null");return result;}
+function getMarketTokens(m){
+ if(!m||typeof m!=="object")return[];
+ const parseArray=v=>{if(Array.isArray(v))return v;if(typeof v==="string"){try{const p=JSON.parse(v);return Array.isArray(p)?p:[]}catch{return[]}}return[]};
+ let ids=parseArray(first(m.clobTokenIds,m.clob_token_ids,m.tokenIds,m.token_ids,m.outcomeTokens,m.outcome_tokens,[]));
+ let outs=parseArray(first(m.outcomes,m.outcome,[]));
+ const fromIds=ids.map((item,i)=>{
+  const o=outs[i];
+  return {id:String(typeof item==="object"?first(item.token_id,item.tokenId,item.asset_id,item.assetId,item.id):item??""),outcome:String(typeof o==="object"?first(o.name,o.title,o.outcome,item?.outcome,i):o??item?.outcome??i),bestBid:typeof o==="object"?first(o.bestBid,o.best_bid,o.bid):first(item?.bestBid,item?.best_bid,item?.bid),bestAsk:typeof o==="object"?first(o.bestAsk,o.best_ask,o.ask):first(item?.bestAsk,item?.best_ask,item?.ask)};
+ });
+ const fromOutcomes=outs.map((o,i)=>({id:String(typeof o==="object"?first(o.token_id,o.tokenId,o.asset_id,o.assetId,o.id,o.clobTokenId,o.clob_token_id):""),outcome:String(typeof o==="object"?first(o.name,o.title,o.outcome,o.label,i):o),bestBid:typeof o==="object"?first(o.bestBid,o.best_bid,o.bid):null,bestAsk:typeof o==="object"?first(o.bestAsk,o.best_ask,o.ask):null}));
+ const result=fromIds.some(t=>t.id&&t.id!=="undefined"&&t.id!=="null")?fromIds:fromOutcomes;
+ return result.filter(t=>t.id&&t.id!=="undefined"&&t.id!=="null"&&t.id!=="" );
+}
 function marketQuestion(m){return String(first(m?.question,m?.title,m?.name,m?.slug,""));}
 function marketContextText(m){const ev=first(m?.event,m?.events?.[0],{});const tags=arr(m?.tags).map(t=>typeof t==="object"?first(t.label,t.name,t.slug):t).join(" ");return [marketQuestion(m),m?.description,m?.groupItemTitle,m?.group_item_title,m?.eventSlug,m?.event_slug,m?.slug,m?.sport,m?.sport_title,m?.league,tags,ev?.title,ev?.name,ev?.slug,ev?.description,ev?.sport,m?.series?.title].filter(Boolean).join(" ");}
 function marketIsMatch(m){return !!m&&typeof m==="object"&&getMarketTokens(m).length>0&&m.active!==false&&m.closed!==true;}
@@ -382,7 +394,24 @@ async function loadPolymarket(){
   if(!allRows.length)throw new Error("Worker /polymarket returned no market rows. Open /polymarket?limit=50 to inspect the response.");
   // Some Worker versions return markets directly; others nest markets inside events.
   const marketMap=new Map();
-  const addMarket=m=>{if(!m||typeof m!=="object")return;const id=String(first(m.id,m.conditionId,m.condition_id,m.slug,marketQuestion(m),JSON.stringify(m).slice(0,160)));if(id)marketMap.set(id,{...(marketMap.get(id)||{}),...m});};
+  const addMarket=m=>{
+   if(!m||typeof m!=="object")return;
+   const id=String(first(m.id,m.conditionId,m.condition_id,m.slug,marketQuestion(m),JSON.stringify(m).slice(0,160)));
+   if(!id)return;
+   const old=marketMap.get(id)||{};
+   const oldHasTokens=getMarketTokens(old).length>0;
+   const newHasTokens=getMarketTokens(m).length>0;
+   const merged={...old,...m};
+   // IMPORTANT: Gamma event objects can contain the same market without the Worker’s
+   // enriched outcome.tokenId/bestBid/bestAsk fields. Never let that poorer duplicate
+   // overwrite a token-bearing market row, or the UI falsely reports “NO TOKEN IDS”.
+   if(oldHasTokens&&!newHasTokens){
+    for(const key of ["outcomes","clobTokenIds","clob_token_ids","tokenIds","token_ids","outcomeTokens","outcome_tokens"]){
+     if(old[key]!==undefined)merged[key]=old[key];
+    }
+   }
+   marketMap.set(id,merged);
+  };
   for(const row of allRows){
    if(Array.isArray(row.markets))row.markets.forEach(addMarket);
    if(row.market&&typeof row.market==="object")addMarket(row.market);
