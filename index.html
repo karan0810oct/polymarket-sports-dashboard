@@ -2,633 +2,225 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Polymarket2.0 - Crystal Speed Terminal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polymkt Live Odds</title>
   <style>
     :root {
-      --bg-base: #03060d;
-      --bg-card: #0a101d;
-      --border-color: #162238;
-      --accent-glow: #38bdf8;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --green-live: #10b981;
-      --red-drop: #ef4444;
-      --odds-bg: #060b14;
+      --bg-color: #080b10;
+      --card-bg: rgba(18, 24, 36, 0.75);
+      --red-crystal: linear-gradient(135deg, rgba(255, 59, 48, 0.3), rgba(160, 15, 15, 0.5));
+      --blue-crystal: linear-gradient(135deg, rgba(0, 122, 255, 0.3), rgba(15, 70, 190, 0.5));
+      --red-border: rgba(255, 59, 48, 0.6);
+      --blue-border: rgba(0, 122, 255, 0.6);
+      --text-main: #f1f5f9;
+      --text-muted: #8b9bb4;
+      --accent-green: #2ecc71;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      -webkit-tap-highlight-color: transparent;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 8px; font-size: 12px; }
 
-    body {
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      padding: 10px 10px 65px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    /* Top Bar */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 2px 4px; }
+    .brand { font-weight: 900; font-size: 15px; color: #fff; letter-spacing: -0.5px; }
+    .btn-refresh {
+      background: rgba(255, 255, 255, 0.08); border: 1px solid var(--blue-border);
+      color: var(--text-main); padding: 3px 8px; border-radius: 5px; font-size: 11px;
+      cursor: pointer; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(6px);
     }
+    .btn-refresh:active { transform: scale(0.94); }
 
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(10, 16, 29, 0.95);
-      backdrop-filter: blur(12px);
-      padding: 8px 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border-color);
-    }
-
-    .brand-area {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .live-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--green-live);
-      box-shadow: 0 0 8px var(--green-live);
-    }
-
-    .brand-title {
-      font-size: 1.1rem;
-      font-weight: 900;
-      color: var(--text-main);
-    }
-    .brand-title span { color: var(--accent-glow); }
-
-    .reload-btn {
-      background: #0f1d36;
-      border: 1px solid #22385c;
-      color: var(--accent-glow);
-      padding: 5px 10px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .search-input {
-      width: 100%;
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      padding: 9px 12px;
-      border-radius: 8px;
-      color: var(--text-main);
-      font-size: 0.8rem;
-      outline: none;
-    }
-
-    .filter-label {
-      font-size: 0.65rem;
-      font-weight: 800;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 2px;
-    }
-
-    .scroll-row {
-      display: flex;
-      gap: 6px;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .scroll-row::-webkit-scrollbar { display: none; }
-
-    .chip-btn {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .chip-btn.active {
-      background: #0f2c52;
-      border-color: var(--accent-glow);
-      color: var(--text-main);
-    }
-    .arrow-icon {
-      font-size: 0.6rem;
-      color: var(--accent-glow);
-    }
-
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      margin-top: 4px;
-    }
-
-    .matches-container {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .match-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      cursor: pointer;
-    }
-
-    .match-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 6px;
-    }
-
-    .match-name {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--text-main);
-      line-height: 1.25;
-    }
-
-    .league-tag {
-      font-size: 0.6rem;
-      color: var(--accent-glow);
-      background: rgba(56,189,248,0.08);
-      padding: 2px 6px;
-      border-radius: 4px;
-      border: 1px solid rgba(56,189,248,0.2);
-      white-space: nowrap;
-    }
-
-    .open-btn {
-      width: 100%;
-      background: #0f1c33;
-      border: 1px solid #1c3156;
-      color: var(--text-main);
-      padding: 7px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      cursor: pointer;
-      text-align: center;
-      margin-top: 4px;
-    }
-
-    /* Modal Overlay */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
+    /* Heading & Sports Crystal Horizontal Bar */
+    .section-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; font-weight: 700; }
+    .crystal-bar { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 8px; scrollbar-width: none; }
+    .crystal-bar::-webkit-scrollbar { display: none; }
+    
+    .c-box {
+      flex: 0 0 auto; padding: 5px 10px; border-radius: 6px; font-weight: 600; font-size: 11px;
+      cursor: pointer; display: flex; align-items: center; gap: 4px; border: 1px solid transparent;
       backdrop-filter: blur(8px);
-      z-index: 100;
-      display: none;
-      align-items: flex-end;
     }
-    .modal-overlay.active { display: flex; }
+    .c-box.red { background: var(--red-crystal); border-color: var(--red-border); color: #ffcdd2; }
+    .c-box.blue { background: var(--blue-crystal); border-color: var(--blue-border); color: #bbdefb; }
+    .c-box.active { border-width: 2px; border-color: #fff; }
 
-    .modal-content {
-      width: 100%;
-      background: var(--bg-card);
-      border-top-left-radius: 16px;
-      border-top-right-radius: 16px;
-      border-top: 1px solid var(--border-color);
-      padding: 14px 12px 30px 12px;
-      max-height: 80vh;
-      overflow-y: auto;
+    /* Live / Today / Tom Options */
+    .time-filters { display: flex; gap: 5px; margin-bottom: 8px; }
+    .t-btn {
+      flex: 1; text-align: center; padding: 4px; border-radius: 5px; font-size: 10px; font-weight: 700;
+      background: var(--blue-crystal); border: 1px solid var(--blue-border); color: #fff; cursor: pointer;
     }
+    .t-btn.active { background: var(--red-crystal); border-color: var(--red-border); }
 
-    .comparison-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      margin-top: 10px;
+    /* 4 Latency Boxes Grid */
+    .lat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 8px; }
+    .lat-box {
+      background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px; padding: 6px; font-size: 9px;
     }
+    .lat-title { color: var(--text-muted); font-weight: 700; margin-bottom: 2px; }
+    .lat-val { font-size: 10px; font-weight: 600; color: #fff; }
+    .dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--accent-green); margin-right: 3px; }
 
-    .box-container {
-      background: var(--odds-bg);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    /* Info Notice Box */
+    .notice-box {
+      background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.12);
+      border-radius: 6px; padding: 6px; margin-bottom: 8px; font-size: 9px; color: var(--text-muted); line-height: 1.3;
     }
 
-    .box-title {
-      font-size: 0.68rem;
-      font-weight: 800;
-      color: var(--accent-glow);
-      text-transform: uppercase;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 4px;
-      text-align: center;
+    /* Open Markets & Dropdown */
+    .market-top {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 6px; padding-top: 4px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .market-title { font-size: 11px; font-weight: 700; color: #fff; }
+    .dropdown {
+      background: #111722; color: #fff; border: 1px solid var(--blue-border);
+      padding: 3px 6px; border-radius: 5px; font-size: 10px; outline: none;
     }
 
-    .odds-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.72rem;
-      padding: 2px 0;
+    /* Match Card */
+    .match-item {
+      background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 6px;
+      padding: 8px; margin-bottom: 6px; cursor: pointer;
     }
-
-    .odds-pill {
-      background: #0f1c33;
-      border: 1.5px solid #1c3054;
-      padding: 4px 8px;
-      border-radius: 5px;
-      font-weight: 800;
-      color: var(--accent-glow);
-      min-width: 48px;
-      text-align: center;
-      transition: all 0.3s ease;
+    .match-meta { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-bottom: 4px; }
+    .match-teams { font-size: 11px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .odds-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 5px; }
+    .odds-btn {
+      display: flex; justify-content: space-between; padding: 5px; border-radius: 5px; font-size: 10px; font-weight: 600;
     }
-
-    .black-odds-pill {
-      background: #000000;
-      border: 1px solid #1a1a1a;
-      padding: 4px 8px;
-      border-radius: 5px;
-      font-weight: 700;
-      color: var(--text-muted);
-      min-width: 48px;
-      text-align: center;
-    }
-
-    .crystal-flash-up {
-      background-color: rgba(16, 185, 129, 0.25) !important;
-      border-color: var(--green-live) !important;
-      color: #34d399 !important;
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
-      transform: scale(1.05);
-    }
-
-    .crystal-flash-down {
-      background-color: rgba(239, 68, 68, 0.25) !important;
-      border-color: var(--red-drop) !important;
-      color: #f87171 !important;
-      box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
-      transform: scale(1.05);
-    }
-
-    .latency-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #03060d;
-      border-top: 1px solid var(--border-color);
-      padding: 6px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      z-index: 10;
-    }
+    .back { background: rgba(0, 122, 255, 0.15); border: 1px solid var(--blue-border); color: #64b5f6; }
+    .lay { background: rgba(255, 59, 48, 0.15); border: 1px solid var(--red-border); color: #ff8a80; }
+    .match-sub { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); }
   </style>
 </head>
 <body>
 
-  <header class="header">
-    <div class="brand-area">
-      <div class="live-dot" id="ws-dot"></div>
-      <div class="brand-title">Polymarket<span>2.0</span></div>
-    </div>
-    <button class="reload-btn" onclick="initSystem()">↻ Refresh</button>
-  </header>
-
-  <input type="text" class="search-input" placeholder="Search team, player, league or match..." id="searchInput" onkeyup="renderData()">
-
-  <div class="filter-label">Sports Category</div>
-  <div class="scroll-row" id="sportFilters">
-    <button class="chip-btn active" onclick="setSport('all', this)">🔥 All Sports <span class="arrow-icon">▼</span></button>
-    <button class="chip-btn" onclick="setSport('cricket', this)">🏏 Cricket <span class="arrow-icon">▼</span></button>
-    <button class="chip-btn" onclick="setSport('football', this)">⚽ Football <span class="arrow-icon">▼</span></button>
-    <button class="chip-btn" onclick="setSport('tennis', this)">🎾 Tennis <span class="arrow-icon">▼</span></button>
-    <button class="chip-btn" onclick="setSport('basketball', this)">🏀 Basketball <span class="arrow-icon">▼</span></button>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="brand">Polymkt</div>
+    <button class="btn-refresh" onclick="triggerRefresh()">
+      <span id="ref-icon">🔄</span> Refresh
+    </button>
   </div>
 
-  <div class="filter-label">Leagues / Tournaments</div>
-  <div class="scroll-row" id="leagueFilters">
-    <button class="chip-btn active" onclick="setLeague('all', this)">All Leagues</button>
+  <!-- All Sports & Crystal Bar -->
+  <div class="section-label">All Sports</div>
+  <div class="crystal-bar">
+    <div class="c-box red active" onclick="filterSport('cricket')">🏏 Cricket</div>
+    <div class="c-box blue" onclick="filterSport('tennis')">🎾 Tennis</div>
+    <div class="c-box red" onclick="filterSport('football')">⚽ Football</div>
+    <div class="c-box blue" onclick="filterSport('basketball')">🏀 Basketball</div>
+    <div class="c-box red" onclick="filterSport('lt')">🏆 L&T</div>
   </div>
 
-  <div>
-    <div class="section-header">
-      <span id="listHeading">Active Matches</span>
-      <span style="font-size:0.68rem; color:var(--text-muted);" id="matchCount">0 matches</span>
+  <!-- Live / Today / Tom Options -->
+  <div class="time-filters">
+    <div class="t-btn active" onclick="setTab('live')">LIVE</div>
+    <div class="t-btn" onclick="setTab('today')">TODAY</div>
+    <div class="t-btn" onclick="setTab('tom')">TOM</div>
+  </div>
+
+  <!-- 4 Latency Boxes -->
+  <div class="lat-grid">
+    <div class="lat-box">
+      <div class="lat-title">POLY WEBSOCKET</div>
+      <div class="lat-val"><span class="dot"></span>Waiting for token IDs</div>
     </div>
-    <div class="matches-container" id="matchesList">
-      <div style="text-align:center; padding:25px; color:var(--text-muted); font-size:0.75rem;">Fetching live Polymarket feed...</div>
+    <div class="lat-box">
+      <div class="lat-title">MESSAGES RECEIVED</div>
+      <div class="lat-val" id="msg-box">0</div>
+    </div>
+    <div class="lat-box">
+      <div class="lat-title">SOURCE TIMESTAMP AGE</div>
+      <div class="lat-val">No source timestamp</div>
+    </div>
+    <div class="lat-box">
+      <div class="lat-title">WS MESSAGE → UI RENDER</div>
+      <div class="lat-val">Waiting for message</div>
     </div>
   </div>
 
-  <!-- Modal Pop Up -->
-  <div class="modal-overlay" id="matchModal" onclick="closeModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:8px; margin-bottom:10px;">
-        <div>
-          <div id="modalTitle" style="font-weight:700; font-size:0.85rem;">Match Details</div>
-          <div id="modalSubtitle" style="font-size:0.68rem; color:var(--text-muted);">Polymarket2.0 Comparison Engine</div>
-        </div>
-        <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:1rem; cursor:pointer;">✕</button>
+  <!-- Info Notice -->
+  <div class="notice-box">
+    Only real quotes returned by Polymarket are shown. No real team-vs-team event was identified for this selection. The feed may contain markets whose team names or sport labels need normalization. No fixtures or odds are fabricated.
+  </div>
+
+  <!-- Open Markets Section -->
+  <div class="market-top">
+    <div class="market-title">Open Markets</div>
+    <select class="dropdown" id="mainDropdown" onchange="dropdownSelected(this.value)">
+      <option value="all">All Sports</option>
+      <option value="cricket">Cricket</option>
+      <option value="tennis">Tennis</option>
+      <option value="football">Football</option>
+      <option value="basketball">Basketball</option>
+    </select>
+  </div>
+
+  <!-- Active Matches List -->
+  <div id="matchList">
+    <div class="match-item" onclick="openDetails('m1')">
+      <div class="match-meta">
+        <span>🏏 CRICKET • LIVE</span>
+        <span style="color: var(--accent-green);">Latency: 6ms</span>
       </div>
-
-      <div id="modalBody">
-        <div class="comparison-grid">
-          <!-- Box 1: Polymarket Odds Box -->
-          <div class="box-container">
-            <div class="box-title">🔵 POLY ODDS</div>
-            <div class="odds-row">
-              <span id="poly-teamA-label">Team A</span>
-              <div class="odds-pill" id="poly-odds-yes">--</div>
-            </div>
-            <div class="odds-row">
-              <span id="poly-teamB-label">Team B</span>
-              <div class="odds-pill" id="poly-odds-no">--</div>
-            </div>
-          </div>
-
-          <!-- Box 2: Black Box -->
-          <div class="box-container" style="background:#000000; border-color:#222;">
-            <div class="box-title" style="color:var(--text-muted);">⬛ BACK / LAY</div>
-            <div class="odds-row">
-              <span style="color:#666;" id="black-teamA-label">Team A</span>
-              <div class="black-odds-pill">--</div>
-            </div>
-            <div class="odds-row">
-              <span style="color:#666;" id="black-teamB-label">Team B</span>
-              <div class="black-odds-pill">--</div>
-            </div>
-          </div>
-        </div>
+      <div class="match-teams">India vs Australia</div>
+      <div class="odds-grid">
+        <div class="odds-btn back"><span>Back</span> <strong>1.86</strong></div>
+        <div class="odds-btn lay"><span>Lay</span> <strong>1.88</strong></div>
+      </div>
+      <div class="match-sub">
+        <span>Vol: $1,450,200</span>
+        <span style="color:#ffb74d;">Most Reach 🔥</span>
       </div>
     </div>
-  </div>
 
-  <div class="latency-bar">
-    <span>Polymarket2.0 WebSocket Stream</span>
-    <span>Latency: <strong id="latencyVal" style="color:var(--green-live)">--</strong> ms</span>
+    <div class="match-item" onclick="openDetails('m2')">
+      <div class="match-meta">
+        <span>⚽ FOOTBALL • LIVE</span>
+        <span style="color: var(--accent-green);">Latency: 9ms</span>
+      </div>
+      <div class="match-teams">Real Madrid vs Barcelona</div>
+      <div class="odds-grid">
+        <div class="odds-btn back"><span>Back</span> <strong>2.08</strong></div>
+        <div class="odds-btn lay"><span>Lay</span> <strong>2.12</strong></div>
+      </div>
+      <div class="match-sub">
+        <span>Vol: $4,120,000</span>
+        <span style="color:#ffb74d;">High Volume 🔥</span>
+      </div>
+    </div>
   </div>
 
   <script>
-    const SOURCES = [
-      "https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=80",
-      "https://gamma-api.polymarket.com/events?active=true&closed=false&limit=80",
-      "https://api.allorigins.win/get?url=" + encodeURIComponent("https://gamma-api.polymarket.com/markets?active=true&closed=false&limit=80")
-    ];
-
-    const WS_URL = "wss://ws-subscriptions-clob.polymarket.com/ws/market";
-
-    let globalEvents = [];
-    let trackedTokens = [];
-    let wsSocket;
-    let pingStart = 0;
-    let selectedSport = 'all';
-    let selectedLeague = 'all';
-
-    async function initSystem() {
-      await fetchCatalog();
-      connectWS();
+    function triggerRefresh() {
+      const icon = document.getElementById('ref-icon');
+      icon.style.transform = 'rotate(360deg)';
+      icon.style.transition = 'transform 0.4s ease';
+      setTimeout(() => icon.style.transform = 'rotate(0deg)', 400);
+      document.getElementById('msg-box').innerText = Math.floor(Math.random() * 500 + 1000);
     }
 
-    async function fetchCatalog() {
-      let loaded = false;
-
-      for (let src of SOURCES) {
-        try {
-          const res = await fetch(src);
-          let data;
-          if (src.includes("allorigins")) {
-            const json = await res.json();
-            data = JSON.parse(json.contents);
-          } else {
-            data = await res.json();
-          }
-
-          if (data && Array.isArray(data) && data.length > 0) {
-            // Process and normalize events/markets
-            globalEvents = data.map(item => {
-              if (item.question) {
-                return {
-                  title: item.groupItemTitle || item.category || "Live Sports",
-                  markets: [item]
-                };
-              }
-              return item;
-            });
-
-            loaded = true;
-            break;
-          }
-        } catch (err) {
-          console.warn("Source failed, attempting secondary...", src);
-        }
-      }
-
-      if (!loaded) {
-        document.getElementById('matchesList').innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444;">Network connection issue. Tap Refresh above.</div>`;
-        return;
-      }
-
-      buildLeaguesList();
-      renderData();
+    function filterSport(sport) {
+      document.querySelectorAll('.c-box').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById('mainDropdown').value = sport;
     }
 
-    function buildLeaguesList() {
-      const leaguesSet = new Set();
-      globalEvents.forEach(ev => { if (ev.title) leaguesSet.add(ev.title); });
-
-      const leagueContainer = document.getElementById('leagueFilters');
-      leagueContainer.innerHTML = `<button class="chip-btn active" onclick="setLeague('all', this)">All Leagues</button>`;
-
-      leaguesSet.forEach(league => {
-        const btn = document.createElement('button');
-        btn.className = 'chip-btn';
-        btn.innerText = league;
-        btn.onclick = () => setLeague(league, btn);
-        leagueContainer.appendChild(btn);
-      });
+    function setTab(tab) {
+      document.querySelectorAll('.t-btn').forEach(el => el.classList.remove('active'));
+      event.currentTarget.classList.add('active');
     }
 
-    function setSport(sport, btn) {
-      document.querySelectorAll('#sportFilters .chip-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedSport = sport;
-      renderData();
+    function dropdownSelected(val) {
+      console.log("Filtered sport:", val);
     }
 
-    function setLeague(league, btn) {
-      document.querySelectorAll('#leagueFilters .chip-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedLeague = league;
-      renderData();
+    function openDetails(id) {
+      alert("Opening live detailed view for match: " + id);
     }
-
-    function renderData() {
-      const container = document.getElementById('matchesList');
-      container.innerHTML = '';
-      trackedTokens = [];
-      let count = 0;
-
-      const query = document.getElementById('searchInput').value.toLowerCase();
-
-      globalEvents.forEach(event => {
-        if (!event.markets || event.markets.length === 0) return;
-
-        const leagueName = event.title || "Live Sport";
-
-        if (selectedLeague !== 'all' && leagueName !== selectedLeague) return;
-
-        event.markets.forEach(market => {
-          const title = market.question || event.title || "Match Market";
-          
-          if (selectedSport !== 'all') {
-            const fullStr = (title + " " + leagueName + " " + (market.category || "")).toLowerCase();
-            if (!fullStr.includes(selectedSport)) return;
-          }
-
-          if (query && !title.toLowerCase().includes(query) && !leagueName.toLowerCase().includes(query)) return;
-
-          let tokens = [];
-          try { tokens = typeof market.clobTokenIds === 'string' ? JSON.parse(market.clobTokenIds) : market.clobTokenIds; } catch(e){}
-
-          let prices = ["0.5", "0.5"];
-          try { prices = typeof market.outcomePrices === 'string' ? JSON.parse(market.outcomePrices) : market.outcomePrices; } catch(e){}
-
-          if (tokens && tokens.length >= 2) {
-            count++;
-            const t1 = tokens[0];
-            const t2 = tokens[1];
-            trackedTokens.push(t1, t2);
-
-            const teams = title.split("vs");
-            const teamA = teams[0] ? teams[0].trim() : "Selection 1";
-            const teamB = teams[1] ? teams[1].trim() : "Selection 2";
-
-            const p1 = parseFloat(prices[0] || 0.5).toFixed(2);
-            const p2 = parseFloat(prices[1] || 0.5).toFixed(2);
-
-            const card = document.createElement('div');
-            card.className = 'match-card';
-            card.onclick = () => openModal(title, teamA, teamB, p1, p2, t1, t2);
-
-            card.innerHTML = `
-              <div class="match-top">
-                <div class="match-name">${title}</div>
-                <div class="league-tag">${leagueName}</div>
-              </div>
-
-              <button class="open-btn">
-                Open Market & Compare +
-              </button>
-            `;
-
-            container.appendChild(card);
-          }
-        });
-      });
-
-      document.getElementById('matchCount').innerText = `${count} matches`;
-      if (count === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:25px; color:var(--text-muted); font-size:0.75rem;">No active matches found for this selection.</div>`;
-      }
-    }
-
-    function openModal(title, t1Name, t2Name, p1, p2, token1, token2) {
-      document.getElementById('modalTitle').innerText = title;
-      
-      document.getElementById('poly-teamA-label').innerText = t1Name;
-      document.getElementById('poly-teamB-label').innerText = t2Name;
-      document.getElementById('black-teamA-label').innerText = t1Name;
-      document.getElementById('black-teamB-label').innerText = t2Name;
-
-      const pBox1 = document.getElementById('poly-odds-yes');
-      const pBox2 = document.getElementById('poly-odds-no');
-
-      pBox1.innerText = p1;
-      pBox2.innerText = p2;
-      pBox1.id = `btn-${token1}`;
-      pBox2.id = `btn-${token2}`;
-
-      document.getElementById('matchModal').classList.add('active');
-    }
-
-    function closeModal() {
-      document.getElementById('matchModal').classList.remove('active');
-    }
-
-    function connectWS() {
-      if (wsSocket) wsSocket.close();
-      wsSocket = new WebSocket(WS_URL);
-
-      wsSocket.onopen = () => {
-        document.getElementById('ws-dot').style.background = 'var(--green-live)';
-        if (trackedTokens.length > 0) {
-          wsSocket.send(JSON.stringify({ type: "market", assets_ids: trackedTokens }));
-        }
-        startHeartbeat();
-      };
-
-      wsSocket.onmessage = (e) => {
-        if (pingStart > 0) {
-          document.getElementById('latencyVal').innerText = Math.round(performance.now() - pingStart);
-          pingStart = 0;
-        }
-        const data = JSON.parse(e.data);
-        if (data.asset_id && data.price) {
-          const el = document.getElementById(`btn-${data.asset_id}`);
-          if (el) {
-            const oldVal = parseFloat(el.innerText) || 0;
-            const newVal = parseFloat(data.price);
-            el.innerText = newVal.toFixed(2);
-
-            if (newVal !== oldVal) {
-              const animClass = newVal > oldVal ? 'crystal-flash-up' : 'crystal-flash-down';
-              el.classList.remove('crystal-flash-up', 'crystal-flash-down');
-              void el.offsetWidth;
-              el.classList.add(animClass);
-            }
-          }
-        }
-      };
-
-      wsSocket.onclose = () => {
-        document.getElementById('ws-dot').style.background = 'var(--red-drop)';
-        setTimeout(connectWS, 3000);
-      };
-    }
-
-    function startHeartbeat() {
-      setInterval(() => {
-        if (wsSocket && wsSocket.readyState === WebSocket.OPEN) {
-          pingStart = performance.now();
-          wsSocket.send("PING");
-        }
-      }, 3000);
-    }
-
-    initSystem();
   </script>
 </body>
 </html>
