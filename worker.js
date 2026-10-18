@@ -227,72 +227,115 @@ async function getEventsPage(limit, offset, extra = "") {
 }
 
 async function getMatches(limit, offset, sportFilter) {
-  const sports = await getJSON(`${GAMMA}/sports`).catch(() => []);
-  const sportsList = Array.isArray(sports) ? sports : [];
+  const now = Date.now();
 
-  const seriesIds = [
-    ...new Set(
-      sportsList.flatMap(sport => {
-        const series = arr(sport.series);
-        return series.map(s => String(s.id ?? s.series_id ?? "")).filter(Boolean);
-      })
-    )
-  ].slice(0, 15);
+  // Fetch only active, non-closed Polymarket events.
+  const pages = await Promise.all(
+    [0, 100, 200].map(async pageOffset => {
+      const url =
+        `${GAMMA}/events?active=true&closed=false` +
+        `&order=id&ascending=false&limit=100&offset=${pageOffset}`;
 
-  // Fetch generic event pages and selected sports series in parallel.
-  const tasks = [
-    getEventsPage(100, 0).catch(() => []),
-    getEventsPage(100, 100).catch(() => []),
-    getEventsPage(100, 200).catch(() => []),
-    ...seriesIds.map(id =>
-      getJSON(
-        `${GAMMA}/events?series_id=${encodeURIComponent(id)}` +
-        `&active=true&closed=false&limit=50`
-      ).catch(() => [])
-    )
-  ];
+      try {
+        const data = await getJSON(url);
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return [];
+      }
+    })
+  );
 
-  const batches = await Promise.all(tasks);
   const byId = new Map();
 
-  for (const batch of batches) {
-    if (!Array.isArray(batch)) continue;
-
+  for (const batch of pages) {
     for (const event of batch) {
       const id = String(event.id ?? event.slug ?? "");
       if (id) byId.set(id, event);
     }
   }
 
-  let events = [...byId.values()].filter(isRealMatch);
+  const excluded =
+    /exact score|top batter|more markets|top scorer|toss|completed match|total runs|handicap|spread|ballon d'or|mvp|qualify|outright|team top|player props/i;
 
-  if (sportFilter && sportFilter !== "all") {
+  let events = [...byId.values()].filter(event => {
+    if (event.closed === true || event.active === false) return false;
+
+    const title = String(event.title ?? event.name ?? "");
+    if (!(/\bvs\.?\s+/i.test(title) || /\bversus\b/i.test(title))) {
+      return false;
+    }
+
+    if (excluded.test(title)) return false;
+
+    const startText = event.startDate ?? event.startTime ?? "";
+    const start = Date.parse(startText);
+
+    // Keep upcoming matches and matches that may still be live.
+    if (Number.isFinite(start) && start < now - 12 * 60 * 60 * 1000) {
+      return false;
+    }
+
+    return true;
+  });
+
+  if (sportFilter && sportFilter.toLowerCase() !== "all") {
     const wanted = sportFilter.toLowerCase();
-    events = events.filter(e => eventSport(e).toLowerCase() === wanted);
+    events = events.filter(event => {
+      const sport = eventSport(event).toLowerCase();
+
+      if (wanted === "football" || wanted === "soccer") {
+        return sport.includes("football") || sport.includes("soccer");
+      }
+
+      if (wanted === "mma" || wanted === "ufc") {
+        return sport.includes("mma") || sport.includes("ufc");
+      }
+
+      return sport.includes(wanted);
+    });
   }
 
   events.sort((a, b) => {
-    const aDate = Date.parse(a.startDate ?? a.startTime ?? "") || 0;
-    const bDate = Date.parse(b.startDate ?? b.startTime ?? "") || 0;
-    return aDate - bDate;
+    const aStart = Date.parse(a.startDate ?? a.startTime ?? "");
+    const bStart = Date.parse(b.startDate ?? b.startTime ?? "");
+
+    // Upcoming games first; events without a date go last.
+    const aTime = Number.isFinite(aStart) ? aStart : Number.MAX_SAFE_INTEGER;
+    const bTime = Number.isFinite(bStart) ? bStart : Number.MAX_SAFE_INTEGER;
+
+    return aTime - bTime;
   });
 
   const total = events.length;
   const page = events.slice(offset, offset + limit);
 
-  // Avoid excessive CLOB requests: quote at most 12 event cards per response.
   const data = [];
-  for (const event of page.slice(0, 12)) {
-    data.push(await addQuotes(event));
-  }
+  for (const event of page) {
+    const markets = arr(event.markets);
 
-  // Remaining matches still appear, with market metadata but no book requests.
-  for (const event of page.slice(12)) {
-    data.push({
-      ...normalizeEvent(event),
-      sport: eventSport(event),
-      updatedAt: new Date().toISOString()
+    // Prefer the actual match-winner market, not Yes/No side markets.
+    const winnerMarket = markets.find(original => {
+      const market = normalizeMarket(original);
+      const outcomes = market.outcomes.map(value =>
+        String(value).trim().toLowerCase()
+      );
+
+      return (
+        market.clobTokenIds.length >= 2 &&
+        outcomes.length >= 2 &&
+        !(
+          outcomes.length === 2 &&
+          outcomes.includes("yes") &&
+          outcomes.includes("no")
+        )
+      );
     });
+
+    const selectedEvent = winnerMarket
+      ? { ...event, markets: [winnerMarket] }
+      : { ...event, markets: [] };
+
+    data.push(await addQuotes(selectedEvent));
   }
 
   return {
@@ -304,218 +347,9 @@ async function getMatches(limit, offset, sportFilter) {
     scanned: byId.size,
     count: data.length,
     totalMatchesFound: total,
-    quoteNote: "Decimal odds are derived from available CLOB best ask/bid prices. Missing quotes remain null.",
+    quoteNote:
+      "Decimal odds are shown only when public CLOB quotes are available. Missing quotes remain null.",
     updatedAt: new Date().toISOString(),
     data
   };
 }
-
-export default {
-  async fetch(request) {
-    const url = new URL(request.url);
-    const path = url.pathname;
-
-    if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: cors });
-    }
-
-    if (request.method !== "GET") {
-      return json({ success: false, error: "Only GET and OPTIONS are supported" }, 405);
-    }
-
-    const limit = Math.min(
-      100,
-      Math.max(1, Number(url.searchParams.get("limit")) || 50)
-    );
-    const offset = Math.max(0, Number(url.searchParams.get("offset")) || 0);
-
-    try {
-      if (path === "/" || path === "/health") {
-        return json({
-          success: true,
-          status: "ok",
-          worker: "crystal-odds-api",
-          provider: "Polymarket Gamma + public CLOB",
-          endpoints: [
-            "/health",
-            "/sports",
-            "/matches?limit=50&offset=0",
-            "/polymarket?type=events&limit=50&offset=0",
-            "/polymarket?type=markets&limit=50&offset=0",
-            "/events?limit=50&offset=0",
-            "/markets?limit=50&offset=0",
-            "/event?id=EVENT_ID",
-            "/event?slug=EVENT_SLUG",
-            "/market?id=MARKET_ID",
-            "/market?slug=MARKET_SLUG"
-          ],
-          updatedAt: new Date().toISOString()
-        });
-      }
-
-      if (path === "/sports") {
-        const data = await getJSON(`${GAMMA}/sports`);
-        return json({
-          success: true,
-          provider: "Polymarket Gamma",
-          count: Array.isArray(data) ? data.length : 0,
-          updatedAt: new Date().toISOString(),
-          data
-        });
-      }
-
-      if (path === "/matches") {
-        const sport = url.searchParams.get("sport") || "all";
-        return json(await getMatches(limit, offset, sport));
-      }
-
-      if (
-        path === "/events" ||
-        (path === "/polymarket" &&
-          (url.searchParams.get("type") || "events") === "events")
-      ) {
-        const query = new URLSearchParams({
-          limit: String(limit),
-          offset: String(offset)
-        });
-
-        for (const key of ["active", "closed", "order", "ascending", "tag_slug", "series_id", "slug", "id"]) {
-          const value = url.searchParams.get(key);
-          if (value !== null) query.set(key, value);
-        }
-
-        const data = await getJSON(`${GAMMA}/events?${query.toString()}`);
-        const items = Array.isArray(data) ? data : [];
-
-        return json({
-          success: true,
-          provider: "Polymarket Gamma",
-          type: "events",
-          limit,
-          offset,
-          count: items.length,
-          updatedAt: new Date().toISOString(),
-          data: items.map(normalizeEvent)
-        });
-      }
-
-      if (
-        path === "/markets" ||
-        (path === "/polymarket" &&
-          url.searchParams.get("type") === "markets")
-      ) {
-        const query = new URLSearchParams({
-          limit: String(limit),
-          offset: String(offset)
-        });
-
-        for (const key of ["active", "closed", "order", "ascending", "slug", "id"]) {
-          const value = url.searchParams.get(key);
-          if (value !== null) query.set(key, value);
-        }
-
-        const data = await getJSON(`${GAMMA}/markets?${query.toString()}`);
-        const items = Array.isArray(data) ? data : [];
-
-        return json({
-          success: true,
-          provider: "Polymarket Gamma",
-          type: "markets",
-          limit,
-          offset,
-          count: items.length,
-          updatedAt: new Date().toISOString(),
-          data: items.map(normalizeMarket)
-        });
-      }
-
-      if (path === "/event") {
-        const id = url.searchParams.get("id");
-        const slug = url.searchParams.get("slug");
-
-        if (!id && !slug) {
-          return json({
-            success: false,
-            error: "Provide ?id=EVENT_ID or ?slug=EVENT_SLUG"
-          }, 400);
-        }
-
-        const endpoint = id
-          ? `${GAMMA}/events?id=${encodeURIComponent(id)}`
-          : `${GAMMA}/events?slug=${encodeURIComponent(slug)}`;
-
-        const data = await getJSON(endpoint);
-        const event = Array.isArray(data) ? data[0] : data;
-
-        if (!event) return json({ success: false, error: "Event not found" }, 404);
-
-        return json({
-          success: true,
-          provider: "Polymarket Gamma",
-          data: normalizeEvent(event),
-          updatedAt: new Date().toISOString()
-        });
-      }
-
-      if (path === "/market") {
-        const id = url.searchParams.get("id");
-        const slug = url.searchParams.get("slug");
-
-        if (!id && !slug) {
-          return json({
-            success: false,
-            error: "Provide ?id=MARKET_ID or ?slug=MARKET_SLUG"
-          }, 400);
-        }
-
-        const endpoint = id
-          ? `${GAMMA}/markets?id=${encodeURIComponent(id)}`
-          : `${GAMMA}/markets?slug=${encodeURIComponent(slug)}`;
-
-        const data = await getJSON(endpoint);
-        const market = Array.isArray(data) ? data[0] : data;
-
-        if (!market) return json({ success: false, error: "Market not found" }, 404);
-
-        const normalized = normalizeMarket(market);
-        const quotes = await Promise.all(
-          normalized.clobTokenIds.map(token => getBook(token))
-        );
-
-        normalized.quotes = normalized.clobTokenIds.map((tokenId, index) => ({
-          tokenId,
-          outcome: normalized.outcomes[index] ?? `Outcome ${index + 1}`,
-          ...quotes[index]
-        }));
-
-        return json({
-          success: true,
-          provider: "Polymarket Gamma + public CLOB",
-          data: normalized,
-          updatedAt: new Date().toISOString()
-        });
-      }
-
-      if (path === "/polymarket") {
-        return json({
-          success: false,
-          error: "Invalid type. Use ?type=events or ?type=markets."
-        }, 400);
-      }
-
-      return json({
-        success: false,
-        error: "Endpoint not found",
-        path,
-        available: ["/health", "/sports", "/matches", "/polymarket", "/events", "/markets", "/event", "/market"]
-      }, 404);
-    } catch (error) {
-      return json({
-        success: false,
-        error: error instanceof Error ? error.message : "Upstream request failed",
-        endpoint: path,
-        updatedAt: new Date().toISOString()
-      }, 502);
-    }
-  }
-};
