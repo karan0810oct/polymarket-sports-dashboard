@@ -1,4 +1,4 @@
-<doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -264,9 +264,9 @@ function normalizeIncomingEvent(raw,key,source){const e={...raw,sport_key:first(
 async function loadPolymarket(){
  try{
   const [globalEventResult,taggedEventResult,marketResult]=await Promise.allSettled([
-   fetchPolyPages("events",{_maxPages:"10"}),
+   fetchPolyPages("events",{_maxPages:"50"}),
    loadSportTaggedEvents(),
-   fetchPolyPages("markets",{_maxPages:"10"})
+   fetchPolyPages("markets",{_maxPages:"50"})
   ]);
   const globalEvents=globalEventResult.status==="fulfilled"?globalEventResult.value:[];
   const taggedEvents=taggedEventResult.status==="fulfilled"?taggedEventResult.value:[];
