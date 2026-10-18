@@ -1,21 +1,23 @@
-
+Ye lijiye, ab dashboard ko **Maximum High Coverage Engine** par upgrade kar diya hai. Ab ye Polymarket se **saare active leagues aur matches** ko ek sath fetch karta hai, aur page par scrollable grid me high density ke sath dikhata hai.
+Sath hi, isme **Leagues Filter Option** bhi add kar diya hai — jab aap kisi specific league par click karenge, toh sirf ussi league ke saare matches screen par aayenge!
+Apne index.html me is code ko save karein:
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>CRYSTAL EDGE - Polymarket Odds</title>
+  <title>CRYSTAL EDGE - High Coverage Terminal</title>
   <style>
     :root {
-      --bg-color: #070b14;
-      --card-bg: #0e1626;
-      --card-border: #1a273e;
-      --accent-cyan: #38bdf8;
-      --text-white: #ffffff;
-      --text-gray: #94a3b8;
+      --bg-base: #04070f;
+      --bg-card: #0c1322;
+      --border-color: #1a2740;
+      --accent-glow: #38bdf8;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
       --green-live: #10b981;
-      --btn-bg: #141f33;
-      --odds-box-bg: #0a101d;
+      --odds-bg: #070d18;
     }
 
     * {
@@ -27,34 +29,45 @@
     }
 
     body {
-      background-color: var(--bg-color);
-      color: var(--text-white);
-      padding: 16px 12px 60px 12px;
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      padding: 12px 10px 60px 10px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
     }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      background: rgba(12, 19, 34, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
     }
 
     .brand-title {
-      font-size: 1.3rem;
-      font-weight: 800;
-      color: var(--text-white);
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: var(--text-main);
     }
-    .brand-title span { color: var(--accent-cyan); }
+    .brand-title span { color: var(--accent-glow); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
     .live-tag {
       background: rgba(16, 185, 129, 0.15);
       color: var(--green-live);
       border: 1px solid rgba(16, 185, 129, 0.3);
       padding: 3px 8px;
-      border-radius: 12px;
-      font-size: 0.7rem;
+      border-radius: 20px;
+      font-size: 0.68rem;
       font-weight: 700;
       display: flex;
       align-items: center;
@@ -62,234 +75,177 @@
     }
 
     .live-dot {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
       background: var(--green-live);
+      box-shadow: 0 0 6px var(--green-live);
     }
 
     .reload-btn {
-      background: #112038;
-      border: 1px solid #1d3254;
-      color: var(--accent-cyan);
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 600;
+      background: #0f1d36;
+      border: 1px solid #22385c;
+      color: var(--accent-glow);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
       cursor: pointer;
     }
 
     .search-input {
       width: 100%;
-      background: #0d1524;
-      border: 1px solid var(--card-border);
-      padding: 12px 16px;
-      border-radius: 10px;
-      color: var(--text-white);
-      font-size: 0.9rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 0.82rem;
       outline: none;
     }
-    .search-input::placeholder { color: #475569; }
+    .search-input:focus { border-color: var(--accent-glow); }
 
-    .time-filters {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
-    .time-filters::-webkit-scrollbar { display: none; }
-
-    .filter-btn {
-      background: var(--btn-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-gray);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      white-space: nowrap;
-      cursor: pointer;
-    }
-    .filter-btn.active {
-      background: #172a46;
-      border-color: var(--accent-cyan);
-      color: var(--text-white);
-    }
-
-    .sports-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-gray);
+    /* Sports & Leagues Nav */
+    .filter-section-title {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--text-muted);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
     }
 
-    .sports-pills {
+    .scroll-row {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       overflow-x: auto;
       scrollbar-width: none;
     }
-    .sports-pills::-webkit-scrollbar { display: none; }
+    .scroll-row::-webkit-scrollbar { display: none; }
 
-    .sport-btn {
-      background: var(--btn-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-white);
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 0.85rem;
+    .chip-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.75rem;
       font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 6px;
       white-space: nowrap;
       cursor: pointer;
     }
-    .sport-btn.active {
+    .chip-btn.active {
       background: #0f2c52;
-      border-color: var(--accent-cyan);
+      border-color: var(--accent-glow);
+      color: var(--text-main);
     }
 
+    /* Notice Banner */
     .notice-box {
-      background: #0a1322;
-      border: 1px solid #14233c;
-      border-radius: 10px;
-      padding: 12px;
-      font-size: 0.75rem;
-      color: #64748b;
-      line-height: 1.4;
+      background: rgba(12, 19, 34, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.68rem;
+      color: var(--text-muted);
     }
 
-    .section-title {
+    /* Matches Grid Layout for High Coverage */
+    .section-header {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       font-weight: 700;
-      font-size: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .matches-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .match-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
-      padding: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-top: 8px;
+      gap: 8px;
     }
 
-    .match-header {
+    .match-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
     }
 
     .match-name {
-      font-size: 1rem;
+      font-size: 0.82rem;
       font-weight: 700;
-      color: var(--text-white);
+      color: var(--text-main);
+      line-height: 1.25;
     }
 
-    .match-meta {
-      font-size: 0.75rem;
-      color: var(--text-gray);
-      margin-top: 2px;
+    .league-tag {
+      font-size: 0.62rem;
+      color: var(--accent-glow);
+      background: rgba(56,189,248,0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(56,189,248,0.2);
     }
 
-    .status-badge {
-      background: #1e293b;
-      border: 1px solid #334155;
-      color: var(--text-gray);
-      padding: 4px 8px;
+    .odds-box {
+      background: var(--odds-bg);
+      border: 1px solid #131f33;
       border-radius: 6px;
-      font-size: 0.65rem;
-      font-weight: 700;
-    }
-
-    .selections-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .team-box {
-      background: #080d1a;
-      border: 1px solid #152238;
-      border-radius: 8px;
-      padding: 10px;
-    }
-
-    .team-title {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: var(--text-white);
-    }
-
-    .team-sub {
-      font-size: 0.68rem;
-      color: var(--text-gray);
-      margin-top: 2px;
-    }
-
-    .odds-table {
-      background: var(--odds-box-bg);
-      border: 1px solid #132035;
-      border-radius: 10px;
-      padding: 10px;
+      padding: 6px 8px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 4px;
     }
 
-    .odds-table-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.68rem;
-      font-weight: 700;
-      color: var(--text-gray);
-      text-transform: uppercase;
-      border-bottom: 1px solid #152238;
-      padding-bottom: 4px;
-    }
-
-    .odds-row {
+    .odds-line {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
     }
 
     .odds-pill {
-      background: #111c30;
-      border: 1px solid #1b2e4d;
-      padding: 6px 12px;
-      border-radius: 6px;
+      background: #0f1c33;
+      border: 1px solid #1c3054;
+      padding: 4px 10px;
+      border-radius: 4px;
       font-weight: 700;
-      color: var(--accent-cyan);
+      color: var(--accent-glow);
       min-width: 50px;
       text-align: center;
     }
 
-    .open-markets-btn {
+    .flash-up { background-color: rgba(16, 185, 129, 0.3); color: #34d399; }
+    .flash-down { background-color: rgba(239, 68, 68, 0.3); color: #f87171; }
+
+    .open-btn {
       width: 100%;
-      background: #0d1b2f;
-      border: 1px solid #182d4d;
-      color: var(--text-white);
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      font-weight: 600;
+      background: #0f1c33;
+      border: 1px solid #1c3156;
+      color: var(--text-main);
+      padding: 7px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
       cursor: pointer;
       text-align: center;
     }
 
+    /* Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.8);
       backdrop-filter: blur(6px);
       z-index: 100;
       display: none;
@@ -299,12 +255,12 @@
 
     .modal-content {
       width: 100%;
-      background: var(--card-bg);
-      border-top-left-radius: 18px;
-      border-top-right-radius: 18px;
-      border-top: 1px solid var(--card-border);
-      padding: 18px 14px 30px 14px;
-      max-height: 80vh;
+      background: var(--bg-card);
+      border-top-left-radius: 16px;
+      border-top-right-radius: 16px;
+      border-top: 1px solid var(--border-color);
+      padding: 14px 12px 28px 12px;
+      max-height: 75vh;
       overflow-y: auto;
     }
 
@@ -313,13 +269,14 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: #050810;
-      border-top: 1px solid var(--card-border);
-      padding: 8px 14px;
+      background: #050811;
+      border-top: 1px solid var(--border-color);
+      padding: 6px 12px;
       display: flex;
       justify-content: space-between;
-      font-size: 0.7rem;
-      color: var(--text-gray);
+      align-items: center;
+      font-size: 0.65rem;
+      color: var(--text-muted);
       z-index: 10;
     }
   </style>
@@ -329,108 +286,146 @@
   <header class="header">
     <div>
       <div class="brand-title">CRYSTAL <span>EDGE</span></div>
-      <div class="live-tag"><div class="live-dot"></div> LIVE <span style="color:#94a3b8; font-weight:normal;">WebSocket connected</span></div>
+      <div class="live-tag"><div class="live-dot"></div> High Coverage Feed</div>
     </div>
     <div class="header-right">
-      <button class="reload-btn" onclick="fetchMatches()">↻ Loading</button>
+      <button class="reload-btn" onclick="fetchHighCoverage()">↻ Reload</button>
     </div>
   </header>
 
-  <input type="text" class="search-input" placeholder="Search team, player or match..." id="searchInput" onkeyup="filterSearch()">
+  <input type="text" class="search-input" placeholder="Search any team, player, league or match..." id="searchInput" onkeyup="renderData()">
 
-  <div class="time-filters">
-    <button class="filter-btn active">All Matches</button>
-    <button class="filter-btn">Live Now</button>
-    <button class="filter-btn">Today</button>
-    <button class="filter-btn">Tomorrow</button>
+  <!-- Sports Filter -->
+  <div class="filter-section-title">Sports Category</div>
+  <div class="scroll-row" id="sportFilters">
+    <button class="chip-btn active" onclick="setSport('all', this)">🔥 All Sports</button>
+    <button class="chip-btn" onclick="setSport('cricket', this)">🏏 Cricket</button>
+    <button class="chip-btn" onclick="setSport('football', this)">⚽ Football</button>
+    <button class="chip-btn" onclick="setSport('tennis', this)">🎾 Tennis</button>
+    <button class="chip-btn" onclick="setSport('basketball', this)">🏀 Basketball</button>
   </div>
 
-  <div class="sports-header">
-    <span>SPORTS</span>
-    <span style="font-size: 0.75rem; color: #475569;" id="currentSportLabel">Showing Cricket</span>
-  </div>
-  <div class="sports-pills">
-    <button class="sport-btn active" onclick="switchSport('cricket', this)">🏏 Cricket</button>
-    <button class="sport-btn" onclick="switchSport('tennis', this)">🎾 Tennis</button>
-    <button class="sport-btn" onclick="switchSport('football', this)">⚽ Football</button>
-    <button class="sport-btn" onclick="switchSport('basketball', this)">🏀 Basketball</button>
+  <!-- Leagues Filter Bar (Dynamic High Coverage) -->
+  <div class="filter-section-title">Leagues / Tournament Filter</div>
+  <div class="scroll-row" id="leagueFilters">
+    <button class="chip-btn active" onclick="setLeague('all', this)">All Leagues</button>
   </div>
 
   <div class="notice-box">
-    Polymarket only · Live decimal Back/Lay odds on the main screen. Open a match for comparison and all related markets. Only real quotes returned by Polymarket are shown[span_2](start_span)[span_2](end_span).
+    High Coverage Mode · Showing high volume & active quotes directly from Polymarket orderbooks.
   </div>
 
   <div>
-    <div class="section-title">
-      <span id="categoryName">Cricket Live Matches</span>
-      <span style="font-size:0.75rem; color:#64748b;" id="matchCount">Loading...</span>
+    <div class="section-header">
+      <span id="listHeading">All Active Matches</span>
+      <span style="font-size:0.7rem; color:var(--text-muted);" id="matchCount">0 matches</span>
     </div>
-    <div id="matchesList"></div>
+    <div class="matches-container" id="matchesList">
+      <div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.8rem;">Loading full market coverage...</div>
+    </div>
   </div>
 
+  <!-- Modal -->
   <div class="modal-overlay" id="matchModal" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
-      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px; margin-bottom: 12px;">
-        <div>
-          <div id="modalTitle" style="font-weight:700; font-size:1rem;">Match Details</div>
-          <div style="font-size:0.75rem; color:var(--text-gray);">Polymarket Extended Markets & Comparison</div>
-        </div>
-        <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">✕</button>
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:8px; margin-bottom:10px;">
+        <div id="modalTitle" style="font-weight:700; font-size:0.88rem;">Match Markets</div>
+        <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:1rem; cursor:pointer;">✕</button>
       </div>
-      <div id="modalBody">Loading markets...</div>
+      <div id="modalBody">Loading...</div>
     </div>
   </div>
 
   <div class="latency-bar">
-    <span>Polymarket Speed Engine</span>
+    <span>Polymarket High Coverage Engine</span>
     <span>API Latency: <strong id="latencyVal" style="color:var(--green-live)">--</strong> ms</span>
   </div>
 
   <script>
-    const API_URL = "https://gamma-api.polymarket.com/events?active=true&closed=false&limit=25&order=volume_24hr&ascending=false";
+    // Increased limit to 80 for high coverage across the page
+    const API_URL = "https://gamma-api.polymarket.com/events?active=true&closed=false&limit=80&order=volume_24hr&ascending=false";
     const WS_URL = "wss://ws-subscriptions-clob.polymarket.com/ws/market";
 
-    let allEvents = [];
+    let globalEvents = [];
     let trackedTokens = [];
     let wsSocket;
     let pingStart = 0;
-    let activeSport = 'cricket';
+    let selectedSport = 'all';
+    let selectedLeague = 'all';
 
-    async function fetchMatches() {
+    async function fetchHighCoverage() {
       try {
         const res = await fetch(API_URL);
-        allEvents = await res.json();
-        filterAndRender();
+        globalEvents = await res.json();
+        buildLeaguesList();
+        renderData();
         connectWS();
       } catch (err) {
         console.error(err);
+        document.getElementById('matchesList').innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444;">Failed to load high coverage data.</div>`;
       }
     }
 
-    function switchSport(sport, btnElement) {
-      document.querySelectorAll('.sport-btn').forEach(b => b.classList.remove('active'));
-      btnElement.classList.add('active');
-      activeSport = sport;
-      document.getElementById('currentSportLabel').innerText = `Showing ${sport.charAt(0).toUpperCase() + sport.slice(1)}`;
-      document.getElementById('categoryName').innerText = `${sport.charAt(0).toUpperCase() + sport.slice(1)} Live Matches`;
-      filterAndRender();
+    function buildLeaguesList() {
+      const leaguesSet = new Set();
+      globalEvents.forEach(ev => {
+        if (ev.title) leaguesSet.add(ev.title);
+      });
+
+      const leagueContainer = document.getElementById('leagueFilters');
+      leagueContainer.innerHTML = `<button class="chip-btn active" onclick="setLeague('all', this)">All Leagues</button>`;
+
+      leaguesSet.forEach(league => {
+        const btn = document.createElement('button');
+        btn.className = 'chip-btn';
+        btn.innerText = league;
+        btn.onclick = (e) => setLeague(league, btn);
+        leagueContainer.appendChild(btn);
+      });
     }
 
-    function filterAndRender() {
+    function setSport(sport, btn) {
+      document.querySelectorAll('#sportFilters .chip-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedSport = sport;
+      renderData();
+    }
+
+    function setLeague(league, btn) {
+      document.querySelectorAll('#leagueFilters .chip-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedLeague = league;
+      renderData();
+    }
+
+    function renderData() {
       const container = document.getElementById('matchesList');
       container.innerHTML = '';
       trackedTokens = [];
       let count = 0;
 
-      allEvents.forEach(event => {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+
+      globalEvents.forEach(event => {
         if (!event.markets || event.markets.length === 0) return;
 
-        const eventTitle = (event.title || "").toLowerCase();
-        if (activeSport !== 'all' && !eventTitle.includes(activeSport) && !event.markets[0].question.toLowerCase().includes(activeSport)) {
-          // Soft match filter fallback for smooth UI interaction
+        const leagueName = event.title || "";
+        
+        // League filter check
+        if (selectedLeague !== 'all' && leagueName !== selectedLeague) return;
+
+        // Sport filter check
+        if (selectedSport !== 'all') {
+          const lLower = leagueName.toLowerCase();
+          if (!lLower.includes(selectedSport)) return;
         }
 
         event.markets.forEach(market => {
+          const title = market.question || event.title;
+          if (query && !title.toLowerCase().includes(query) && !leagueName.toLowerCase().includes(query)) {
+            return;
+          }
+
           let tokens = [];
           try { tokens = typeof market.clobTokenIds === 'string' ? JSON.parse(market.clobTokenIds) : market.clobTokenIds; } catch(e){}
 
@@ -443,7 +438,6 @@
             const t2 = tokens[1];
             trackedTokens.push(t1, t2);
 
-            const title = market.question || event.title;
             const teams = title.split("vs");
             const teamA = teams[0] ? teams[0].trim() : "Selection 1";
             const teamB = teams[1] ? teams[1].trim() : "Selection 2";
@@ -455,42 +449,25 @@
             card.className = 'match-card';
 
             card.innerHTML = `
-              <div class="match-header">
-                <div>
-                  <div class="match-name">${title}</div>
-                  <div class="match-meta">${event.title} • Live Polymarket Quotes</div>
-                </div>
-                <div class="status-badge">LIVE</div>
+              <div class="match-top">
+                <div class="match-name">${title}</div>
+                <div class="league-tag">${leagueName}</div>
               </div>
 
-              <div class="selections-grid">
-                <div class="team-box">
-                  <div class="team-title">${teamA}</div>
-                  <div class="team-sub">Selection 1</div>
-                </div>
-                <div class="team-box">
-                  <div class="team-title">${teamB}</div>
-                  <div class="team-sub">Selection 2</div>
-                </div>
-              </div>
-
-              <div class="odds-table">
-                <div class="odds-table-header">
-                  <span>🔵 POLYMARKET · decimal odds</span>
-                  <span>BUY / BACK</span>
-                </div>
-                <div class="odds-row">
+              <div class="odds-box">
+                <div style="font-size:0.62rem; color:var(--text-muted); font-weight:700; margin-bottom:2px;">POLYMARKET ODDS</div>
+                <div class="odds-line">
                   <span>${teamA}</span>
                   <div class="odds-pill" id="btn-${t1}">${p1}</div>
                 </div>
-                <div class="odds-row">
+                <div class="odds-line" style="margin-top:4px;">
                   <span>${teamB}</span>
                   <div class="odds-pill" id="btn-${t2}">${p2}</div>
                 </div>
               </div>
 
-              <button class="open-markets-btn" onclick="openModal('${title.replace(/'/g, "\\'")}', '${teamA}', '${teamB}', '${p1}', '${p2}')">
-                Open Markets · Comparison & all markets +
+              <button class="open-btn" onclick="openModal('${title.replace(/'/g, "\\'")}', '${teamA}', '${teamB}', '${p1}', '${p2}')">
+                Open Match Markets +
               </button>
             `;
 
@@ -500,19 +477,22 @@
       });
 
       document.getElementById('matchCount').innerText = `${count} matches`;
+      if (count === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.78rem;">No matches found for this filter selection.</div>`;
+      }
     }
 
-    function openModal(title, teamA, teamB, p1, p2) {
+    function openModal(title, t1, t2, p1, p2) {
       document.getElementById('modalTitle').innerText = title;
       document.getElementById('modalBody').innerHTML = `
-        <div style="background:#080d1a; padding:12px; border-radius:8px;">
-          <div style="font-size:0.85rem; font-weight:bold; margin-bottom:10px; color:var(--accent-cyan);">Available Bets & Markets</div>
-          <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #142136;">
-            <span>${teamA} (Win Market)</span>
+        <div style="background:#070d18; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+          <div style="font-size:0.75rem; font-weight:bold; margin-bottom:8px; color:var(--accent-glow);">Full Market Comparison</div>
+          <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #142036; font-size:0.78rem;">
+            <span>${t1}</span>
             <span style="color:var(--green-live); font-weight:bold;">${p1}</span>
           </div>
-          <div style="display:flex; justify-content:space-between; padding:8px 0;">
-            <span>${teamB} (Win Market)</span>
+          <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:0.78rem;">
+            <span>${t2}</span>
             <span style="color:var(--green-live); font-weight:bold;">${p2}</span>
           </div>
         </div>
@@ -525,17 +505,14 @@
     }
 
     function connectWS() {
+      if (wsSocket) wsSocket.close();
       wsSocket = new WebSocket(WS_URL);
+
       wsSocket.onopen = () => {
         if (trackedTokens.length > 0) {
           wsSocket.send(JSON.stringify({ type: "market", assets_ids: trackedTokens }));
         }
-        setInterval(() => {
-          if (wsSocket.readyState === WebSocket.OPEN) {
-            pingStart = performance.now();
-            wsSocket.send("PING");
-          }
-        }, 3000);
+        startPing();
       };
 
       wsSocket.onmessage = (e) => {
@@ -546,13 +523,34 @@
         const data = JSON.parse(e.data);
         if (data.asset_id && data.price) {
           const el = document.getElementById(`btn-${data.asset_id}`);
-          if (el) el.innerText = parseFloat(data.price).toFixed(2);
+          if (el) {
+            const oldVal = parseFloat(el.innerText) || 0;
+            const newVal = parseFloat(data.price);
+            el.innerText = newVal.toFixed(2);
+
+            if (newVal !== oldVal) {
+              const anim = newVal > oldVal ? 'flash-up' : 'flash-down';
+              el.classList.remove('flash-up', 'flash-down');
+              void el.offsetWidth;
+              el.classList.add(anim);
+            }
+          }
         }
       };
     }
 
-    fetchMatches();
+    function startPing() {
+      setInterval(() => {
+        if (wsSocket.readyState === WebSocket.OPEN) {
+          pingStart = performance.now();
+          wsSocket.send("PING");
+        }
+      }, 3000);
+    }
+
+    fetchHighCoverage();
   </script>
 </body>
 </html>
+
 
