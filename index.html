@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>CRYSTAL EDGE - Ultimate Polymarket Speed Terminal</title>
+  <title>Polymarket2.0 - Ultimate Crystal Terminal</title>
   <style>
     :root {
       --bg-base: #03060d;
@@ -29,56 +28,44 @@
     body {
       background-color: var(--bg-base);
       color: var(--text-main);
-      padding: 12px 10px 65px 10px;
+      padding: 10px 10px 65px 10px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
+    /* Top Navigation Header */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(10, 16, 29, 0.9);
+      background: rgba(10, 16, 29, 0.95);
       backdrop-filter: blur(12px);
-      padding: 10px 14px;
+      padding: 8px 12px;
       border-radius: 10px;
       border: 1px solid var(--border-color);
     }
 
-    .brand-title {
-      font-size: 1.2rem;
-      font-weight: 900;
-      color: var(--text-main);
-    }
-    .brand-title span { color: var(--accent-glow); text-shadow: 0 0 10px rgba(56,189,248,0.3); }
-
-    .header-right {
+    .brand-area {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .live-tag {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--green-live);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 3px 8px;
-      border-radius: 20px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
     .live-dot {
-      width: 5px;
-      height: 5px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--green-live);
-      box-shadow: 0 0 6px var(--green-live);
+      box-shadow: 0 0 8px var(--green-live);
     }
+
+    .brand-title {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+    .brand-title span { color: var(--accent-glow); }
 
     .reload-btn {
       background: #0f1d36;
@@ -86,31 +73,29 @@
       color: var(--accent-glow);
       padding: 5px 10px;
       border-radius: 6px;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       font-weight: 700;
       cursor: pointer;
     }
-    .reload-btn:active { transform: scale(0.95); }
 
     .search-input {
       width: 100%;
       background: var(--bg-card);
       border: 1px solid var(--border-color);
-      padding: 10px 14px;
+      padding: 9px 12px;
       border-radius: 8px;
       color: var(--text-main);
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       outline: none;
-      transition: border-color 0.2s;
     }
-    .search-input:focus { border-color: var(--accent-glow); }
 
-    .filter-section-title {
-      font-size: 0.7rem;
+    .filter-label {
+      font-size: 0.65rem;
       font-weight: 800;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      margin-top: 2px;
     }
 
     .scroll-row {
@@ -121,6 +106,7 @@
     }
     .scroll-row::-webkit-scrollbar { display: none; }
 
+    /* Sports Pills with Dropdown Icon */
     .chip-btn {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -131,30 +117,28 @@
       font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
-      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
     .chip-btn.active {
       background: #0f2c52;
       border-color: var(--accent-glow);
       color: var(--text-main);
     }
-
-    .notice-box {
-      background: rgba(10, 16, 29, 0.6);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 8px 10px;
-      font-size: 0.68rem;
-      color: var(--text-muted);
-      line-height: 1.3;
+    .arrow-icon {
+      font-size: 0.6rem;
+      color: var(--accent-glow);
     }
 
+    /* Matches Cards Container */
     .section-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      margin-top: 4px;
     }
 
     .matches-container {
@@ -170,14 +154,15 @@
       padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
+      cursor: pointer;
     }
 
     .match-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 8px;
+      gap: 6px;
     }
 
     .match-name {
@@ -188,7 +173,7 @@
     }
 
     .league-tag {
-      font-size: 0.62rem;
+      font-size: 0.6rem;
       color: var(--accent-glow);
       background: rgba(56,189,248,0.08);
       padding: 2px 6px;
@@ -196,38 +181,6 @@
       border: 1px solid rgba(56,189,248,0.2);
       white-space: nowrap;
     }
-
-    .odds-box {
-      background: var(--odds-bg);
-      border: 1px solid #131f33;
-      border-radius: 6px;
-      padding: 6px 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .odds-line {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-    }
-
-    .odds-pill {
-      background: #0f1c33;
-      border: 1px solid #1c3054;
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-weight: 700;
-      color: var(--accent-glow);
-      min-width: 55px;
-      text-align: center;
-      transition: background-color 0.4s ease, transform 0.15s ease;
-    }
-
-    .flash-up { background-color: rgba(16, 185, 129, 0.35) !important; color: #34d399 !important; transform: scale(1.06); }
-    .flash-down { background-color: rgba(239, 68, 68, 0.35) !important; color: #f87171 !important; transform: scale(1.06); }
 
     .open-btn {
       width: 100%;
@@ -240,14 +193,15 @@
       font-weight: 700;
       cursor: pointer;
       text-align: center;
+      margin-top: 4px;
     }
 
-    /* Modal */
+    /* Modal Overlay & Pop Up Window */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.8);
-      backdrop-filter: blur(6px);
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
       z-index: 100;
       display: none;
       align-items: flex-end;
@@ -260,9 +214,90 @@
       border-top-left-radius: 16px;
       border-top-right-radius: 16px;
       border-top: 1px solid var(--border-color);
-      padding: 14px 12px 28px 12px;
-      max-height: 75vh;
+      padding: 14px 12px 30px 12px;
+      max-height: 80vh;
       overflow-y: auto;
+    }
+
+    /* Dual Side-by-Side Boxes Layout inside Modal */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .box-container {
+      background: var(--odds-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .box-title {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--accent-glow);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 4px;
+      text-align: center;
+    }
+
+    .black-box-title {
+      color: var(--text-muted);
+    }
+
+    .odds-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      padding: 2px 0;
+    }
+
+    /* Crystal Pill Box for Polymarket Live Stream */
+    .odds-pill {
+      background: #0f1c33;
+      border: 1.5px solid #1c3054;
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-weight: 800;
+      color: var(--accent-glow);
+      min-width: 48px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .black-odds-pill {
+      background: #000000;
+      border: 1px solid #1a1a1a;
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      min-width: 48px;
+      text-align: center;
+    }
+
+    /* Green / Red Crystal Bloom Animations */
+    .crystal-flash-up {
+      background-color: rgba(16, 185, 129, 0.25) !important;
+      border-color: var(--green-live) !important;
+      color: #34d399 !important;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+      transform: scale(1.05);
+    }
+
+    .crystal-flash-down {
+      background-color: rgba(239, 68, 68, 0.25) !important;
+      border-color: var(--red-drop) !important;
+      color: #f87171 !important;
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.6);
+      transform: scale(1.05);
     }
 
     .latency-bar {
@@ -284,63 +319,104 @@
 </head>
 <body>
 
+  <!-- Top Header -->
   <header class="header">
-    <div>
-      <div class="brand-title">CRYSTAL <span>EDGE</span></div>
-      <div class="live-tag"><div class="live-dot"></div> Live Speed Stream</div>
+    <div class="brand-area">
+      <div class="live-dot" id="ws-dot"></div>
+      <div class="brand-title">Polymarket<span>2.0</span></div>
     </div>
-    <div class="header-right">
-      <button class="reload-btn" onclick="initSystem()">↻ Refresh</button>
-    </div>
+    <button class="reload-btn" onclick="initSystem()">↻ Refresh</button>
   </header>
 
+  <!-- Search Bar -->
   <input type="text" class="search-input" placeholder="Search team, player, league or match..." id="searchInput" onkeyup="renderData()">
 
-  <!-- Sports Filter -->
-  <div class="filter-section-title">Sports Category</div>
+  <!-- Sports Bar with Dropdown Option -->
+  <div class="filter-label">Sports Category (Select to Open List)</div>
   <div class="scroll-row" id="sportFilters">
-    <button class="chip-btn active" onclick="setSport('all', this)">🔥 All Sports</button>
-    <button class="chip-btn" onclick="setSport('cricket', this)">🏏 Cricket</button>
-    <button class="chip-btn" onclick="setSport('football', this)">⚽ Football</button>
-    <button class="chip-btn" onclick="setSport('tennis', this)">🎾 Tennis</button>
-    <button class="chip-btn" onclick="setSport('basketball', this)">🏀 Basketball</button>
+    <button class="chip-btn active" onclick="setSport('all', this)">🔥 All Sports <span class="arrow-icon">▼</span></button>
+    <button class="chip-btn" onclick="setSport('cricket', this)">🏏 Cricket <span class="arrow-icon">▼</span></button>
+    <button class="chip-btn" onclick="setSport('football', this)">⚽ Football <span class="arrow-icon">▼</span></button>
+    <button class="chip-btn" onclick="setSport('tennis', this)">🎾 Tennis <span class="arrow-icon">▼</span></button>
+    <button class="chip-btn" onclick="setSport('basketball', this)">🏀 Basketball <span class="arrow-icon">▼</span></button>
   </div>
 
-  <!-- Leagues Filter Bar -->
-  <div class="filter-section-title">Leagues / Tournament Filter</div>
+  <!-- Leagues Row -->
+  <div class="filter-label">Leagues / Tournaments</div>
   <div class="scroll-row" id="leagueFilters">
     <button class="chip-btn active" onclick="setLeague('all', this)">All Leagues</button>
   </div>
 
-  <div class="notice-box">
-    High Coverage Mode · Live decimal odds directly from Polymarket matching engine with WebSocket real-time rate updates.
+  <!-- Timing Row -->
+  <div class="filter-label">Sort by Date / Timing</div>
+  <div class="scroll-row">
+    <button class="chip-btn active" onclick="setTimeFilter('all', this)">All Matches</button>
+    <button class="chip-btn" onclick="setTimeFilter('live', this)">🔴 Live Now</button>
+    <button class="chip-btn" onclick="setTimeFilter('today', this)">📅 Today</button>
+    <button class="chip-btn" onclick="setTimeFilter('upcoming', this)">⏳ Upcoming</button>
   </div>
 
+  <!-- Matches Accordion Dropdown List -->
   <div>
     <div class="section-header">
-      <span id="listHeading">All Active Matches</span>
-      <span style="font-size:0.7rem; color:var(--text-muted);" id="matchCount">0 matches</span>
+      <span id="listHeading">Select a Sport to Dropdown Matches</span>
+      <span style="font-size:0.68rem; color:var(--text-muted);" id="matchCount">0 matches</span>
     </div>
     <div class="matches-container" id="matchesList">
-      <div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.8rem;">Connecting live engine...</div>
+      <div style="text-align:center; padding:25px; color:var(--text-muted); font-size:0.75rem;">Connecting Polymarket2.0 engine...</div>
     </div>
   </div>
 
-  <!-- Modal Pop Up -->
+  <!-- Modal Pop Up Window with Dual Boxes (Poly Box + Black Box) -->
   <div class="modal-overlay" id="matchModal" onclick="closeModal()">
     <div class="modal-content" onclick="event.stopPropagation()">
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:8px; margin-bottom:10px;">
-        <div id="modalTitle" style="font-weight:700; font-size:0.88rem;">Match Markets</div>
+        <div>
+          <div id="modalTitle" style="font-weight:700; font-size:0.85rem;">Match Details</div>
+          <div id="modalSubtitle" style="font-size:0.68rem; color:var(--text-muted);">Polymarket2.0 Comparison Engine</div>
+        </div>
         <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:1rem; cursor:pointer;">✕</button>
       </div>
-      <div id="modalBody">Loading...</div>
+
+      <div id="modalBody">
+        <!-- Dual Side-by-Side Comparison Grid -->
+        <div class="comparison-grid">
+          
+          <!-- Box 1: Polymarket Live Odds Box -->
+          <div class="box-container">
+            <div class="box-title">🔵 POLY ODDS</div>
+            <div class="odds-row">
+              <span id="poly-teamA-label">Team A</span>
+              <div class="odds-pill" id="poly-odds-yes">--</div>
+            </div>
+            <div class="odds-row">
+              <span id="poly-teamB-label">Team B</span>
+              <div class="odds-pill" id="poly-odds-no">--</div>
+            </div>
+          </div>
+
+          <!-- Box 2: Custom Black Box (Back / Lay) -->
+          <div class="box-container" style="background:#000000; border-color:#222;">
+            <div class="box-title black-box-title">⬛ BACK / LAY</div>
+            <div class="odds-row">
+              <span style="color:#666;" id="black-teamA-label">Team A</span>
+              <div class="black-odds-pill">--</div>
+            </div>
+            <div class="odds-row">
+              <span style="color:#666;" id="black-teamB-label">Team B</span>
+              <div class="black-odds-pill">--</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Bottom Ping Monitor -->
   <div class="latency-bar">
-    <span>Polymarket Real-time Feed Engine</span>
-    <span>API Latency: <strong id="latencyVal" style="color:var(--green-live)">--</strong> ms</span>
+    <span>Polymarket2.0 WebSocket Stream</span>
+    <span>Latency: <strong id="latencyVal" style="color:var(--green-live)">--</strong> ms</span>
   </div>
 
   <script>
@@ -354,6 +430,7 @@
     let pingStart = 0;
     let selectedSport = 'all';
     let selectedLeague = 'all';
+    let activeModalTokens = { yes: null, no: null };
 
     async function initSystem() {
       await fetchCatalog();
@@ -370,23 +447,16 @@
           const proxyData = await proxyRes.json();
           globalEvents = JSON.parse(proxyData.contents);
         } catch (e2) {
-          console.error("Fetch failed", e2);
-          if (!globalEvents || globalEvents.length === 0) {
-            document.getElementById('matchesList').innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">Unable to load matches. Check internet connection & tap Refresh.</div>`;
-            return;
-          }
+          console.error("Fetch error", e2);
         }
       }
-
       buildLeaguesList();
       renderData();
     }
 
     function buildLeaguesList() {
       const leaguesSet = new Set();
-      globalEvents.forEach(ev => {
-        if (ev.title) leaguesSet.add(ev.title);
-      });
+      globalEvents.forEach(ev => { if (ev.title) leaguesSet.add(ev.title); });
 
       const leagueContainer = document.getElementById('leagueFilters');
       leagueContainer.innerHTML = `<button class="chip-btn active" onclick="setLeague('all', this)">All Leagues</button>`;
@@ -414,6 +484,16 @@
       renderData();
     }
 
+    function setTimeFilter(time, btn) {
+      document.querySelectorAll('.scroll-row .chip-btn').forEach(b => {
+        if(b.innerText.includes('All Matches') || b.innerText.includes('Live Now') || b.innerText.includes('Today') || b.innerText.includes('Upcoming')) {
+          b.classList.remove('active');
+        }
+      });
+      btn.classList.add('active');
+      renderData();
+    }
+
     function renderData() {
       const container = document.getElementById('matchesList');
       container.innerHTML = '';
@@ -436,9 +516,7 @@
 
         event.markets.forEach(market => {
           const title = market.question || event.title;
-          if (query && !title.toLowerCase().includes(query) && !leagueName.toLowerCase().includes(query)) {
-            return;
-          }
+          if (query && !title.toLowerCase().includes(query) && !leagueName.toLowerCase().includes(query)) return;
 
           let tokens = [];
           try { tokens = typeof market.clobTokenIds === 'string' ? JSON.parse(market.clobTokenIds) : market.clobTokenIds; } catch(e){}
@@ -461,6 +539,7 @@
 
             const card = document.createElement('div');
             card.className = 'match-card';
+            card.onclick = () => openModal(title, teamA, teamB, p1, p2, t1, t2);
 
             card.innerHTML = `
               <div class="match-top">
@@ -468,20 +547,8 @@
                 <div class="league-tag">${leagueName}</div>
               </div>
 
-              <div class="odds-box">
-                <div style="font-size:0.62rem; color:var(--text-muted); font-weight:700; margin-bottom:2px;">POLYMARKET ODDS</div>
-                <div class="odds-line">
-                  <span>${teamA}</span>
-                  <div class="odds-pill" id="btn-${t1}">${p1}</div>
-                </div>
-                <div class="odds-line" style="margin-top:4px;">
-                  <span>${teamB}</span>
-                  <div class="odds-pill" id="btn-${t2}">${p2}</div>
-                </div>
-              </div>
-
-              <button class="open-btn" onclick="openModal('${title.replace(/'/g, "\\'")}', '${teamA}', '${teamB}', '${p1}', '${p2}')">
-                Open Match Markets +
+              <button class="open-btn">
+                Open Market & Compare +
               </button>
             `;
 
@@ -491,26 +558,27 @@
       });
 
       document.getElementById('matchCount').innerText = `${count} matches`;
-      if (count === 0) {
-        container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted); font-size:0.78rem;">No matches found for this selection.</div>`;
-      }
     }
 
-    function openModal(title, t1, t2, p1, p2) {
+    function openModal(title, t1Name, t2Name, p1, p2, token1, token2) {
       document.getElementById('modalTitle').innerText = title;
-      document.getElementById('modalBody').innerHTML = `
-        <div style="background:#060b14; padding:10px; border-radius:8px; border:1px solid var(--border-color);">
-          <div style="font-size:0.75rem; font-weight:bold; margin-bottom:8px; color:var(--accent-glow);">Full Market Options</div>
-          <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #142036; font-size:0.78rem;">
-            <span>${t1}</span>
-            <span style="color:var(--green-live); font-weight:bold;" id="modal-p1">${p1}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; padding:6px 0; font-size:0.78rem;">
-            <span>${t2}</span>
-            <span style="color:var(--green-live); font-weight:bold;" id="modal-p2">${p2}</span>
-          </div>
-        </div>
-      `;
+      
+      document.getElementById('poly-teamA-label').innerText = t1Name;
+      document.getElementById('poly-teamB-label').innerText = t2Name;
+      document.getElementById('black-teamA-label').innerText = t1Name;
+      document.getElementById('black-teamB-label').innerText = t2Name;
+
+      const pBox1 = document.getElementById('poly-odds-yes');
+      const pBox2 = document.getElementById('poly-odds-no');
+
+      pBox1.innerText = p1;
+      pBox2.innerText = p2;
+      pBox1.id = `btn-${token1}`;
+      pBox2.id = `btn-${token2}`;
+
+      activeModalTokens.yes = token1;
+      activeModalTokens.no = token2;
+
       document.getElementById('matchModal').classList.add('active');
     }
 
@@ -523,6 +591,7 @@
       wsSocket = new WebSocket(WS_URL);
 
       wsSocket.onopen = () => {
+        document.getElementById('ws-dot').style.background = 'var(--green-live)';
         if (trackedTokens.length > 0) {
           wsSocket.send(JSON.stringify({ type: "market", assets_ids: trackedTokens }));
         }
@@ -543,16 +612,17 @@
             el.innerText = newVal.toFixed(2);
 
             if (newVal !== oldVal) {
-              const anim = newVal > oldVal ? 'flash-up' : 'flash-down';
-              el.classList.remove('flash-up', 'flash-down');
+              const animClass = newVal > oldVal ? 'crystal-flash-up' : 'crystal-flash-down';
+              el.classList.remove('crystal-flash-up', 'crystal-flash-down');
               void el.offsetWidth;
-              el.classList.add(anim);
+              el.classList.add(animClass);
             }
           }
         }
       };
 
       wsSocket.onclose = () => {
+        document.getElementById('ws-dot').style.background = 'var(--red-drop)';
         setTimeout(connectWS, 3000);
       };
     }
@@ -566,13 +636,7 @@
       }, 3000);
     }
 
-    // Auto Refresh Catalog Every 30 Seconds
-    setInterval(() => {
-      fetchCatalog();
-    }, 30000);
-
     initSystem();
   </script>
 </body>
 </html>
-
