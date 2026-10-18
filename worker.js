@@ -275,7 +275,7 @@ export default {
               Array.isArray(event.markets) ? event.markets : []
             ).map(normalizeMarket);
 
-            return {
+            
               id: event.id ?? null,
               title: event.title ?? event.name ?? "",
               slug: event.slug ?? null,
@@ -404,153 +404,213 @@ if (url.pathname === "/matches") {
           event.slug,
           title
         ].filter(Boolean).join(" ").toLowerCase();
+// One event with actual order-book quotes 
+        
+if (url.pathname === "/matches") {
+  const limit = Math.min(100, Math.max(1,
+    Number(url.searchParams.get("limit")) || 50));
+  const offset = Math.max(0,
+    Number(url.searchParams.get("offset")) || 0);
+  const sportFilter = (url.searchParams.get("sport") || "")
+    .toLowerCase().trim();
+  const search = (url.searchParams.get("search") || "")
+    .toLowerCase().trim();
 
-        if (!sportText.includes(sport)) return false;
-      }
+  const now = Date.now();
+  const liveWindow = 6 * 60 * 60 * 1000;
+  const diagnostics = {
+    sportsLoaded: 0,
+    seriesChecked: 0,
+    seriesSucceeded: 0,
+    eventsScanned: 0,
+    skippedOld: 0,
+    errors: []
+  };
 
-      return true;
-    })
-    .map((event) => ({
-      id: event.id,
-      title: event.title || event.name,
-      slug: event.slug || null,
-      sport: event.sport || event.category || null,
-      startDate: event.startDate || event.startDateIso || null,
-      endDate: event.endDate || null,
-      status: "upcoming",
-      active: event.active,
-      markets: Array.isArray(event.markets) ? event.markets : []
-    }))
-    .sort((a, b) => {
-      const aTime = Date.parse(a.startDate || "") || 0;
-      const bTime = Date.parse(b.startDate || "") || 0;
-      return aTime - bTime;
+  const fetchJSON = async (endpoint) => {
+    const response = await fetch(endpoint, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(8000)
     });
-
-  return reply({
-    success: true,
-    provider: "Polymarket Gamma",
-    type: "matches",
-    limit,
-    offset,
-    scanned: events.size,
-    count: matches.length,
-    updatedAt: new Date().toISOString(),
-    data: matches.slice(offset, offset + limit)
-  });
-}
- 
-      // One event with actual order-book quotes
-      if (url.pathname === "/event") {
-        const id = url.searchParams.get("id");
-        const slug = url.searchParams.get("slug");
-
-        if (!id && !slug) {
-          return reply({
-            success: false,
-            error: "Provide event id or slug"
-          }, 400);
-        }
-
-        const raw = await getJSON(
-          id
-            ? gamma(`/events/${encodeURIComponent(id)}`)
-            : gamma("/events", { slug })
-        );
-
-        const event = Array.isArray(raw) ? raw[0] : raw;
-
-        if (!event) {
-          return reply({
-            success: false,
-            error: "Event not found"
-          }, 404);
-        }
-
-        const markets = Array.isArray(event.markets)
-          ? event.markets
-          : [];
-
-        return reply({
-          success: true,
-          provider: "Polymarket Gamma + CLOB",
-          updatedAt: new Date().toISOString(),
-          data: {
-            id: event.id ?? null,
-            title: event.title ?? event.name ?? "",
-            slug: event.slug ?? null,
-            description: event.description ?? "",
-            startDate: event.startDate ?? event.startTime ?? null,
-            endDate: event.endDate ?? null,
-            active: event.active ?? null,
-            closed: event.closed ?? null,
-            volume: num(event.volume ?? event.volumeNum),
-            liquidity: num(event.liquidity ?? event.liquidityNum),
-            tags: event.tags ?? [],
-            markets: await Promise.all(markets.map(addQuotes))
-          }
-        });
-      }
-
-      // One market with actual order-book quotes
-      if (url.pathname === "/market") {
-        const id = url.searchParams.get("id");
-        const slug = url.searchParams.get("slug");
-
-        if (!id && !slug) {
-          return reply({
-            success: false,
-            error: "Provide market id or slug"
-          }, 400);
-        }
-
-        const raw = await getJSON(
-          id
-            ? gamma(`/markets/${encodeURIComponent(id)}`)
-            : gamma("/markets", { slug })
-        );
-
-        const market = Array.isArray(raw) ? raw[0] : raw;
-
-        if (!market) {
-          return reply({
-            success: false,
-            error: "Market not found"
-          }, 404);
-        }
-
-        return reply({
-          success: true,
-          provider: "Polymarket Gamma + CLOB",
-          updatedAt: new Date().toISOString(),
-          data: await addQuotes(market)
-        });
-      }
-
-      return reply({
-        success: false,
-        error: "Endpoint not found",
-        endpoints: [
-          "/health",
-          "/sports",
-          "/polymarket?type=events&limit=100&offset=0",
-          "/polymarket?type=markets&limit=100&offset=0",
-          "/events?limit=100&offset=0",
-          "/markets?limit=100&offset=0",
-          "/event?id=EVENT_ID",
-          "/event?slug=EVENT_SLUG",
-          "/market?id=MARKET_ID",
-          "/market?slug=MARKET_SLUG"
-        ]
-      }, 404);
-
-    } catch (error) {
-      return reply({
-        success: false,
-        error: "Provider request failed",
-        message: error?.message || "Unknown error",
-        updatedAt: new Date().toISOString()
-      }, 502);
+    if (!response.ok) {
+      throw new Error("HTTP " + response.status);
     }
+    return response.json();
+  };
+
+  try {
+    const sportsData = await fetchJSON(
+      "https://gamma-api.polymarket.com/sports"
+    );
+
+    const sports = Array.isArray(sportsData) ? sportsData : [];
+    diagnostics.sportsLoaded = sports.length;
+
+    let seriesList = sports
+      .filter(s => s.series && /^\d+$/.test(String(s.series)))
+      .filter(s => {
+        if (!sportFilter) return true;
+        return [
+          s.sport, s.name, s.league
+        ].filter(Boolean).join(" ").toLowerCase()
+          .includes(sportFilter);
+      });
+
+    seriesList.sort((a, b) =>
+      String(b.createdAt || "").localeCompare(
+        String(a.createdAt || "")
+      )
+    );
+
+    // Keep within a conservative per-request subrequest budget.
+    seriesList = seriesList.slice(0, 40);
+    diagnostics.seriesChecked = seriesList.length;
+
+    const eventMap = new Map();
+
+    for (let i = 0; i < seriesList.length; i += 10) {
+      const batch = seriesList.slice(i, i + 10);
+
+      const results = await Promise.all(batch.map(async s => {
+        try {
+          const endpoint = new URL(
+            "https://gamma-api.polymarket.com/events"
+          );
+          endpoint.searchParams.set("series_id", String(s.series));
+          endpoint.searchParams.set("active", "true");
+          endpoint.searchParams.set("closed", "false");
+          endpoint.searchParams.set("limit", "50");
+          endpoint.searchParams.set("offset", "0");
+
+          const data = await fetchJSON(endpoint.toString());
+          diagnostics.seriesSucceeded++;
+
+          return (Array.isArray(data) ? data : []).map(event => ({
+            ...event,
+            _sportName: s.name || s.sport || null,
+            _sportCode: s.sport || null,
+            _seriesId: String(s.series)
+          }));
+        } catch (error) {
+          if (diagnostics.errors.length < 5) {
+            diagnostics.errors.push(
+              String(s.sport || s.series) + ": " +
+              String(error.message || error)
+            );
+          }
+          return [];
+        }
+      }));
+
+      for (const list of results) {
+        for (const event of list) {
+          if (event && event.id != null) {
+            eventMap.set(String(event.id), event);
+          }
+        }
+      }
+    }
+
+    diagnostics.eventsScanned = eventMap.size;
+
+    const grouped = new Map();
+
+    for (const event of eventMap.values()) {
+      const title = String(event.title || event.name || "").trim();
+
+      if (!title || event.closed === true || event.active === false) {
+        continue;
+      }
+
+      if (!/\s(?:vs\.?|versus|v\.|@)\s/i.test(title)) continue;
+
+      if (/\b(winner|champion|qualify|nominee|outright)\b/i.test(title)) {
+        continue;
+      }
+
+      const gameTime = Date.parse(
+        event.gameStartTime || event.startTime || ""
+      );
+
+      // Do not treat old fixtures as live just because an event is active.
+      if (!Number.isFinite(gameTime) ||
+          gameTime < now - liveWindow) {
+        diagnostics.skippedOld++;
+        continue;
+      }
+
+      const marketList = Array.isArray(event.markets)
+        ? event.markets
+        : [];
+
+      const openMarkets = marketList.filter(m =>
+        m &&
+        m.active !== false &&
+        m.closed !== true &&
+        m.acceptingOrders !== false
+      );
+
+      if (!openMarkets.length) continue;
+
+      const baseTitle = title.split(/\s+-\s+/)[0].trim();
+      const key = baseTitle.toLowerCase() + "|" +
+        new Date(gameTime).toISOString();
+
+      if (search && !baseTitle.toLowerCase().includes(search)) {
+        continue;
+      }
+
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          id: event.parentEventId || event.id,
+          title: baseTitle,
+          slug: event.slug || null,
+          sport: event._sportName,
+          sportCode: event._sportCode,
+          seriesId: event._seriesId,
+          gameStartTime: event.gameStartTime || null,
+          startDate: event.startDate || null,
+          status: gameTime <= now ? "live" : "upcoming",
+          markets: [],
+          marketEventIds: []
+        });
+      }
+
+      const match = grouped.get(key);
+      match.marketEventIds.push(event.id);
+
+      for (const market of openMarkets) {
+        match.markets.push(market);
+      }
+    }
+
+    const matches = [...grouped.values()].sort((a, b) =>
+      (Date.parse(a.gameStartTime || "") || 0) -
+      (Date.parse(b.gameStartTime || "") || 0)
+    );
+
+    return reply({
+      success: true,
+      provider: "Polymarket Gamma sports series",
+      type: "matches",
+      limit,
+      offset,
+      scanned: diagnostics.eventsScanned,
+      count: matches.length,
+      diagnostics,
+      updatedAt: new Date().toISOString(),
+      data: matches.slice(offset, offset + limit)
+    });
+  } catch (error) {
+    return reply({
+      success: false,
+      provider: "Polymarket Gamma sports series",
+      error: String(error.message || error),
+      diagnostics,
+      updatedAt: new Date().toISOString(),
+      data: []
+    }, 502);
   }
-};
+}
+
+        
