@@ -267,17 +267,16 @@ export default {
           });
         }
 
+// Live and upcoming real-match endpoint
+
         let data;
 
         if (type === "events") {
           data = items.map(event => {
             const markets = (
-                if (type === "events") {
-          data = items.map(event => {
-            const markets = (
               Array.isArray(event.markets) ? event.markets : []
             ).map(normalizeMarket);
-   
+
             return {
               id: event.id ?? null,
               title: event.title ?? event.name ?? "",
@@ -305,31 +304,6 @@ export default {
         } else {
           data = items.map(normalizeMarket);
         }
-
-              marketCount: markets.length,
-              markets,
-              marketQuestions: markets
-                .map(m => m.question)
-                .filter(Boolean)
-            };
-          });
-        } else {
-          data = items.map(normalizeMarket);
-        }
-
-        return reply({
-          success: true,
-          provider: "Polymarket Gamma",
-          type,
-          limit,
-          offset,
-          count: data.length,
-          updatedAt: new Date().toISOString(),
-          data
-        });
-      }
-// Live and upcoming real-match endpoint
-
 if (url.pathname === "/matches") {
   const limit = Math.min(
     100,
