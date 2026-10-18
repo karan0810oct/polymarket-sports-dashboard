@@ -21,7 +21,7 @@
 <div class="notice">Polymarket only · Live decimal Back/Lay odds on the main screen. Open a match for comparison and all related markets. Only real quotes returned by Polymarket are shown.</div>
 <div class="section-line"><div class="section-title" id="listTitle">Select a sport</div><div class="small" id="count">0 matches</div></div>
 <main class="matches" id="matches"><div class="empty-state">Tap a sport above to load its matches.</div></main>
-<div class="footer">Crystal Edge V14 · Polymarket decimal odds · Automatic quote monitoring<br>Verify prices and liquidity at the source before acting.</div>
+<div class="footer">Crystal Edge V15 · Full Polymarket event + market pagination · Automatic quote monitoring<br>Verify prices and liquidity at the source before acting.</div>
 </div>
 <div class="markets-overlay" id="marketsOverlay" aria-hidden="true"><section class="markets-window" role="dialog" aria-modal="true" aria-labelledby="marketsTitle"><div class="markets-head"><div><div class="small">CRYSTAL EDGE · MATCH EXPLORER</div><h2 id="marketsTitle">Open Markets</h2><p id="marketsSubtitle">Available markets for this match</p></div><button class="close-markets" id="closeMarkets" type="button" aria-label="Close markets">✕</button></div><div class="comparison-grid"><div class="comparison-box"><div class="box-title">🔵 POLYMARKET · DECIMAL</div><div id="polyCompareBox"><div class="small">Loading real Back / Lay quotes…</div></div><div class="box-note">Only real order-book quotes. Blank when unavailable.</div></div><div class="comparison-placeholder ice"><strong>🟣 ICE EXCHANGE</strong><div class="small">Decimal · Back / Lay</div><div class="placeholder-odds"><span>Selection</span><span>BACK</span><span>LAY</span><span id="iceTeam1">Team 1</span><span>—</span><span>—</span><span id="iceTeam2">Team 2</span><span>—</span><span>—</span></div><div class="placeholder-state">ICE feed not connected · rates show — until a real feed is available</div></div></div><div class="market-actions"><a class="poly-link" id="openPolyLink" href="https://polymarket.com" target="_blank" rel="noopener noreferrer">Open on Polymarket ↗</a><span id="marketStatus" class="status-chip status-wait">WAITING FOR QUOTE</span></div><div class="latency-strip"><div class="latency-cell"><span>QUOTE RECEIVED</span><strong id="quoteReceived">—</strong></div><div class="latency-cell"><span>SCREEN UPDATED</span><strong id="screenUpdated">—</strong></div><div class="latency-cell"><span>LATENCY</span><strong id="latencyValue">—</strong></div><div class="latency-cell"><span>LAST QUOTE / AGE</span><strong id="lastQuoteValue">—</strong></div></div><div class="section-line"><div class="section-title">All related markets · player props · totals</div><div class="small" id="marketCount">0 markets</div></div><div class="market-list" id="marketList"><div class="empty-state">Tap Open Markets on a match to load its available markets.</div></div></section></div>
 <script>
@@ -353,46 +353,28 @@ function renderSelectedMarkets(){const e=state.selectedEvent;if(!e)return;const[
 function openMarkets(e){state.selectedEvent=e;const iceTeams=eventTeams(e);if($("iceTeam1"))$("iceTeam1").textContent=iceTeams[0]||"Team 1";if($("iceTeam2"))$("iceTeam2").textContent=iceTeams[1]||"Team 2";renderSelectedMarkets();const ov=$("marketsOverlay");ov.classList.add("open");ov.setAttribute("aria-hidden","false");document.body.style.overflow="hidden";requestAnimationFrame(()=>{state.screenUpdatedText=timeText(Date.now());updateLiveStatus();});}
 function closeMarkets(){const ov=$("marketsOverlay");ov.classList.remove("open");ov.setAttribute("aria-hidden","true");document.body.style.overflow="";}
 function matchId(e){return String(first(e.id,e.event_id,e.fixture_id,e.key,eventName(e)));}
-function renderEvents(){const search=normalizeName(state.search);let list=state.events.filter(e=>{if(!isMatch(e)||!withinFilter(e))return false;if(state.selectedSport&&state.selectedSport!=="all"){const cat=sportCategory({key:first(e.sport_key,e.sport,e.sport_title,e.league),title:first(e.sport_title,e.sport,e.league)});if(cat!==state.selectedSport)return false;}if(search&&!normalizeName(eventName(e)).includes(search))return false;return true;});list.sort((a,b)=>Number(isLive(b))-Number(isLive(a))||((eventDate(a)?.getTime()||Infinity)-(eventDate(b)?.getTime()||Infinity)));$("count").textContent=list.length+" match"+(list.length===1?"":"es");$("listTitle").textContent=state.selectedSport?(state.selectedSport==="all"?"All Sports":state.selectedSport):"Select a sport";const root=$("matches");if(!state.selectedSport){root.innerHTML='<div class="empty-state">Tap a sport above to reveal its matches.</div>';return;}if(!list.length){root.innerHTML='<div class="empty-state">No real team-vs-team event was returned for this sport by Polymarket.<br><span class="small">The dashboard now checks Polymarket Gamma sporting events and paginates available results without a total-match cap. Availability still depends on what Polymarket actually lists; no fixtures or odds are fabricated.</span></div>';return;}root.innerHTML=list.map((e,i)=>{const[h,a]=eventTeams(e),d=eventDate(e),meta=[first(e.sport_title,e.sport,e.league,""),d?d.toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}):"",first(e.score,e.status,e.state,"")].filter(Boolean).join(" · "),st=isLive(e)?'<span class="pill live">● MATCH LIVE</span>':`<span class="pill">${d?"UPCOMING":"MATCH"}</span>`,id="detail-"+i;return`<article class="match" data-match-id="${esc(matchId(e))}"><div class="match-head"><div><div class="event-name">${esc(eventName(e)||"Match")}</div><div class="event-meta">${esc(meta)}</div></div>${st}</div><div class="teams"><div class="team"><div class="team-name">${esc(h||"Team 1")}</div><div class="team-sub">Selection 1</div></div><div class="team"><div class="team-name">${esc(a||"Team 2")}</div><div class="team-sub">Selection 2</div></div></div>${sourceBox(e,"polymarket","poly","POLYMARKET")}<button class="details-btn" data-open-markets="${i}">Open Markets · Comparison & all markets ＋</button><div class="detail-panel" id="${id}"><div class="detail-row"><span>Match</span><strong>${esc(eventName(e))}</strong></div><div class="detail-row"><span>Sport / League</span><strong>${esc(first(e.sport_title,e.sport,e.league,"—"))}</strong></div><div class="detail-row"><span>Start time</span><strong>${d?esc(d.toLocaleString()):"Not provided"}</strong></div><div class="detail-row"><span>Polymarket market</span><strong>${esc(marketQuestion(marketForEvent(e))||"No matching market found")}</strong></div></div></article>`;}).join("");root.querySelectorAll("[data-open-markets]").forEach(b=>{b.type="button";b.addEventListener("click",()=>{const selected=list[Number(b.dataset.openMarkets)];if(selected)openMarkets(selected);});});root.querySelectorAll("[data-quote-foot]").forEach(el=>{const e=list.find(x=>matchId(x)===el.dataset.quoteFoot);if(!e)return;const q=getPolyQuote(e,eventTeams(e)[0])||getPolyQuote(e,eventTeams(e)[1]);if(q){el.textContent="Last quote "+timeText(q.time)+" · quote received locally";}});requestAnimationFrame(()=>{const now=Date.now();let latest=null;for(const q of Object.values(state.live)){if(q.receivedPerf&&(!latest||q.receivedAt>latest.receivedAt))latest=q;}if(latest){state.screenUpdatedText=timeText(now);state.latencyMs=latest.receivedPerf?Math.max(0,Math.round((performance.now()-latest.receivedPerf)*10)/10):null;for(const el of root.querySelectorAll("[data-quote-foot]")){const e=list.find(x=>matchId(x)===el.dataset.quoteFoot);if(!e)continue;const q=getPolyQuote(e,eventTeams(e)[0])||getPolyQuote(e,eventTeams(e)[1]);if(q)el.textContent="Last quote "+timeText(q.time)+" · received "+timeText(q.receivedAt)+" · UI "+state.latencyMs+" ms";}updateLiveStatus();}});}
+function renderEvents(){const search=normalizeName(state.search);let list=state.events.filter(e=>{if(!isMatch(e)||!withinFilter(e))return false;if(state.selectedSport&&state.selectedSport!=="all"){const cat=sportCategory({key:first(e.sport_key,e.sport,e.sport_title,e.league),title:first(e.sport_title,e.sport,e.league)});if(cat!==state.selectedSport)return false;}if(search&&!normalizeName(eventName(e)).includes(search))return false;return true;});list.sort((a,b)=>Number(isLive(b))-Number(isLive(a))||((eventDate(a)?.getTime()||Infinity)-(eventDate(b)?.getTime()||Infinity)));$("count").textContent=list.length+" match"+(list.length===1?"":"es");$("listTitle").textContent=state.selectedSport?(state.selectedSport==="all"?"All Sports":state.selectedSport):"Select a sport";const root=$("matches");if(!state.selectedSport){root.innerHTML='<div class="empty-state">Tap a sport above to reveal its matches.</div>';return;}if(!list.length){root.innerHTML='<div class="empty-state">No real team-vs-team event was returned for this sport by Polymarket.<br><span class="small">The dashboard paginates the Worker event catalogue and market catalogue separately. Availability depends on Polymarket listings; no fixtures or odds are fabricated.</span></div>';return;}root.innerHTML=list.map((e,i)=>{const[h,a]=eventTeams(e),d=eventDate(e),meta=[first(e.sport_title,e.sport,e.league,""),d?d.toLocaleString([],{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}):"",first(e.score,e.status,e.state,"")].filter(Boolean).join(" · "),st=isLive(e)?'<span class="pill live">● MATCH LIVE</span>':`<span class="pill">${d?"UPCOMING":"MATCH"}</span>`,id="detail-"+i;return`<article class="match" data-match-id="${esc(matchId(e))}"><div class="match-head"><div><div class="event-name">${esc(eventName(e)||"Match")}</div><div class="event-meta">${esc(meta)}</div></div>${st}</div><div class="teams"><div class="team"><div class="team-name">${esc(h||"Team 1")}</div><div class="team-sub">Selection 1</div></div><div class="team"><div class="team-name">${esc(a||"Team 2")}</div><div class="team-sub">Selection 2</div></div></div>${sourceBox(e,"polymarket","poly","POLYMARKET")}<button class="details-btn" data-open-markets="${i}">Open Markets · Comparison & all markets ＋</button><div class="detail-panel" id="${id}"><div class="detail-row"><span>Match</span><strong>${esc(eventName(e))}</strong></div><div class="detail-row"><span>Sport / League</span><strong>${esc(first(e.sport_title,e.sport,e.league,"—"))}</strong></div><div class="detail-row"><span>Start time</span><strong>${d?esc(d.toLocaleString()):"Not provided"}</strong></div><div class="detail-row"><span>Polymarket market</span><strong>${esc(marketQuestion(marketForEvent(e))||"No matching market found")}</strong></div></div></article>`;}).join("");root.querySelectorAll("[data-open-markets]").forEach(b=>{b.type="button";b.addEventListener("click",()=>{const selected=list[Number(b.dataset.openMarkets)];if(selected)openMarkets(selected);});});root.querySelectorAll("[data-quote-foot]").forEach(el=>{const e=list.find(x=>matchId(x)===el.dataset.quoteFoot);if(!e)return;const q=getPolyQuote(e,eventTeams(e)[0])||getPolyQuote(e,eventTeams(e)[1]);if(q){el.textContent="Last quote "+timeText(q.time)+" · quote received locally";}});requestAnimationFrame(()=>{const now=Date.now();let latest=null;for(const q of Object.values(state.live)){if(q.receivedPerf&&(!latest||q.receivedAt>latest.receivedAt))latest=q;}if(latest){state.screenUpdatedText=timeText(now);state.latencyMs=latest.receivedPerf?Math.max(0,Math.round((performance.now()-latest.receivedPerf)*10)/10):null;for(const el of root.querySelectorAll("[data-quote-foot]")){const e=list.find(x=>matchId(x)===el.dataset.quoteFoot);if(!e)continue;const q=getPolyQuote(e,eventTeams(e)[0])||getPolyQuote(e,eventTeams(e)[1]);if(q)el.textContent="Last quote "+timeText(q.time)+" · received "+timeText(q.receivedAt)+" · UI "+state.latencyMs+" ms";}updateLiveStatus();}});}
 function currentSportItems(){if(!state.selectedSport||state.selectedSport==="all")return state.sports.filter(s=>SUPPORTED_SPORTS.includes(sportCategory(s)));return state.sports.filter(s=>sportCategory(s)===state.selectedSport);}
 async function loadSports(){state.sports=FALLBACK_SPORTS.slice();renderSports();}
 function normalizeIncomingEvent(raw,key,source){const e={...raw,sport_key:first(raw.sport_key,raw.sportKey,raw.key,raw.sport_id,key),sport_title:first(raw.sport_title,raw.sportTitle,raw.sport_name,raw.league_name,raw.league,raw.competition,typeof raw.sport==="object"?first(raw.sport.title,raw.sport.name,raw.sport.key):raw.sport,key),_source:source};const [h,a]=eventTeams(e);if((!e.home_team||!e.away_team)&&h&&a){e.home_team=h;e.away_team=a;}if(!e.commence_time&&!e.start_time&&!e.startTime&&!e.startDate&&!e.start_date){const d=eventDate(raw);if(d)e.commence_time=d.toISOString();}return e;}
 async function loadPolymarket(){
  try{
-  // IMPORTANT: Load the Worker feed FIRST. Gamma's catalogue crawl can take a long
-  // time or hang on mobile Safari; it must never block the live markets from appearing.
-  // The Worker response already contains normalized outcome token IDs and best quotes.
-  // Keep the initial load independent of Gamma discovery; match events are derived from
-  // the actual market questions below, so no fabricated fixtures are introduced.
+  // Pull the full event catalogue AND full market catalogue from the Worker.
+  // `limit` is a page size, never the total cap; fetchPolyPages advances offset
+  // until the endpoint returns an empty/short page or a repeated page.
+  // Events are the source of real matchups; markets add every related outcome/prop.
   const discoveredEvents=[];
-  // Current Worker health advertises only /polymarket?limit=50 and /parlay.
-  // Do not call unsupported ?type=events, ?type=markets or /book routes.
-  // No total-results cap: keep requesting pages until the Worker/API returns
-  // an empty/short page, or pagination stops producing new records. `limit=50`
-  // is only the per-request page size, not a cap on the total number of matches.
-  const pageSize=50, allRows=[], seen=new Set();let successfulPages=0,offset=0;
-  while(true){
-   const url=API+"/polymarket?limit="+pageSize+"&offset="+offset;
-   let payload;
-   try{payload=await getJSON(url);}catch(err){
-    if(offset===0)throw err;
-    console.warn("Polymarket pagination stopped at offset",offset,err);break;
-   }
-   if(payload?.success===false)throw new Error(payload.error?.message||payload.error||"Polymarket feed returned success:false");
-   const rows=unwrapArray(payload).filter(x=>x&&typeof x==="object");
-   if(!rows.length){if(offset===0)console.warn("Worker returned no rows",payload);break;}
-   successfulPages++;
-   let added=0;
-   for(const row of rows){
-    const id=String(first(row.id,row.conditionId,row.condition_id,row.slug,row.question,row.title,JSON.stringify(row).slice(0,180)));
-    if(seen.has(id))continue;seen.add(id);allRows.push(row);added++;
-   }
-   // Some Worker deployments ignore offset. Stop rather than loop forever.
-   if(!added)break;
-   offset+=rows.length;
-   if(rows.length<pageSize)break;
-  }
-  if(!allRows.length)throw new Error("Worker /polymarket returned no market rows. Open /polymarket?limit=50 to inspect the response.");
+  const results=await Promise.allSettled([
+   fetchPolyPages("events"),
+   fetchPolyPages("markets")
+  ]);
+  const eventRows=results[0].status==="fulfilled"?results[0].value:[];
+  const marketRows=results[1].status==="fulfilled"?results[1].value:[];
+  if(results[0].status==="rejected")console.warn("Worker events catalogue unavailable",results[0].reason);
+  if(results[1].status==="rejected")console.warn("Worker markets catalogue unavailable",results[1].reason);
+  const allRows=[...eventRows,...marketRows];
+  const successfulPages=0;
+  if(!allRows.length)throw new Error("Worker returned no event or market pages. Check /polymarket?type=events&limit=100&offset=0 and /polymarket?type=markets&limit=100&offset=0.");
   // Some Worker versions return markets directly; others nest markets inside events.
   const marketMap=new Map();
   const addMarket=m=>{
@@ -424,8 +406,8 @@ async function loadPolymarket(){
    // Direct market rows typically have a question/title and outcome tokens.
    if(marketQuestion(row)||getMarketTokens(row).length)addMarket(row);
   }
-  // Include nested markets from the Gamma event catalogue so market matching and tokens
-  // are not limited to whatever happened to appear in the Worker global market page.
+  // Include nested markets from every returned event so related props and outcomes
+  // are not limited to the first global market page.
   for(const event of discoveredEvents){
    for(const m of arr(event.markets))addMarket(m);
    if(event.market&&typeof event.market==="object")addMarket(event.market);
@@ -459,7 +441,7 @@ async function loadPolymarket(){
    try{const e=eventFromPolyEvent(row);if(e){e._relatedMarkets=[...arr(e._relatedMarkets),...arr(row.markets)];addEvent(e);}}catch(err){console.warn("Skipping Gamma event row",err);}
   }
   state.events=[...eventMap.values()].filter(isMatch);
-  console.info("Crystal Edge Worker feed loaded",{pages:successfulPages,rows:allRows.length,markets:state.markets.length,matches:state.events.length,sports:[...new Set(state.events.map(e=>e.sport_title))]});
+  console.info("Crystal Edge full catalogue loaded",{eventRows:eventRows.length,marketRows:marketRows.length,rows:allRows.length,markets:state.markets.length,matches:state.events.length,sports:[...new Set(state.events.map(e=>e.sport_title))]});
   // Keep the real REST best-bid/best-ask snapshot supplied by the Worker; do not hit
   // /book because it is not listed by the current Worker health response.
   for(const m of state.markets){
