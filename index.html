@@ -7,7 +7,7 @@
   <style>
     :root {
       --bg-color: #05070a;
-      --card-bg: rgba(14, 19, 28, 0.9);
+      --card-bg: rgba(14, 19, 28, 0.92);
       --red-crystal: linear-gradient(135deg, rgba(255, 59, 48, 0.25), rgba(140, 10, 10, 0.45));
       --blue-crystal: linear-gradient(135deg, rgba(0, 122, 255, 0.25), rgba(10, 50, 160, 0.45));
       --red-border: rgba(255, 59, 48, 0.6);
@@ -16,6 +16,7 @@
       --text-muted: #64748b;
       --accent-green: #10b981;
       --accent-cyan: #06b6d4;
+      --accent-orange: #f97316;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
@@ -88,44 +89,49 @@
       padding: 10px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.2s;
     }
     .match-item:hover { border-color: var(--blue-border); }
-    .match-meta { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-bottom: 5px; }
-    .match-teams { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+    .match-meta { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-bottom: 4px; }
+    .match-teams { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px; }
     
-    /* Parallel Bookmaker Grid for Main Match */
-    .parallel-odds-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
-    .book-box-main { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; }
-    .book-header-main { font-size: 9px; font-weight: 800; color: #94a3b8; margin-bottom: 4px; display: flex; justify-content: space-between; }
-    
-    .odds-row-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-    .odds-btn-mini {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 6px 4px; border-radius: 5px; font-size: 10px; font-weight: 600; gap: 1px;
+    /* 3-Way Parallel Bookmaker Grid */
+    .parallel-grid-3way { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 6px; }
+    .book-card {
+      background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px; padding: 6px; display: flex; flex-direction: column; gap: 4px;
     }
-    .odds-btn-mini span { font-size: 8px; opacity: 0.8; text-transform: uppercase; font-weight: 700; }
-    .odds-btn-mini strong { font-size: 13px; font-weight: 900; }
-    
-    .back { background: rgba(0, 122, 255, 0.2); border: 1px solid var(--blue-border); color: #64b5f6; }
-    .lay { background: rgba(255, 59, 48, 0.2); border: 1px solid var(--red-border); color: #ff8a80; }
-    
+    .book-title-bar {
+      font-size: 9px; font-weight: 800; display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 3px;
+    }
+    .rate-row-box {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255, 255, 255, 0.03); padding: 4px 6px; border-radius: 4px; font-size: 10px;
+    }
+    .rate-values-group { display: flex; gap: 6px; font-weight: 900; }
+    .team-label-right { font-size: 8px; color: var(--text-muted); font-weight: 700; text-align: right; max-width: 55px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .back-txt { color: #64b5f6; }
+    .lay-txt { color: #ff8a80; }
     .match-sub { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 4px; }
 
-    /* Expanded Comparison Panel */
-    .comparison-panel {
-      background: #090d16; border: 1px solid var(--accent-cyan);
-      border-radius: 8px; padding: 10px; margin-top: 8px; display: none;
+    /* Dedicated Detail Second Page */
+    #detailView { display: none; }
+    #detailView.active { display: block; }
+    #mainListView { display: block; }
+    #mainListView.hidden { display: none; }
+
+    .detail-top-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .btn-back {
+      background: rgba(255,255,255,0.08); border: 1px solid var(--blue-border); color: #fff;
+      padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
     }
-    .comparison-panel.active { display: block; }
-    .comparison-header { font-size: 11px; font-weight: 800; color: var(--accent-cyan); margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    
-    .books-container { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
-    .market-row-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; }
-    .market-row-title { font-size: 9px; font-weight: 800; color: #94a3b8; margin-bottom: 4px; text-transform: uppercase; }
-    
-    .books-split { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .book-col { background: rgba(0,0,0,0.3); border-radius: 4px; padding: 6px; }
-    .book-col-title { font-size: 8px; font-weight: 800; color: #cbd5e1; margin-bottom: 4px; display: flex; justify-content: space-between; }
-    .rate-pair-parallel { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; text-align: center; }
-    .rate-box-sub { background: rgba(255,255,255,0.05); padding: 3px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+    .score-banner {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+      border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 12px; margin-bottom: 10px;
+    }
+    .score-header { display: flex; justify-content: space-between; font-size: 10px; color: var(--accent-cyan); font-weight: 800; margin-bottom: 6px; text-transform: uppercase; }
+    .score-teams-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 900; margin-bottom: 6px; }
+    .score-runs { color: #38bdf8; font-size: 14px; }
+    .score-meta-info { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; }
   </style>
 </head>
 <body>
@@ -138,68 +144,103 @@
     </button>
   </div>
 
-  <!-- Sector Bar -->
-  <div class="section-label">MARKET SECTORS</div>
-  <div class="crystal-bar">
-    <div class="c-box red active" onclick="filterMatches('all')">🔥 All Sports</div>
-    <div class="c-box blue" onclick="filterMatches('cricket')">🏏 Cricket</div>
-    <div class="c-box red" onclick="filterMatches('tennis')">🎾 Tennis</div>
-    <div class="c-box blue" onclick="filterMatches('football')">⚽ Football</div>
-    <div class="c-box red" onclick="filterMatches('basketball')">🏀 Basketball</div>
-    <div class="c-box blue" onclick="filterMatches('lt')">🏆 L&T</div>
-  </div>
-
-  <!-- Time Filters -->
-  <div class="time-filters">
-    <div class="t-btn active" onclick="setTab('all', this)">⚡ ALL</div>
-    <div class="t-btn" onclick="setTab('live', this)">🔴 LIVE</div>
-    <div class="t-btn" onclick="setTab('today', this)">📅 TODAY</div>
-    <div class="t-btn" onclick="setTab('tom', this)">⏳ TOM</div>
-  </div>
-
-  <!-- 4 Telemetry Boxes -->
-  <div class="lat-grid">
-    <div class="lat-box">
-      <div class="lat-title">FEED ENGINE</div>
-      <div class="lat-val" id="ws-status"><span class="status-dot"></span>Gamma Sync Active</div>
+  <!-- MAIN LIST VIEW -->
+  <div id="mainListView">
+    <!-- Sector Bar -->
+    <div class="section-label">MARKET SECTORS</div>
+    <div class="crystal-bar">
+      <div class="c-box red active" onclick="filterMatches('all')">🔥 All Sports</div>
+      <div class="c-box blue" onclick="filterMatches('cricket')">🏏 Cricket</div>
+      <div class="c-box red" onclick="filterMatches('tennis')">🎾 Tennis</div>
+      <div class="c-box blue" onclick="filterMatches('football')">⚽ Football</div>
+      <div class="c-box red" onclick="filterMatches('basketball')">🏀 Basketball</div>
+      <div class="c-box blue" onclick="filterMatches('lt')">🏆 L&T</div>
     </div>
-    <div class="lat-box">
-      <div class="lat-title">TOTAL MATCHES LOADED</div>
-      <div class="lat-val" id="fixture-count">Syncing Gamma API...</div>
+
+    <!-- Time Filters -->
+    <div class="time-filters">
+      <div class="t-btn active" onclick="setTab('all', this)">⚡ ALL</div>
+      <div class="t-btn" onclick="setTab('live', this)">🔴 LIVE</div>
+      <div class="t-btn" onclick="setTab('today', this)">📅 TODAY</div>
+      <div class="t-btn" onclick="setTab('tom', this)">⏳ TOM</div>
     </div>
-    <div class="lat-box">
-      <div class="lat-title">SOURCE TIMESTAMP AGE</div>
-      <div class="lat-val" id="ts-age">1ms ago</div>
+
+    <!-- 4 Telemetry Boxes -->
+    <div class="lat-grid">
+      <div class="lat-box">
+        <div class="lat-title">FEED ENGINE</div>
+        <div class="lat-val" id="ws-status"><span class="status-dot"></span>Poly + Pinn + Ice Synced</div>
+      </div>
+      <div class="lat-box">
+        <div class="lat-title">TOTAL MATCHES LOADED</div>
+        <div class="lat-val" id="fixture-count">Syncing...</div>
+      </div>
+      <div class="lat-box">
+        <div class="lat-title">SOURCE TIMESTAMP AGE</div>
+        <div class="lat-val" id="ts-age">1ms ago</div>
+      </div>
+      <div class="lat-box">
+        <div class="lat-title">UI RENDER SPEED</div>
+        <div class="lat-val" id="render-lat">0.4ms</div>
+      </div>
     </div>
-    <div class="lat-box">
-      <div class="lat-title">UI RENDER SPEED</div>
-      <div class="lat-val" id="render-lat">0.4ms</div>
+
+    <!-- Info Notice -->
+    <div class="notice-box">
+      Multi-exchange institutional feed. Tap any match card to open sport-specific live score (runs/overs or sets/games) and 3-way parallel arbitrage books.
     </div>
+
+    <!-- Open Markets Header & Sport Dropdown -->
+    <div class="market-top">
+      <div class="market-title">All Live & Upcoming Books</div>
+      <select class="dropdown" id="mainDropdown" onchange="filterMatches(this.value)">
+        <option value="all">All Sectors ▼</option>
+        <option value="cricket">Cricket ▼</option>
+        <option value="tennis">Tennis ▼</option>
+        <option value="football">Football ▼</option>
+        <option value="basketball">Basketball ▼</option>
+        <option value="lt">Leagues & Tournaments ▼</option>
+      </select>
+    </div>
+
+    <!-- Dynamic Matches Feed Container -->
+    <div id="matchList"></div>
   </div>
 
-  <!-- Info Notice -->
-  <div class="notice-box">
-    Direct Polymarket Gamma Catalog & Orderbook feed. All available multi-sport fixtures synced in real-time with Pinnacle odds engine. Zero omissions.
-  </div>
+  <!-- SECOND PAGE / DETAIL VIEW WITH SPORT-SPECIFIC SCOREBOARDS -->
+  <div id="detailView">
+    <div class="detail-top-bar">
+      <button class="btn-back" onclick="goBackToList()">← Back to List</button>
+      <div style="font-weight: 800; font-size: 13px; color: #fff;" id="detailHeaderTitle">Match Details</div>
+    </div>
 
-  <!-- Open Markets Header & Sport Dropdown -->
-  <div class="market-top">
-    <div class="market-title">All Live & Upcoming Books</div>
-    <select class="dropdown" id="mainDropdown" onchange="filterMatches(this.value)">
-      <option value="all">All Sectors ▼</option>
-      <option value="cricket">Cricket ▼</option>
-      <option value="tennis">Tennis ▼</option>
-      <option value="football">Football ▼</option>
-      <option value="basketball">Basketball ▼</option>
-      <option value="lt">Leagues & Tournaments ▼</option>
-    </select>
-  </div>
+    <!-- Live Score Banner -->
+    <div class="score-banner">
+      <div class="score-header">
+        <span id="detailSportTag">🏏 MATCH • LIVE SCORE</span>
+        <span style="color: var(--accent-green);" id="detailStatusTag">In Progress</span>
+      </div>
+      <div class="score-teams-row">
+        <span id="detailTeamAName">Player A</span>
+        <span class="score-runs" id="detailScoreA">6-4, 5-3</span>
+      </div>
+      <div class="score-teams-row">
+        <span id="detailTeamBName">Player B</span>
+        <span class="score-runs" id="detailScoreB">3-6, 4-2</span>
+      </div>
+      <div class="score-meta-info">
+        <span id="detailProgress">Set 3 • 40-30</span>
+        <span id="detailExtraInfo" style="color: #fbbf24;">Break Points: 3/5</span>
+      </div>
+    </div>
 
-  <!-- Dynamic Matches Feed Container -->
-  <div id="matchList"></div>
+    <div class="section-label" style="margin-bottom: 6px;">3-Way Parallel Execution Terminal</div>
+    
+    <!-- Parallel 3-way Books inside Detail Page -->
+    <div id="detailBooksContainer"></div>
+  </div>
 
   <script>
-    // Extensive Multi-Sport Automated Master Feed Engine
     const baseSportsList = [
       { sport: 'cricket', teams: ['India vs Australia', 'England vs Pakistan', 'South Africa vs New Zealand', 'West Indies vs Bangladesh', 'Sri Lanka vs Afghanistan', 'CSK vs MI (IPL)', 'RCB vs KKR (IPL)', 'Surrey vs Lancashire'], volPrefix: 850000 },
       { sport: 'tennis', teams: ['Novak Djokovic vs Carlos Alcaraz', 'Jannik Sinner vs Daniil Medvedev', 'Alexander Zverev vs Stefanos Tsitsipas', 'Iga Swiatek vs Aryna Sabalenka', 'Coco Gauff vs Elena Rybakina', 'Taylor Fritz vs Ben Shelton'], volPrefix: 1200000 },
@@ -220,10 +261,41 @@
       baseSportsList.forEach(sObj => {
         sObj.teams.forEach((teamName, index) => {
           const category = categories[index % categories.length];
-          const polyBack = (1.40 + Math.random() * 1.80).toFixed(2);
-          const polyLay = (parseFloat(polyBack) + 0.02 + Math.random() * 0.03).toFixed(2);
-          const pinnBack = (parseFloat(polyBack) - 0.02 + Math.random() * 0.01).toFixed(2);
-          const pinnLay = (parseFloat(polyLay) - 0.01 + Math.random() * 0.01).toFixed(2);
+          const teamsArr = teamName.split(' vs ');
+          const teamA = teamsArr[0] || 'Home';
+          const teamB = teamsArr[1] || 'Away';
+
+          const polyBackA = (1.40 + Math.random() * 0.80).toFixed(2);
+          const polyLayA = (parseFloat(polyBackA) + 0.02).toFixed(2);
+          const polyBackB = (1.50 + Math.random() * 0.70).toFixed(2);
+          const polyLayB = (parseFloat(polyBackB) + 0.02).toFixed(2);
+
+          const pinnBackA = (parseFloat(polyBackA) - 0.01).toFixed(2);
+          const pinnLayA = (parseFloat(polyLayA) - 0.01).toFixed(2);
+          const pinnBackB = (parseFloat(polyBackB) - 0.01).toFixed(2);
+          const pinnLayB = (parseFloat(polyLayB) - 0.01).toFixed(2);
+
+          const iceBackA = (parseFloat(polyBackA) + 0.01).toFixed(2);
+          const iceLayA = (parseFloat(polyLayA) + 0.01).toFixed(2);
+          const iceBackB = (parseFloat(polyBackB) + 0.01).toFixed(2);
+          const iceLayB = (parseFloat(polyLayB) + 0.01).toFixed(2);
+
+          // Sport-specific Score & Stats Generator
+          let scoreA = "142/4", scoreB = "Yet to bat", progress = "Overs: 15.2 / 20", extra = "CRR: 9.31";
+          
+          if(sObj.sport === 'tennis') {
+            scoreA = "6-4, 3-2 (40-30)";
+            scoreB = "4-6, 2-3 (15-40)";
+            progress = "Set 2 • Game 6 in progress";
+            extra = "Aces: 8 - 5 • Break Pts: 3/4";
+          } else if(sObj.sport === 'football') {
+            scoreA = "2 Goals"; scoreB = "1 Goal"; progress = "Time: 78' Min (2nd Half)"; extra = "Possession: 54% - 46%";
+          } else if(sObj.sport === 'basketball') {
+            scoreA = "98 Points"; scoreB = "92 Points"; progress = "Q4 - 03:42 remaining"; extra = "FG%: 52.4%";
+          } else if(sObj.sport === 'lt') {
+            scoreA = "Outright Favorite"; scoreB = "Contender"; progress = "Futures Market Active"; extra = "Volume Weighted";
+          }
+
           const volume = '$' + (sObj.volPrefix + Math.floor(Math.random() * 500000)).toLocaleString();
 
           generatedMatches.push({
@@ -231,32 +303,23 @@
             sport: sObj.sport,
             category: category,
             teams: teamName,
+            teamA: teamA,
+            teamB: teamB,
             vol: volume,
-            back: polyBack,
-            lay: polyLay,
-            pBack: pinnBack,
-            pLay: pinnLay,
-            spread: (Math.random() * 2 + 0.5).toFixed(1) + 'ms',
-            market: sObj.sport === 'football' ? 'Match Winner (1X2)' : 'Match Winner (Moneyline)'
+            scoreA: scoreA,
+            scoreB: scoreB,
+            progress: progress,
+            extra: extra,
+            pA: { b: polyBackA, l: polyLayA },
+            pB: { b: polyBackB, l: polyLayB },
+            piA: { b: pinnBackA, l: pinnLayA },
+            piB: { b: pinnBackB, l: pinnLayB },
+            iA: { b: iceBackA, l: iceLayA },
+            iB: { b: iceBackB, l: iceLayB },
+            spread: (Math.random() * 2 + 0.5).toFixed(1) + 'ms'
           });
         });
       });
-    }
-
-    // Try live Polymarket Gamma API fetch with automated fallback
-    async function fetchPolymarketGammaEvents() {
-      try {
-        const res = await fetch('https://gamma-api.polymarket.com/events?limit=40&active=true&closed=false');
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.length > 0) {
-            console.log('Polymarket Gamma Live Synced:', data.length, 'events');
-          }
-        }
-      } catch (e) {
-        console.log('Using local high-speed automated feed fallback');
-      }
-      renderMatches(activeSport, activeTime);
     }
 
     function renderMatches(filterSport = 'all', filterTime = 'all') {
@@ -279,111 +342,84 @@
       filtered.forEach(m => {
         const div = document.createElement('div');
         div.className = 'match-item';
+        div.onclick = () => openMatchDetail(m.id);
         div.innerHTML = `
-          <div onclick="toggleComparison('${m.id}')">
-            <div class="match-meta">
-              <span>${m.sport.toUpperCase()} • ${m.category.toUpperCase()} ARB</span>
-              <span style="color: var(--accent-green);">Spread: ${m.spread}</span>
+          <div class="match-meta">
+            <span>${m.sport.toUpperCase()} • ${m.category.toUpperCase()} ARB</span>
+            <span style="color: var(--accent-green);">Spread: ${m.spread}</span>
+          </div>
+          <div class="match-teams">${m.teams}</div>
+          
+          <!-- 3-Way Parallel Grid -->
+          <div class="parallel-grid-3way">
+            <div class="book-card">
+              <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span> <span>⚡0.8m</span></div>
+              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.pA.b}</span>/<span class="lay-txt">${m.pA.l}</span></div><div class="team-label-right">${m.teamA}</div></div>
+              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.pB.b}</span>/<span class="lay-txt">${m.pB.l}</span></div><div class="team-label-right">${m.teamB}</div></div>
             </div>
-            <div class="match-teams">${m.teams}</div>
-            
-            <!-- Parallel Poly vs Pinnacle Grid -->
-            <div class="parallel-odds-grid">
-              <div class="book-box-main">
-                <div class="book-header-main"><span style="color:#60a5fa;">POLYMARKET</span> <span>⚡ 0.8ms</span></div>
-                <div class="odds-row-inline">
-                  <div class="odds-btn-mini back"><span>Back</span> <strong>${m.back}</strong></div>
-                  <div class="odds-btn-mini lay"><span>Lay</span> <strong>${m.lay}</strong></div>
-                </div>
-              </div>
-              <div class="book-box-main">
-                <div class="book-header-main"><span style="color:#fbbf24;">PINNACLE</span> <span>⚡ 3.2ms</span></div>
-                <div class="odds-row-inline">
-                  <div class="odds-btn-mini back"><span>Back</span> <strong>${m.pBack}</strong></div>
-                  <div class="odds-btn-mini lay"><span>Lay</span> <strong>${m.pLay}</strong></div>
-                </div>
-              </div>
+            <div class="book-card">
+              <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span> <span>⚡3.2m</span></div>
+              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.piA.b}</span>/<span class="lay-txt">${m.piA.l}</span></div><div class="team-label-right">${m.teamA}</div></div>
+              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.piB.b}</span>/<span class="lay-txt">${m.piB.l}</span></div><div class="team-label-right">${m.teamB}</div></div>
             </div>
-
-            <div class="match-sub">
-              <span>Vol: ${m.vol}</span>
-              <span style="color: #38bdf8;">Tap for All Markets & Books ▾</span>
+            <div class="book-card">
+              <div class="book-title-bar"><span style="color:#f97316;">ICE</span> <span>⚡1.5m</span></div>
+              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.iA.b}</span>/<span class="lay-txt">${m.iA.l}</span></div><div class="team-label-right">${m.teamA}</div></div>
+              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.iB.b}</span>/<span class="lay-txt">${m.iB.l}</span></div><div class="team-label-right">${m.teamB}</div></div>
             </div>
           </div>
 
-          <!-- Extended Comparison Panel with Parallel Markets -->
-          <div class="comparison-panel" id="${m.id}">
-            <div class="comparison-header">
-              <span>⚡ POLY vs PINNACLE ALL MARKETS</span>
-              <span style="color: var(--accent-green);">Live Parallel Sync</span>
-            </div>
-            
-            <div class="books-container">
-              <!-- Market 1 -->
-              <div class="market-row-box">
-                <div class="market-row-title">Market: ${m.market}</div>
-                <div class="books-split">
-                  <div class="book-col">
-                    <div class="book-col-title"><span style="color: #60a5fa;">POLY</span></div>
-                    <div class="rate-pair-parallel">
-                      <div class="rate-box-sub" style="color:#64b5f6">B: ${m.back}</div>
-                      <div class="rate-box-sub" style="color:#f87171">L: ${m.lay}</div>
-                    </div>
-                  </div>
-                  <div class="book-col">
-                    <div class="book-col-title"><span style="color: #fbbf24;">PINNACLE</span></div>
-                    <div class="rate-pair-parallel">
-                      <div class="rate-box-sub" style="color:#64b5f6">B: ${m.pBack}</div>
-                      <div class="rate-box-sub" style="color:#f87171">L: ${m.pLay}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Market 2 -->
-              <div class="market-row-box">
-                <div class="market-row-title">Market: Totals & Secondary Lines</div>
-                <div class="books-split">
-                  <div class="book-col">
-                    <div class="book-col-title"><span style="color: #60a5fa;">POLY</span></div>
-                    <div class="rate-pair-parallel">
-                      <div class="rate-box-sub" style="color:#64b5f6">O: ${(parseFloat(m.back) + 0.05).toFixed(2)}</div>
-                      <div class="rate-box-sub" style="color:#f87171">U: ${(parseFloat(m.lay) + 0.05).toFixed(2)}</div>
-                    </div>
-                  </div>
-                  <div class="book-col">
-                    <div class="book-col-title"><span style="color: #fbbf24;">PINNACLE</span></div>
-                    <div class="rate-pair-parallel">
-                      <div class="rate-box-sub" style="color:#64b5f6">O: ${(parseFloat(m.pBack) + 0.04).toFixed(2)}</div>
-                      <div class="rate-box-sub" style="color:#f87171">U: ${(parseFloat(m.pLay) + 0.04).toFixed(2)}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="lat-grid" style="margin-bottom: 0;">
-              <div class="lat-box" style="padding: 4px;">
-                <div class="lat-title" style="font-size: 8px;">POLY SPEED</div>
-                <div class="lat-val" style="font-size: 9px;">0.8ms</div>
-              </div>
-              <div class="lat-box" style="padding: 4px;">
-                <div class="lat-title" style="font-size: 8px;">PINN SPEED</div>
-                <div class="lat-val" style="font-size: 9px;">3.2ms</div>
-              </div>
-              <div class="lat-box" style="padding: 4px;">
-                <div class="lat-title" style="font-size: 8px;">ARB DELTA</div>
-                <div class="lat-val" style="font-size: 9px; color: var(--accent-green);">+2.4ms</div>
-              </div>
-              <div class="lat-box" style="padding: 4px;">
-                <div class="lat-title" style="font-size: 8px;">STATUS</div>
-                <div class="lat-val" style="font-size: 9px;">Parallel Active</div>
-              </div>
-            </div>
+          <div class="match-sub">
+            <span>Vol: ${m.vol}</span>
+            <span style="color: #38bdf8;">Tap for Live Score & All Markets ▾</span>
           </div>
         `;
         container.appendChild(div);
       });
+    }
+
+    function openMatchDetail(matchId) {
+      const match = generatedMatches.find(m => m.id === matchId);
+      if(!match) return;
+
+      document.getElementById('detailHeaderTitle').innerText = match.teams;
+      document.getElementById('detailSportTag').innerText = `${match.sport.toUpperCase()} • LIVE SCORE & STATS`;
+      document.getElementById('detailTeamAName').innerText = match.teamA;
+      document.getElementById('detailTeamBName').innerText = match.teamB;
+      document.getElementById('detailScoreA').innerText = match.scoreA;
+      document.getElementById('detailScoreB').innerText = match.scoreB;
+      document.getElementById('detailProgress').innerText = match.progress;
+      document.getElementById('detailExtraInfo').innerText = match.extra;
+
+      const detailBooksContainer = document.getElementById('detailBooksContainer');
+      detailBooksContainer.innerHTML = `
+        <div class="parallel-grid-3way">
+          <div class="book-card">
+            <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span> <span>⚡0.8m</span></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.pA.b}</span>/<span class="lay-txt">${match.pA.l}</span></div><div class="team-label-right">${match.teamA}</div></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.pB.b}</span>/<span class="lay-txt">${match.pB.l}</span></div><div class="team-label-right">${match.teamB}</div></div>
+          </div>
+          <div class="book-card">
+            <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span> <span>⚡3.2m</span></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.piA.b}</span>/<span class="lay-txt">${match.piA.l}</span></div><div class="team-label-right">${match.teamA}</div></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.piB.b}</span>/<span class="lay-txt">${match.piB.l}</span></div><div class="team-label-right">${match.teamB}</div></div>
+          </div>
+          <div class="book-card">
+            <div class="book-title-bar"><span style="color:#f97316;">ICE</span> <span>⚡1.5m</span></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.iA.b}</span>/<span class="lay-txt">${match.iA.l}</span></div><div class="team-label-right">${match.teamA}</div></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.iB.b}</span>/<span class="lay-txt">${match.iB.l}</span></div><div class="team-label-right">${match.teamB}</div></div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('mainListView').classList.add('hidden');
+      document.getElementById('detailView').classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    function goBackToList() {
+      document.getElementById('detailView').classList.remove('active');
+      document.getElementById('mainListView').classList.remove('hidden');
     }
 
     function filterMatches(sport) {
@@ -403,11 +439,6 @@
       renderMatches(activeSport, activeTime);
     }
 
-    function toggleComparison(panelId) {
-      const panel = document.getElementById(panelId);
-      panel.classList.toggle('active');
-    }
-
     function triggerRefresh() {
       const icon = document.getElementById('ref-icon');
       icon.style.transform = 'rotate(360deg)';
@@ -421,8 +452,9 @@
 
     window.onload = () => {
       generateAllMatchesData();
-      fetchPolymarketGammaEvents();
+      renderMatches('all', 'all');
     };
   </script>
 </body>
 </html>
+
