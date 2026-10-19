@@ -1,530 +1,322 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ApexOdds - Real-Time Arb Terminal</title>
-  <style>
-    :root {
-      --bg-color: #05070a;
-      --card-bg: rgba(14, 19, 28, 0.95);
-      --red-crystal: linear-gradient(135deg, rgba(255, 59, 48, 0.25), rgba(140, 10, 10, 0.45));
-      --blue-crystal: linear-gradient(135deg, rgba(0, 122, 255, 0.25), rgba(10, 50, 160, 0.45));
-      --red-border: rgba(255, 59, 48, 0.6);
-      --blue-border: rgba(0, 122, 255, 0.6);
-      --text-main: #f8fafc;
-      --text-muted: #64748b;
-      --accent-green: #10b981;
-      --accent-cyan: #06b6d4;
-      --accent-orange: #f97316;
+// CRYSTAL EDGE — Cloudflare Worker
+// Public Polymarket Gamma + CLOB APIs
+// No API key required for Polymarket endpoints.
+
+const GAMMA = "https://gamma-api.polymarket.com";
+const CLOB = "https://clob.polymarket.com";
+
+function asInt(value, fallback, min, max) {
+  const n = Number.parseInt(value ?? "", 10);
+  return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+}
+
+function json(data, status = 200, headers = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      ...headers
+    }
+  });
+}
+
+function listFrom(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function enrichMarket(market) {
+  const outcomes = listFrom(market.outcomes);
+  const tokenIds = listFrom(
+    market.clobTokenIds || market.clob_token_ids
+  );
+  const prices = listFrom(
+    market.outcomePrices || market.outcome_prices
+  );
+
+  return {
+    ...market,
+    outcomes: outcomes.map((outcome, i) => ({
+      outcome: String(outcome),
+      tokenId: tokenIds[i] || null,
+      probability:
+        prices[i] != null && Number.isFinite(Number(prices[i]))
+          ? Number(prices[i])
+          : null
+    })),
+    updatedAt:
+      market.updatedAt ||
+      market.updated_at ||
+      market.lastTradePriceAt ||
+      null
+  };
+}
+
+function corsHeaders(origin) {
+  return {
+    "Access-Control-Allow-Origin": origin || "*",
+    "Access-Control-Allow-Methods": "GET, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400",
+    "Cache-Control": "no-store",
+    "Vary": "Origin"
+  };
+}
+
+export default {
+  async fetch(request) {
+    const url = new URL(request.url);
+    const headers = corsHeaders(request.headers.get("Origin"));
+
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers });
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); padding: 8px; font-size: 12px; }
-
-    /* Top Bar */
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 4px 6px; border-bottom: 1px solid rgba(255,255,255,0.06); }
-    .brand { font-weight: 900; font-size: 16px; color: #fff; letter-spacing: -0.5px; background: linear-gradient(90deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .btn-refresh {
-      background: rgba(255, 255, 255, 0.05); border: 1px solid var(--blue-border);
-      color: var(--text-main); padding: 4px 10px; border-radius: 6px; font-size: 11px;
-      cursor: pointer; display: flex; align-items: center; gap: 4px; backdrop-filter: blur(6px);
-    }
-    .btn-refresh:active { transform: scale(0.94); }
-
-    /* Sports Horizontal Bar */
-    .section-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; font-weight: 700; }
-    .crystal-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 8px; scrollbar-width: none; }
-    .crystal-bar::-webkit-scrollbar { display: none; }
-    
-    .c-box {
-      flex: 0 0 auto; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 11px;
-      cursor: pointer; display: flex; align-items: center; gap: 5px; border: 1px solid transparent;
-      backdrop-filter: blur(8px);
-    }
-    .c-box.red { background: var(--red-crystal); border-color: var(--red-border); color: #fca5a5; }
-    .c-box.blue { background: var(--blue-crystal); border-color: var(--blue-border); color: #93c5fd; }
-    .c-box.active { border-width: 2px; border-color: #fff; box-shadow: 0 0 10px rgba(255,255,255,0.2); }
-
-    /* Time Filters */
-    .time-filters { display: flex; gap: 5px; margin-bottom: 8px; }
-    .t-btn {
-      flex: 1; text-align: center; padding: 7px 4px; border-radius: 8px; font-size: 10px; font-weight: 800;
-      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); cursor: pointer;
-      backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; gap: 3px;
-    }
-    .t-btn.active { background: var(--blue-crystal); border-color: var(--blue-border); color: #fff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.4); }
-
-    /* Telemetry Boxes */
-    .lat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px; }
-    .lat-box {
-      background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 7px; padding: 7px; font-size: 9px;
-    }
-    .lat-title { color: var(--text-muted); font-weight: 700; margin-bottom: 2px; text-transform: uppercase; }
-    .lat-val { font-size: 10px; font-weight: 600; color: #fff; }
-    .status-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent-green); margin-right: 4px; }
-
-    /* Notice Box */
-    .notice-box {
-      background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1);
-      border-radius: 7px; padding: 7px; margin-bottom: 8px; font-size: 9px; color: var(--text-muted); line-height: 1.3;
+    if (request.method !== "GET") {
+      return json(
+        { success: false, error: "Method not allowed" },
+        405,
+        headers
+      );
     }
 
-    /* Open Markets & Dropdown */
-    .market-top {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 8px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08);
+    const path = url.pathname.replace(/\/+$/, "") || "/";
+    const limit = asInt(url.searchParams.get("limit"), 100, 1, 100);
+    const offset = asInt(
+      url.searchParams.get("offset"),
+      0,
+      0,
+      1000000
+    );
+
+    async function getJSON(target) {
+      const response = await fetch(target, {
+        headers: {
+          Accept: "application/json",
+          "User-Agent": "CrystalEdge-Dashboard/1.0"
+        },
+        signal: AbortSignal.timeout(12000)
+      });
+
+      const body = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const error = new Error(
+          `Upstream API returned HTTP ${response.status}`
+        );
+        error.status = response.status;
+        throw error;
+      }
+
+      return body;
     }
-    .market-title { font-size: 12px; font-weight: 800; color: #fff; }
-    .dropdown {
-      background: #0f172a; color: #fff; border: 1px solid var(--blue-border);
-      padding: 5px 10px; border-radius: 6px; font-size: 11px; outline: none; font-weight: 600;
-      cursor: pointer;
+
+    async function gammaList(kind, params = {}) {
+      const target = new URL(`${GAMMA}/${kind}`);
+
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null && value !== "") {
+          target.searchParams.set(key, String(value));
+        }
+      }
+
+      return getJSON(target.toString());
     }
 
-    /* Match Cards */
-    .match-item {
-      background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px;
-      padding: 10px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.2s;
-    }
-    .match-item:hover { border-color: var(--blue-border); }
-    .match-meta { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-bottom: 4px; }
-    .match-teams { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 6px; }
-    
-    /* 3-Way Parallel Bookmaker Grid */
-    .parallel-grid-3way { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 6px; }
-    .book-card {
-      background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 6px; padding: 6px; display: flex; flex-direction: column; gap: 4px;
-    }
-    .book-title-bar {
-      font-size: 9px; font-weight: 800; display: flex; justify-content: space-between; align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 3px;
-    }
-    .rate-row-box {
-      display: flex; justify-content: space-between; align-items: center;
-      background: rgba(255, 255, 255, 0.03); padding: 4px 6px; border-radius: 4px; font-size: 10px;
-    }
-    .rate-values-group { display: flex; gap: 6px; font-weight: 900; }
-    .team-label-right { font-size: 8px; color: var(--text-muted); font-weight: 700; text-align: right; max-width: 55px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    try {
+      // Health check
+      if (path === "/" || path === "/health") {
+        return json({
+          success: true,
+          status: "ok",
+          worker: "crystal-odds-api",
+          providers: {
+            polymarketGamma: true,
+            polymarketCLOB: true,
+            externalBookmaker: false
+          },
+          endpoints: [
+            "/health",
+            "/sports",
+            "/events?limit=100&offset=0",
+            "/markets?limit=100&offset=0",
+            "/polymarket?type=events&limit=100&offset=0",
+            "/polymarket?type=markets&limit=100&offset=0",
+            "/event?id=EVENT_ID",
+            "/book?token_id=TOKEN_ID"
+          ],
+          updatedAt: new Date().toISOString()
+        }, 200, headers);
+      }
 
-    .back-txt { color: #64b5f6; }
-    .lay-txt { color: #ff8a80; }
-    .match-sub { display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 4px; }
+      // Sports catalog
+      if (path === "/sports") {
+        const data = await gammaList("sports");
 
-    /* Dedicated Detail Second Page */
-    #detailView { display: none; }
-    #detailView.active { display: block; }
-    #mainListView { display: block; }
-    #mainListView.hidden { display: none; }
+        return json({
+          success: true,
+          provider: "Polymarket Gamma",
+          count: Array.isArray(data) ? data.length : 0,
+          updatedAt: new Date().toISOString(),
+          data: Array.isArray(data) ? data : []
+        }, 200, headers);
+      }
 
-    .detail-top-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .btn-back {
-      background: rgba(255,255,255,0.08); border: 1px solid var(--blue-border); color: #fff;
-      padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer;
-    }
-    .score-banner {
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
-      border: 1px solid var(--accent-cyan); border-radius: 8px; padding: 12px; margin-bottom: 10px;
-    }
-    .score-header { display: flex; justify-content: space-between; font-size: 10px; color: var(--accent-cyan); font-weight: 800; margin-bottom: 6px; text-transform: uppercase; }
-    .score-teams-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 900; margin-bottom: 6px; }
-    .score-runs { color: #38bdf8; font-size: 14px; }
-    .score-meta-info { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; }
+      // Actual CLOB order book for a market outcome token
+      if (path === "/book") {
+        const tokenId =
+          url.searchParams.get("token_id") ||
+          url.searchParams.get("tokenId");
 
-    /* Market Section Titles inside Detail Page */
-    .market-section-title {
-      font-size: 11px; font-weight: 800; color: #fbbf24; margin: 10px 0 6px 0; text-transform: uppercase;
-      border-left: 3px solid #fbbf24; padding-left: 6px;
-    }
-  </style>
-</head>
-<body>
+        if (!tokenId) {
+          return json({
+            success: false,
+            error: "Missing token_id query parameter"
+          }, 400, headers);
+        }
 
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <div class="brand">ApexOdds // Terminal</div>
-    <button class="btn-refresh" onclick="triggerRefresh()">
-      <span id="ref-icon">🔄</span> Refresh Live
-    </button>
-  </div>
+        const target = new URL(`${CLOB}/book`);
+        target.searchParams.set("token_id", tokenId);
 
-  <!-- MAIN LIST VIEW -->
-  <div id="mainListView">
-    <!-- Sector Bar -->
-    <div class="section-label">MARKET SECTORS</div>
-    <div class="crystal-bar">
-      <div class="c-box red active" onclick="filterMatches('all')">🔥 All Sports</div>
-      <div class="c-box blue" onclick="filterMatches('cricket')">🏏 Cricket</div>
-      <div class="c-box red" onclick="filterMatches('tennis')">🎾 Tennis</div>
-      <div class="c-box blue" onclick="filterMatches('football')">⚽ Football</div>
-      <div class="c-box red" onclick="filterMatches('basketball')">🏀 Basketball</div>
-      <div class="c-box blue" onclick="filterMatches('lt')">🏆 L&T</div>
-    </div>
+        const book = await getJSON(target.toString());
 
-    <!-- Time Filters -->
-    <div class="time-filters">
-      <div class="t-btn active" onclick="setTab('all', this)">⚡ ALL</div>
-      <div class="t-btn" onclick="setTab('live', this)">🔴 LIVE</div>
-      <div class="t-btn" onclick="setTab('today', this)">📅 TODAY</div>
-      <div class="t-btn" onclick="setTab('tom', this)">⏳ TOM</div>
-    </div>
+        return json({
+          success: true,
+          provider: "Polymarket CLOB",
+          token_id: tokenId,
+          updatedAt: new Date().toISOString(),
+          data: book
+        }, 200, headers);
+      }
 
-    <!-- Telemetry & Speed Comparison Boxes -->
-    <div class="lat-grid">
-      <div class="lat-box">
-        <div class="lat-title">POLYMARKET SPEED</div>
-        <div class="lat-val" style="color: #60a5fa;"><span class="status-dot"></span><span id="polySpeed">0.4s</span> (Live WS)</div>
-      </div>
-      <div class="lat-box">
-        <div class="lat-title">PINNACLE SPEED</div>
-        <div class="lat-val" style="color: #fbbf24;"><span class="status-dot" style="background:#fbbf24;"></span><span id="pinnSpeed">1.2s</span> (API Stream)</div>
-      </div>
-      <div class="lat-box">
-        <div class="lat-title">ICE EXCHANGE SPEED</div>
-        <div class="lat-val" style="color: #f97316;"><span class="status-dot" style="background:#f97316;"></span><span id="iceSpeed">0.8s</span> (Direct Feed)</div>
-      </div>
-      <div class="lat-box">
-        <div class="lat-title">FASTEST UPDATE DELTA</div>
-        <div class="lat-val" id="fastestDelta" style="color: var(--accent-green);">Poly leading by 0.4s</div>
-      </div>
-    </div>
+      // Event detail, including enriched markets
+      if (path === "/event") {
+        const id = url.searchParams.get("id");
 
-    <!-- Info Notice -->
-    <div class="notice-box">
-      Real-time 3-way speed comparison active. Tap any match card to open Fancy Bets, Premium Markets, and Live Scores.
-    </div>
+        if (!id) {
+          return json({
+            success: false,
+            error: "Missing event id"
+          }, 400, headers);
+        }
 
-    <!-- Open Markets Header & Sport Dropdown -->
-    <div class="market-top">
-      <div class="market-title">All Live & Upcoming Books</div>
-      <select class="dropdown" id="mainDropdown" onchange="filterMatches(this.value)">
-        <option value="all">All Sectors ▼</option>
-        <option value="cricket">Cricket ▼</option>
-        <option value="tennis">Tennis ▼</option>
-        <option value="football">Football ▼</option>
-        <option value="basketball">Basketball ▼</option>
-        <option value="lt">Leagues & Tournaments ▼</option>
-      </select>
-    </div>
+        const event = await getJSON(
+          `${GAMMA}/events/${encodeURIComponent(id)}`
+        );
 
-    <!-- Dynamic Matches Feed Container -->
-    <div id="matchList"></div>
-  </div>
+        const data =
+          event && Array.isArray(event.markets)
+            ? {
+                ...event,
+                markets: event.markets.map(enrichMarket)
+              }
+            : event;
 
-  <!-- SECOND PAGE / DETAIL VIEW WITH FANCY & PREMIUM MARKETS -->
-  <div id="detailView">
-    <div class="detail-top-bar">
-      <button class="btn-back" onclick="goBackToList()">← Back to List</button>
-      <div style="font-weight: 800; font-size: 13px; color: #fff;" id="detailHeaderTitle">Match Details</div>
-    </div>
+        return json({
+          success: true,
+          provider: "Polymarket Gamma",
+          updatedAt: new Date().toISOString(),
+          data
+        }, 200, headers);
+      }
 
-    <!-- Live Score Banner -->
-    <div class="score-banner">
-      <div class="score-header">
-        <span id="detailSportTag">🏏 MATCH • LIVE SCORE</span>
-        <span style="color: var(--accent-green);" id="detailStatusTag">In Progress</span>
-      </div>
-      <div class="score-teams-row">
-        <span id="detailTeamAName">Team A</span>
-        <span class="score-runs" id="detailScoreA">142/4</span>
-      </div>
-      <div class="score-teams-row">
-        <span id="detailTeamBName">Team B</span>
-        <span class="score-runs" id="detailScoreB">Yet to bat</span>
-      </div>
-      <div class="score-meta-info">
-        <span id="detailProgress">Overs: 15.2 / 20</span>
-        <span id="detailExtraInfo" style="color: #fbbf24;">CRR: 9.31</span>
-      </div>
-    </div>
+      // Events and markets endpoints
+      if (
+        path === "/events" ||
+        path === "/markets" ||
+        path === "/polymarket"
+      ) {
+        const requestedType = (
+          url.searchParams.get("type") || "markets"
+        ).toLowerCase();
 
-    <!-- 1. Main Match Winner Market -->
-    <div class="market-section-title">1. Main Market (Match Winner)</div>
-    <div id="detailMainBooksContainer"></div>
+        const kind =
+          path === "/events"
+            ? "events"
+            : path === "/markets"
+              ? "markets"
+              : requestedType;
 
-    <!-- 2. Fancy Bets Market -->
-    <div class="market-section-title">2. Fancy Bets (Totals & Over/Under)</div>
-    <div id="detailFancyBooksContainer"></div>
+        if (kind !== "events" && kind !== "markets") {
+          return json({
+            success: false,
+            error: "Use type=events or type=markets"
+          }, 400, headers);
+        }
 
-    <!-- 3. Premium Bets Market -->
-    <div class="market-section-title">3. Premium Bets (Special / Handicap)</div>
-    <div id="detailPremiumBooksContainer"></div>
-  </div>
+        const params = {
+          limit,
+          offset,
+          active: url.searchParams.get("active") ?? "true",
+          closed: url.searchParams.get("closed") ?? "false",
+          order:
+            url.searchParams.get("order") ||
+            (kind === "markets" ? "volume24hr" : "startDate"),
+          ascending:
+            url.searchParams.get("ascending") ??
+            (kind === "markets" ? "false" : "true")
+        };
 
-  <script>
-    const baseSportsList = [
-      { sport: 'cricket', teams: ['India vs Australia', 'England vs Pakistan', 'South Africa vs New Zealand', 'West Indies vs Bangladesh', 'Sri Lanka vs Afghanistan', 'CSK vs MI (IPL)', 'RCB vs KKR (IPL)', 'Surrey vs Lancashire'], volPrefix: 850000 },
-      { sport: 'tennis', teams: ['Novak Djokovic vs Carlos Alcaraz', 'Jannik Sinner vs Daniil Medvedev', 'Alexander Zverev vs Stefanos Tsitsipas', 'Iga Swiatek vs Aryna Sabalenka', 'Coco Gauff vs Elena Rybakina', 'Taylor Fritz vs Ben Shelton'], volPrefix: 1200000 },
-      { sport: 'football', teams: ['Real Madrid vs Barcelona', 'Manchester City vs Arsenal', 'Liverpool vs Chelsea', 'Bayern Munich vs Borussia Dortmund', 'PSG vs Marseille', 'Inter Milan vs Juventus', 'PSG vs Real Madrid (UCL)', 'Arsenal vs Bayern Munich'], volPrefix: 3200000 },
-      { sport: 'basketball', teams: ['LA Lakers vs Boston Celtics', 'Golden State Warriors vs Chicago Bulls', 'Milwaukee Bucks vs Denver Nuggets', 'Phoenix Suns vs Dallas Mavericks', 'Miami Heat vs Philadelphia 76ers', 'Brooklyn Nets vs NY Knicks'], volPrefix: 1400000 },
-      { sport: 'lt', teams: ['ICC Champions Trophy Outright', 'UEFA Champions League Winner', 'NBA Championship Winner', 'FIFA World Cup Winner', 'Premier League Title Winner', 'IPL Season Champion'], volPrefix: 6500000 }
-    ];
-
-    let generatedMatches = [];
-    let activeSport = 'all';
-    let activeTime = 'all';
-
-    function generateAllMatchesData() {
-      generatedMatches = [];
-      let idCounter = 1;
-      const categories = ['live', 'today', 'tom'];
-
-      baseSportsList.forEach(sObj => {
-        sObj.teams.forEach((teamName, index) => {
-          const category = categories[index % categories.length];
-          const teamsArr = teamName.split(' vs ');
-          const teamA = teamsArr[0] || 'Home';
-          const teamB = teamsArr[1] || 'Away';
-
-          // Speeds in seconds
-          const pSpeed = (0.2 + Math.random() * 0.3).toFixed(1) + 's';
-          const piSpeed = (1.0 + Math.random() * 0.5).toFixed(1) + 's';
-          const iSpeed = (0.5 + Math.random() * 0.4).toFixed(1) + 's';
-
-          // Main Rates
-          const polyBackA = (1.40 + Math.random() * 0.80).toFixed(2);
-          const polyLayA = (parseFloat(polyBackA) + 0.02).toFixed(2);
-          const polyBackB = (1.50 + Math.random() * 0.70).toFixed(2);
-          const polyLayB = (parseFloat(polyBackB) + 0.02).toFixed(2);
-
-          const pinnBackA = (parseFloat(polyBackA) - 0.01).toFixed(2);
-          const pinnLayA = (parseFloat(polyLayA) - 0.01).toFixed(2);
-          const pinnBackB = (parseFloat(polyBackB) - 0.01).toFixed(2);
-          const pinnLayB = (parseFloat(polyLayB) - 0.01).toFixed(2);
-
-          const iceBackA = (parseFloat(polyBackA) + 0.01).toFixed(2);
-          const iceLayA = (parseFloat(polyLayA) + 0.01).toFixed(2);
-          const iceBackB = (parseFloat(polyBackB) + 0.01).toFixed(2);
-          const iceLayB = (parseFloat(polyLayB) + 0.01).toFixed(2);
-
-          // Fancy Bets Rates (Over / Under lines)
-          const fancyA = { label: 'Over 165.5', p: '1.85 / 1.88', pi: '1.83 / 1.86', i: '1.84 / 1.87' };
-          const fancyB = { label: 'Under 165.5', p: '1.92 / 1.95', pi: '1.90 / 1.93', i: '1.91 / 1.94' };
-
-          // Premium Bets Rates (Handicap / Special)
-          const premA = { label: teamA + ' (-1.5)', p: '2.10 / 2.15', pi: '2.08 / 2.12', i: '2.09 / 2.14' };
-          const premB = { label: teamB + ' (+1.5)', p: '1.75 / 1.78', pi: '1.73 / 1.76', i: '1.74 / 1.77' };
-
-          // Score generator
-          let scoreA = "142/4", scoreB = "Yet to bat", progress = "Overs: 15.2 / 20", extra = "CRR: 9.31";
-          if(sObj.sport === 'tennis') {
-            scoreA = "6-4, 3-2 (40-30)"; scoreB = "4-6, 2-3 (15-40)"; progress = "Set 2 • Game 6"; extra = "Aces: 8 - 5";
-          } else if(sObj.sport === 'football') {
-            scoreA = "2 Goals"; scoreB = "1 Goal"; progress = "Time: 78' Min"; extra = "Possession: 54% - 46%";
-          } else if(sObj.sport === 'basketball') {
-            scoreA = "98 Points"; scoreB = "92 Points"; progress = "Q4 - 03:42 remaining"; extra = "FG%: 52.4%";
+        for (const key of ["tag_id", "slug"]) {
+          if (url.searchParams.has(key)) {
+            params[key] = url.searchParams.get(key);
           }
+        }
 
-          const volume = '$' + (sObj.volPrefix + Math.floor(Math.random() * 500000)).toLocaleString();
+        const raw = await gammaList(kind, params);
+        const source = Array.isArray(raw)
+          ? raw
+          : Array.isArray(raw?.data)
+            ? raw.data
+            : [];
 
-          generatedMatches.push({
-            id: 'match_' + (idCounter++),
-            sport: sObj.sport,
-            category: category,
-            teams: teamName,
-            teamA: teamA,
-            teamB: teamB,
-            vol: volume,
-            scoreA: scoreA,
-            scoreB: scoreB,
-            progress: progress,
-            extra: extra,
-            speeds: { p: pSpeed, pi: piSpeed, i: iSpeed },
-            pA: { b: polyBackA, l: polyLayA },
-            pB: { b: polyBackB, l: polyLayB },
-            piA: { b: pinnBackA, l: pinnLayA },
-            piB: { b: pinnBackB, l: pinnLayB },
-            iA: { b: iceBackA, l: iceLayA },
-            iB: { b: iceBackB, l: iceLayB },
-            fancyA, fancyB, premA, premB
-          });
-        });
-      });
-    }
+        const data =
+          kind === "markets"
+            ? source.map(enrichMarket)
+            : source;
 
-    function renderMatches(filterSport = 'all', filterTime = 'all') {
-      const container = document.getElementById('matchList');
-      container.innerHTML = '';
-
-      const filtered = generatedMatches.filter(m => {
-        const sportMatch = (filterSport === 'all' || m.sport === filterSport);
-        const timeMatch = (filterTime === 'all' || m.category === filterTime);
-        return sportMatch && timeMatch;
-      });
-
-      document.getElementById('fixture-count').innerText = filtered.length + ' Total Matches Active';
-
-      if(filtered.length === 0) {
-        container.innerHTML = '<div style="text-align:center; padding: 25px; color: var(--text-muted);">No fixtures match the selected filter.</div>';
-        return;
+        return json({
+          success: true,
+          provider: "Polymarket Gamma",
+          type: kind,
+          count: data.length,
+          limit,
+          offset,
+          hasMore: data.length === limit,
+          nextOffset: offset + data.length,
+          updatedAt: new Date().toISOString(),
+          data
+        }, 200, headers);
       }
 
-      // Update top speed telemetry with first match sample
-      if(filtered.length > 0) {
-        document.getElementById('polySpeed').innerText = filtered[0].speeds.p;
-        document.getElementById('pinnSpeed').innerText = filtered[0].speeds.pi;
-        document.getElementById('iceSpeed').innerText = filtered[0].speeds.i;
-      }
+      return json({
+        success: false,
+        error: "Endpoint not found",
+        endpoints: [
+          "/health",
+          "/sports",
+          "/events?limit=100&offset=0",
+          "/markets?limit=100&offset=0",
+          "/event?id=EVENT_ID",
+          "/book?token_id=TOKEN_ID"
+        ]
+      }, 404, headers);
 
-      filtered.forEach(m => {
-        const div = document.createElement('div');
-        div.className = 'match-item';
-        div.onclick = () => openMatchDetail(m.id);
-        div.innerHTML = `
-          <div class="match-meta">
-            <span>${m.sport.toUpperCase()} • ${m.category.toUpperCase()} ARB</span>
-            <span style="color: var(--accent-green);">Speed: Poly (${m.speeds.p})</span>
-          </div>
-          <div class="match-teams">${m.teams}</div>
-          
-          <!-- 3-Way Parallel Grid -->
-          <div class="parallel-grid-3way">
-            <div class="book-card">
-              <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span> <span>⚡${m.speeds.p}</span></div>
-              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.pA.b}</span>/<span class="lay-txt">${m.pA.l}</span></div><div class="team-label-right">${m.teamA}</div></div>
-              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.pB.b}</span>/<span class="lay-txt">${m.pB.l}</span></div><div class="team-label-right">${m.teamB}</div></div>
-            </div>
-            <div class="book-card">
-              <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span> <span>⚡${m.speeds.pi}</span></div>
-              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.piA.b}</span>/<span class="lay-txt">${m.piA.l}</span></div><div class="team-label-right">${m.teamA}</div></div>
-              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.piB.b}</span>/<span class="lay-txt">${m.piB.l}</span></div><div class="team-label-right">${m.teamB}</div></div>
-            </div>
-            <div class="book-card">
-              <div class="book-title-bar"><span style="color:#f97316;">ICE</span> <span>⚡${m.speeds.i}</span></div>
-              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.iA.b}</span>/<span class="lay-txt">${m.iA.l}</span></div><div class="team-label-right">${m.teamA}</div></div>
-              <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.iB.b}</span>/<span class="lay-txt">${m.iB.l}</span></div><div class="team-label-right">${m.teamB}</div></div>
-            </div>
-          </div>
-
-          <div class="match-sub">
-            <span>Vol: ${m.vol}</span>
-            <span style="color: #38bdf8;">Tap for Fancy & Premium Bets ▾</span>
-          </div>
-        `;
-        container.appendChild(div);
-      });
+    } catch (error) {
+      return json({
+        success: false,
+        error: error?.message || "Upstream request failed",
+        status: error?.status || 502,
+        updatedAt: new Date().toISOString()
+      }, 502, headers);
     }
-
-    function openMatchDetail(matchId) {
-      const match = generatedMatches.find(m => m.id === matchId);
-      if(!match) return;
-
-      document.getElementById('detailHeaderTitle').innerText = match.teams;
-      document.getElementById('detailSportTag').innerText = `${match.sport.toUpperCase()} • LIVE SCORE & MARKETS`;
-      document.getElementById('detailTeamAName').innerText = match.teamA;
-      document.getElementById('detailTeamBName').innerText = match.teamB;
-      document.getElementById('detailScoreA').innerText = match.scoreA;
-      document.getElementById('detailScoreB').innerText = match.scoreB;
-      document.getElementById('detailProgress').innerText = match.progress;
-      document.getElementById('detailExtraInfo').innerText = match.extra;
-
-      // 1. Main Market Container
-      document.getElementById('detailMainBooksContainer').innerHTML = `
-        <div class="parallel-grid-3way">
-          <div class="book-card">
-            <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span> <span>⚡${match.speeds.p}</span></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.pA.b}</span>/<span class="lay-txt">${match.pA.l}</span></div><div class="team-label-right">${match.teamA}</div></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.pB.b}</span>/<span class="lay-txt">${match.pB.l}</span></div><div class="team-label-right">${match.teamB}</div></div>
-          </div>
-          <div class="book-card">
-            <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span> <span>⚡${match.speeds.pi}</span></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.piA.b}</span>/<span class="lay-txt">${match.piA.l}</span></div><div class="team-label-right">${match.teamA}</div></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.piB.b}</span>/<span class="lay-txt">${match.piB.l}</span></div><div class="team-label-right">${match.teamB}</div></div>
-          </div>
-          <div class="book-card">
-            <div class="book-title-bar"><span style="color:#f97316;">ICE</span> <span>⚡${match.speeds.i}</span></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.iA.b}</span>/<span class="lay-txt">${match.iA.l}</span></div><div class="team-label-right">${match.teamA}</div></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.iB.b}</span>/<span class="lay-txt">${match.iB.l}</span></div><div class="team-label-right">${match.teamB}</div></div>
-          </div>
-        </div>
-      `;
-
-      // 2. Fancy Bets Container
-      document.getElementById('detailFancyBooksContainer').innerHTML = `
-        <div class="parallel-grid-3way">
-          <div class="book-card">
-            <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyA.p}</span></div><div class="team-label-right">${match.fancyA.label}</div></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyB.p}</span></div><div class="team-label-right">${match.fancyB.label}</div></div>
-          </div>
-          <div class="book-card">
-            <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyA.pi}</span></div><div class="team-label-right">${match.fancyA.label}</div></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyB.pi}</span></div><div class="team-label-right">${match.fancyB.label}</div></div>
-          </div>
-          <div class="book-card">
-            <div class="book-title-bar"><span style="color:#f97316;">ICE</span></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyA.i}</span></div><div class="team-label-right">${match.fancyA.label}</div></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyB.i}</span></div><div class="team-label-right">${match.fancyB.label}</div></div>
-          </div>
-        </div>
-      `;
-
-      // 3. Premium Bets Container
-      document.getElementById('detailPremiumBooksContainer').innerHTML = `
-        <div class="parallel-grid-3way">
-          <div class="book-card">
-            <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premA.p}</span></div><div class="team-label-right">${match.premA.label}</div></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premB.p}</span></div><div class="team-label-right">${match.premB.label}</div></div>
-          </div>
-          <div class="book-card">
-            <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premA.pi}</span></div><div class="team-label-right">${match.premA.label}</div></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premB.pi}</span></div><div class="team-label-right">${match.premB.label}</div></div>
-          </div>
-          <div class="book-card">
-            <div class="book-title-bar"><span style="color:#f97316;">ICE</span></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premA.i}</span></div><div class="team-label-right">${match.premA.label}</div></div>
-            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premB.i}</span></div><div class="team-label-right">${match.premB.label}</div></div>
-          </div>
-        </div>
-      `;
-
-      document.getElementById('mainListView').classList.add('hidden');
-      document.getElementById('detailView').classList.add('active');
-      window.scrollTo(0, 0);
-    }
-
-    function goBackToList() {
-      document.getElementById('detailView').classList.remove('active');
-      document.getElementById('mainListView').classList.remove('hidden');
-    }
-
-    function filterMatches(sport) {
-      activeSport = sport;
-      document.querySelectorAll('.c-box').forEach(el => el.classList.remove('active'));
-      if(event && event.currentTarget && event.currentTarget.classList) {
-        event.currentTarget.classList.add('active');
-      }
-      document.getElementById('mainDropdown').value = sport;
-      renderMatches(activeSport, activeTime);
-    }
-
-    function setTab(tab, element) {
-      activeTime = tab;
-      document.querySelectorAll('.t-btn').forEach(el => el.classList.remove('active'));
-      element.classList.add('active');
-      renderMatches(activeSport, activeTime);
-    }
-
-    function triggerRefresh() {
-      const icon = document.getElementById('ref-icon');
-      icon.style.transform = 'rotate(360deg)';
-      icon.style.transition = 'transform 0.4s ease';
-      setTimeout(() => icon.style.transform = 'rotate(0deg)', 400);
-
-      document.getElementById('ts-age').innerText = Math.floor(Math.random() * 2 + 1) + 'ms ago';
-      generateAllMatchesData();
-      renderMatches(activeSport, activeTime);
-    }
-
-    window.onload = () => {
-      generateAllMatchesData();
-      renderMatches('all', 'all');
-    };
-  </script>
-</body>
-</html>
+  }
+};
