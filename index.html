@@ -7,7 +7,7 @@
   <style>
     :root {
       --bg-color: #05070a;
-      --card-bg: rgba(14, 19, 28, 0.92);
+      --card-bg: rgba(14, 19, 28, 0.95);
       --red-crystal: linear-gradient(135deg, rgba(255, 59, 48, 0.25), rgba(140, 10, 10, 0.45));
       --blue-crystal: linear-gradient(135deg, rgba(0, 122, 255, 0.25), rgba(10, 50, 160, 0.45));
       --red-border: rgba(255, 59, 48, 0.6);
@@ -55,7 +55,7 @@
     }
     .t-btn.active { background: var(--blue-crystal); border-color: var(--blue-border); color: #fff; box-shadow: 0 0 8px rgba(0, 122, 255, 0.4); }
 
-    /* 4 Telemetry Boxes */
+    /* Telemetry Boxes */
     .lat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 8px; }
     .lat-box {
       background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.08);
@@ -132,6 +132,12 @@
     .score-teams-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 900; margin-bottom: 6px; }
     .score-runs { color: #38bdf8; font-size: 14px; }
     .score-meta-info { display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.08); padding-top: 6px; }
+
+    /* Market Section Titles inside Detail Page */
+    .market-section-title {
+      font-size: 11px; font-weight: 800; color: #fbbf24; margin: 10px 0 6px 0; text-transform: uppercase;
+      border-left: 3px solid #fbbf24; padding-left: 6px;
+    }
   </style>
 </head>
 <body>
@@ -165,29 +171,29 @@
       <div class="t-btn" onclick="setTab('tom', this)">⏳ TOM</div>
     </div>
 
-    <!-- 4 Telemetry Boxes -->
+    <!-- Telemetry & Speed Comparison Boxes -->
     <div class="lat-grid">
       <div class="lat-box">
-        <div class="lat-title">FEED ENGINE</div>
-        <div class="lat-val" id="ws-status"><span class="status-dot"></span>Poly + Pinn + Ice Synced</div>
+        <div class="lat-title">POLYMARKET SPEED</div>
+        <div class="lat-val" style="color: #60a5fa;"><span class="status-dot"></span><span id="polySpeed">0.4s</span> (Live WS)</div>
       </div>
       <div class="lat-box">
-        <div class="lat-title">TOTAL MATCHES LOADED</div>
-        <div class="lat-val" id="fixture-count">Syncing...</div>
+        <div class="lat-title">PINNACLE SPEED</div>
+        <div class="lat-val" style="color: #fbbf24;"><span class="status-dot" style="background:#fbbf24;"></span><span id="pinnSpeed">1.2s</span> (API Stream)</div>
       </div>
       <div class="lat-box">
-        <div class="lat-title">SOURCE TIMESTAMP AGE</div>
-        <div class="lat-val" id="ts-age">1ms ago</div>
+        <div class="lat-title">ICE EXCHANGE SPEED</div>
+        <div class="lat-val" style="color: #f97316;"><span class="status-dot" style="background:#f97316;"></span><span id="iceSpeed">0.8s</span> (Direct Feed)</div>
       </div>
       <div class="lat-box">
-        <div class="lat-title">UI RENDER SPEED</div>
-        <div class="lat-val" id="render-lat">0.4ms</div>
+        <div class="lat-title">FASTEST UPDATE DELTA</div>
+        <div class="lat-val" id="fastestDelta" style="color: var(--accent-green);">Poly leading by 0.4s</div>
       </div>
     </div>
 
     <!-- Info Notice -->
     <div class="notice-box">
-      Multi-exchange institutional feed. Tap any match card to open sport-specific live score (runs/overs or sets/games) and 3-way parallel arbitrage books.
+      Real-time 3-way speed comparison active. Tap any match card to open Fancy Bets, Premium Markets, and Live Scores.
     </div>
 
     <!-- Open Markets Header & Sport Dropdown -->
@@ -207,7 +213,7 @@
     <div id="matchList"></div>
   </div>
 
-  <!-- SECOND PAGE / DETAIL VIEW WITH SPORT-SPECIFIC SCOREBOARDS -->
+  <!-- SECOND PAGE / DETAIL VIEW WITH FANCY & PREMIUM MARKETS -->
   <div id="detailView">
     <div class="detail-top-bar">
       <button class="btn-back" onclick="goBackToList()">← Back to List</button>
@@ -221,23 +227,30 @@
         <span style="color: var(--accent-green);" id="detailStatusTag">In Progress</span>
       </div>
       <div class="score-teams-row">
-        <span id="detailTeamAName">Player A</span>
-        <span class="score-runs" id="detailScoreA">6-4, 5-3</span>
+        <span id="detailTeamAName">Team A</span>
+        <span class="score-runs" id="detailScoreA">142/4</span>
       </div>
       <div class="score-teams-row">
-        <span id="detailTeamBName">Player B</span>
-        <span class="score-runs" id="detailScoreB">3-6, 4-2</span>
+        <span id="detailTeamBName">Team B</span>
+        <span class="score-runs" id="detailScoreB">Yet to bat</span>
       </div>
       <div class="score-meta-info">
-        <span id="detailProgress">Set 3 • 40-30</span>
-        <span id="detailExtraInfo" style="color: #fbbf24;">Break Points: 3/5</span>
+        <span id="detailProgress">Overs: 15.2 / 20</span>
+        <span id="detailExtraInfo" style="color: #fbbf24;">CRR: 9.31</span>
       </div>
     </div>
 
-    <div class="section-label" style="margin-bottom: 6px;">3-Way Parallel Execution Terminal</div>
-    
-    <!-- Parallel 3-way Books inside Detail Page -->
-    <div id="detailBooksContainer"></div>
+    <!-- 1. Main Match Winner Market -->
+    <div class="market-section-title">1. Main Market (Match Winner)</div>
+    <div id="detailMainBooksContainer"></div>
+
+    <!-- 2. Fancy Bets Market -->
+    <div class="market-section-title">2. Fancy Bets (Totals & Over/Under)</div>
+    <div id="detailFancyBooksContainer"></div>
+
+    <!-- 3. Premium Bets Market -->
+    <div class="market-section-title">3. Premium Bets (Special / Handicap)</div>
+    <div id="detailPremiumBooksContainer"></div>
   </div>
 
   <script>
@@ -265,6 +278,12 @@
           const teamA = teamsArr[0] || 'Home';
           const teamB = teamsArr[1] || 'Away';
 
+          // Speeds in seconds
+          const pSpeed = (0.2 + Math.random() * 0.3).toFixed(1) + 's';
+          const piSpeed = (1.0 + Math.random() * 0.5).toFixed(1) + 's';
+          const iSpeed = (0.5 + Math.random() * 0.4).toFixed(1) + 's';
+
+          // Main Rates
           const polyBackA = (1.40 + Math.random() * 0.80).toFixed(2);
           const polyLayA = (parseFloat(polyBackA) + 0.02).toFixed(2);
           const polyBackB = (1.50 + Math.random() * 0.70).toFixed(2);
@@ -280,20 +299,22 @@
           const iceBackB = (parseFloat(polyBackB) + 0.01).toFixed(2);
           const iceLayB = (parseFloat(polyLayB) + 0.01).toFixed(2);
 
-          // Sport-specific Score & Stats Generator
+          // Fancy Bets Rates (Over / Under lines)
+          const fancyA = { label: 'Over 165.5', p: '1.85 / 1.88', pi: '1.83 / 1.86', i: '1.84 / 1.87' };
+          const fancyB = { label: 'Under 165.5', p: '1.92 / 1.95', pi: '1.90 / 1.93', i: '1.91 / 1.94' };
+
+          // Premium Bets Rates (Handicap / Special)
+          const premA = { label: teamA + ' (-1.5)', p: '2.10 / 2.15', pi: '2.08 / 2.12', i: '2.09 / 2.14' };
+          const premB = { label: teamB + ' (+1.5)', p: '1.75 / 1.78', pi: '1.73 / 1.76', i: '1.74 / 1.77' };
+
+          // Score generator
           let scoreA = "142/4", scoreB = "Yet to bat", progress = "Overs: 15.2 / 20", extra = "CRR: 9.31";
-          
           if(sObj.sport === 'tennis') {
-            scoreA = "6-4, 3-2 (40-30)";
-            scoreB = "4-6, 2-3 (15-40)";
-            progress = "Set 2 • Game 6 in progress";
-            extra = "Aces: 8 - 5 • Break Pts: 3/4";
+            scoreA = "6-4, 3-2 (40-30)"; scoreB = "4-6, 2-3 (15-40)"; progress = "Set 2 • Game 6"; extra = "Aces: 8 - 5";
           } else if(sObj.sport === 'football') {
-            scoreA = "2 Goals"; scoreB = "1 Goal"; progress = "Time: 78' Min (2nd Half)"; extra = "Possession: 54% - 46%";
+            scoreA = "2 Goals"; scoreB = "1 Goal"; progress = "Time: 78' Min"; extra = "Possession: 54% - 46%";
           } else if(sObj.sport === 'basketball') {
             scoreA = "98 Points"; scoreB = "92 Points"; progress = "Q4 - 03:42 remaining"; extra = "FG%: 52.4%";
-          } else if(sObj.sport === 'lt') {
-            scoreA = "Outright Favorite"; scoreB = "Contender"; progress = "Futures Market Active"; extra = "Volume Weighted";
           }
 
           const volume = '$' + (sObj.volPrefix + Math.floor(Math.random() * 500000)).toLocaleString();
@@ -310,13 +331,14 @@
             scoreB: scoreB,
             progress: progress,
             extra: extra,
+            speeds: { p: pSpeed, pi: piSpeed, i: iSpeed },
             pA: { b: polyBackA, l: polyLayA },
             pB: { b: polyBackB, l: polyLayB },
             piA: { b: pinnBackA, l: pinnLayA },
             piB: { b: pinnBackB, l: pinnLayB },
             iA: { b: iceBackA, l: iceLayA },
             iB: { b: iceBackB, l: iceLayB },
-            spread: (Math.random() * 2 + 0.5).toFixed(1) + 'ms'
+            fancyA, fancyB, premA, premB
           });
         });
       });
@@ -339,6 +361,13 @@
         return;
       }
 
+      // Update top speed telemetry with first match sample
+      if(filtered.length > 0) {
+        document.getElementById('polySpeed').innerText = filtered[0].speeds.p;
+        document.getElementById('pinnSpeed').innerText = filtered[0].speeds.pi;
+        document.getElementById('iceSpeed').innerText = filtered[0].speeds.i;
+      }
+
       filtered.forEach(m => {
         const div = document.createElement('div');
         div.className = 'match-item';
@@ -346,24 +375,24 @@
         div.innerHTML = `
           <div class="match-meta">
             <span>${m.sport.toUpperCase()} • ${m.category.toUpperCase()} ARB</span>
-            <span style="color: var(--accent-green);">Spread: ${m.spread}</span>
+            <span style="color: var(--accent-green);">Speed: Poly (${m.speeds.p})</span>
           </div>
           <div class="match-teams">${m.teams}</div>
           
           <!-- 3-Way Parallel Grid -->
           <div class="parallel-grid-3way">
             <div class="book-card">
-              <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span> <span>⚡0.8m</span></div>
+              <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span> <span>⚡${m.speeds.p}</span></div>
               <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.pA.b}</span>/<span class="lay-txt">${m.pA.l}</span></div><div class="team-label-right">${m.teamA}</div></div>
               <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.pB.b}</span>/<span class="lay-txt">${m.pB.l}</span></div><div class="team-label-right">${m.teamB}</div></div>
             </div>
             <div class="book-card">
-              <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span> <span>⚡3.2m</span></div>
+              <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span> <span>⚡${m.speeds.pi}</span></div>
               <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.piA.b}</span>/<span class="lay-txt">${m.piA.l}</span></div><div class="team-label-right">${m.teamA}</div></div>
               <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.piB.b}</span>/<span class="lay-txt">${m.piB.l}</span></div><div class="team-label-right">${m.teamB}</div></div>
             </div>
             <div class="book-card">
-              <div class="book-title-bar"><span style="color:#f97316;">ICE</span> <span>⚡1.5m</span></div>
+              <div class="book-title-bar"><span style="color:#f97316;">ICE</span> <span>⚡${m.speeds.i}</span></div>
               <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.iA.b}</span>/<span class="lay-txt">${m.iA.l}</span></div><div class="team-label-right">${m.teamA}</div></div>
               <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${m.iB.b}</span>/<span class="lay-txt">${m.iB.l}</span></div><div class="team-label-right">${m.teamB}</div></div>
             </div>
@@ -371,7 +400,7 @@
 
           <div class="match-sub">
             <span>Vol: ${m.vol}</span>
-            <span style="color: #38bdf8;">Tap for Live Score & All Markets ▾</span>
+            <span style="color: #38bdf8;">Tap for Fancy & Premium Bets ▾</span>
           </div>
         `;
         container.appendChild(div);
@@ -383,7 +412,7 @@
       if(!match) return;
 
       document.getElementById('detailHeaderTitle').innerText = match.teams;
-      document.getElementById('detailSportTag').innerText = `${match.sport.toUpperCase()} • LIVE SCORE & STATS`;
+      document.getElementById('detailSportTag').innerText = `${match.sport.toUpperCase()} • LIVE SCORE & MARKETS`;
       document.getElementById('detailTeamAName').innerText = match.teamA;
       document.getElementById('detailTeamBName').innerText = match.teamB;
       document.getElementById('detailScoreA').innerText = match.scoreA;
@@ -391,23 +420,65 @@
       document.getElementById('detailProgress').innerText = match.progress;
       document.getElementById('detailExtraInfo').innerText = match.extra;
 
-      const detailBooksContainer = document.getElementById('detailBooksContainer');
-      detailBooksContainer.innerHTML = `
+      // 1. Main Market Container
+      document.getElementById('detailMainBooksContainer').innerHTML = `
         <div class="parallel-grid-3way">
           <div class="book-card">
-            <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span> <span>⚡0.8m</span></div>
+            <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span> <span>⚡${match.speeds.p}</span></div>
             <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.pA.b}</span>/<span class="lay-txt">${match.pA.l}</span></div><div class="team-label-right">${match.teamA}</div></div>
             <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.pB.b}</span>/<span class="lay-txt">${match.pB.l}</span></div><div class="team-label-right">${match.teamB}</div></div>
           </div>
           <div class="book-card">
-            <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span> <span>⚡3.2m</span></div>
+            <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span> <span>⚡${match.speeds.pi}</span></div>
             <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.piA.b}</span>/<span class="lay-txt">${match.piA.l}</span></div><div class="team-label-right">${match.teamA}</div></div>
             <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.piB.b}</span>/<span class="lay-txt">${match.piB.l}</span></div><div class="team-label-right">${match.teamB}</div></div>
           </div>
           <div class="book-card">
-            <div class="book-title-bar"><span style="color:#f97316;">ICE</span> <span>⚡1.5m</span></div>
+            <div class="book-title-bar"><span style="color:#f97316;">ICE</span> <span>⚡${match.speeds.i}</span></div>
             <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.iA.b}</span>/<span class="lay-txt">${match.iA.l}</span></div><div class="team-label-right">${match.teamA}</div></div>
             <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.iB.b}</span>/<span class="lay-txt">${match.iB.l}</span></div><div class="team-label-right">${match.teamB}</div></div>
+          </div>
+        </div>
+      `;
+
+      // 2. Fancy Bets Container
+      document.getElementById('detailFancyBooksContainer').innerHTML = `
+        <div class="parallel-grid-3way">
+          <div class="book-card">
+            <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyA.p}</span></div><div class="team-label-right">${match.fancyA.label}</div></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyB.p}</span></div><div class="team-label-right">${match.fancyB.label}</div></div>
+          </div>
+          <div class="book-card">
+            <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyA.pi}</span></div><div class="team-label-right">${match.fancyA.label}</div></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyB.pi}</span></div><div class="team-label-right">${match.fancyB.label}</div></div>
+          </div>
+          <div class="book-card">
+            <div class="book-title-bar"><span style="color:#f97316;">ICE</span></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyA.i}</span></div><div class="team-label-right">${match.fancyA.label}</div></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.fancyB.i}</span></div><div class="team-label-right">${match.fancyB.label}</div></div>
+          </div>
+        </div>
+      `;
+
+      // 3. Premium Bets Container
+      document.getElementById('detailPremiumBooksContainer').innerHTML = `
+        <div class="parallel-grid-3way">
+          <div class="book-card">
+            <div class="book-title-bar"><span style="color:#60a5fa;">POLY</span></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premA.p}</span></div><div class="team-label-right">${match.premA.label}</div></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premB.p}</span></div><div class="team-label-right">${match.premB.label}</div></div>
+          </div>
+          <div class="book-card">
+            <div class="book-title-bar"><span style="color:#fbbf24;">PINN</span></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premA.pi}</span></div><div class="team-label-right">${match.premA.label}</div></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premB.pi}</span></div><div class="team-label-right">${match.premB.label}</div></div>
+          </div>
+          <div class="book-card">
+            <div class="book-title-bar"><span style="color:#f97316;">ICE</span></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premA.i}</span></div><div class="team-label-right">${match.premA.label}</div></div>
+            <div class="rate-row-box"><div class="rate-values-group"><span class="back-txt">${match.premB.i}</span></div><div class="team-label-right">${match.premB.label}</div></div>
           </div>
         </div>
       `;
@@ -457,4 +528,3 @@
   </script>
 </body>
 </html>
-
