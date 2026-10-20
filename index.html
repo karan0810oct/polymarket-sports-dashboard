@@ -286,19 +286,51 @@ function unwrapEvents(json) {
   return [];
 }
 async function fetchEventsPage(offset) {
-  const url = `${WORKER}/polymarket?type=events&limit=${PAGE_SIZE}&offset=${offset}`;
+  const base = String(WORKER || '').replace(/\/+$/, '');
+  const url = `${base}/polymarket?type=events&limit=${PAGE_SIZE}&offset=${offset}`;
   const started = performance.now();
-  const response = await fetch(url, {cache:'no-store'});
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'GET',
+      cache: 'no-store',
+      mode: 'cors',
+      headers: { 'Accept': 'application/json' }
+    });
+  } catch (err) {
+    throw new Error(
+      `Network/CORS request failed at offset ${offset}. ` +
+      `Check WORKER URL and browser access. Details: ${err?.message || err}`
+    );
+  }
+
   const elapsed = Math.round(performance.now() - started);
-  if (!response.ok) throw new Error(`Worker returned HTTP ${response.status}`);
-  const json = await response.json();
-  if (json?.success === false) throw new Error(json.error || json.message || 'Worker reported an error');
+
+  if (!response.ok) {
+    throw new Error(`Worker returned HTTP ${response.status} at offset ${offset}`);
+  }
+
+  let json;
+  try {
+    json = await response.json();
+  } catch (err) {
+    throw new Error(`Worker response was not valid JSON at offset ${offset}`);
+  }
+
+  if (json?.success === false) {
+    throw new Error(json.error || json.message || 'Worker reported an error');
+  }
+
   const events = unwrapEvents(json);
-  return {events, elapsed, json};
+
+  if (!Array.isArray(events)) {
+    throw new Error('Worker JSON received, but event list could not be recognized');
+  }
+
+  return { events, elapsed, json };
 }
-function allEligible() {
-  return state.events.filter(e => isActualMatch(e) && sportOf(e));
-}
+
 function localDateKey(d) {
   if (!d) return '';
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
