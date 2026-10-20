@@ -643,32 +643,6 @@ loadMore();
   // Auto-refresh sports events every 1 second.
 // Keep existing matches if a refresh fails.
 let autoEventsBusy = false;
-
-setInterval(async () => {
-  if (document.visibilityState !== 'visible' || autoEventsBusy) return;
-
-  autoEventsBusy = true;
-
-  try {
-    const result = await fetchEventsPage(0);
-    if (result.events.length) {
-      state.events = dedupe([
-        ...result.events,
-        ...state.events
-      ]);
-
-      $('latency').textContent = `${result.elapsed} ms`;
-      $('updated').textContent =
-        'Auto-updated ' + new Date().toLocaleTimeString();
-
-      render();
-    }
-  } catch (err) {
-    // Keep the existing dashboard data if the request fails.
-  } finally {
-    autoEventsBusy = false;
-  }
-}, 1000);
 setInterval(() => {
   if (document.visibilityState !== 'visible') return;
   // Refresh visible CLOB books only; don't erase a valid book until a new response arrives.
