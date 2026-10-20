@@ -584,7 +584,7 @@ async function openDetail(id) {
     $('detailMarkets').innerHTML = markets.map(m => {
       const names = outcomeNames(m);
       const ids = marketTokens(m);
-      const outs = ids.map((token,j) => ({token:String(token),name:names[j] || `Outcome ${j+1}`}));
+    const outs = ids.map((token,j) => ({token:String(token),name:names[j] || `Outcome ${j+1}`}));
       return `<section class="marketdetail"><h3>${esc(marketLabel(m))}</h3>
         <div class="detailoutcomes">${outs.map(o => {
           const p = bookPrices(getBook(o.token,state.detailBooks));
