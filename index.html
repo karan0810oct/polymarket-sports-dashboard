@@ -421,6 +421,8 @@ function cardMarkup(e) {
 function render() {
   const eligible = allEligible();
   const visible = filterEvents();
+  console.log('DEBUG', { sport: state.sport, filter: state.filter, search: state.search, eligible: eligible.length, visible: visible.length });
+$('resultInfo').textContent = `DEBUG: ${state.sport} / ${state.filter} · ${eligible.length} eligible / ${visible.length} visible`;
   $('eventCount').textContent = state.events.length.toLocaleString();
   $('matchCount').textContent = eligible.length.toLocaleString();
   $('resultInfo').textContent = `${visible.length} matching events · real sports matches only`;
