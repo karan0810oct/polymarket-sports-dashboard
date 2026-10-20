@@ -640,9 +640,6 @@ $('detail').addEventListener('click',e => {
 });
 
 loadMore();
-  // Auto-refresh sports events every 1 second.
-// Keep existing matches if a refresh fails.
-let autoEventsBusy = false;
 setInterval(() => {
   if (document.visibilityState !== 'visible') return;
   // Refresh visible CLOB books only; don't erase a valid book until a new response arrives.
