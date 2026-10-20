@@ -499,8 +499,9 @@ async function loadMore() {
       state.offset += events.length;
       state.page++;
       addedPages++;
-      if (events.length < PAGE_SIZE || state.events.length === before) state.more = false;
-    }
+      if (state.events.length === before) {
+  state.more = false;
+}
     $('updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
   } catch (err) {
     $('connection').textContent = 'Worker error';
@@ -565,7 +566,7 @@ async function openDetail(id) {
   $('detailMarkets').innerHTML = markets.map((m,i) => {
     const names = outcomeNames(m);
     const ids = marketTokens(m);
-    const outs = ids.map((token,j) => ({token:String(token),name:names[j] || `Outcome ${j+1}`}));
+    const outs = ids.map((token,j) => ({token:yString(token),name:names[j] || `Outcome ${j+1}`}));
     return `<section class="marketdetail" data-market-index="${i}">
       <h3>${esc(marketLabel(m))}</h3>
       <div class="detailoutcomes">${outs.map(o => {
